@@ -1,0 +1,22 @@
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# 缓存与报告
+.cache/
+coverage/
+.vite/
+
+# 环境变量（含真实密钥，禁止入库）
+.env
+.env.local
+.env.*.local
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.pnpm-store/

@@ -1,0 +1,90 @@
+export interface UserProfile {
+  readonly user_id: string;
+  readonly username: string;
+  readonly phone_num: string | null;
+  readonly email: string | null;
+  readonly budget: number;
+  readonly is_active: boolean;
+  readonly created_at: string | null;
+}
+
+export interface TokenResponse {
+  readonly access_token: string;
+  readonly refresh_token: string;
+  readonly token_type: string;
+}
+
+export interface TransactionDto {
+  readonly transaction_id: number;
+  readonly amount: number;
+  readonly category: string;
+  readonly type: string | null;
+  readonly note: string | null;
+  readonly transaction_time: string;
+}
+
+export interface DashboardCategory {
+  readonly category: string;
+  readonly spent: number;
+  readonly budget: number;
+  readonly percentage: number;
+}
+
+export interface DashboardData {
+  readonly user_id: string;
+  readonly year_month: string;
+  readonly total_budget: number;
+  readonly total_spent: number;
+  readonly total_income: number;
+  readonly remaining: number;
+  readonly categories: readonly DashboardCategory[];
+  readonly recent_transactions: readonly TransactionDto[];
+}
+
+export interface SessionItem {
+  readonly session_id: string;
+  readonly title: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
+export interface ChatMessageItem {
+  readonly message_id: number;
+  readonly role: string;
+  readonly content: string;
+  readonly intent_type: string | null;
+  readonly graph_path: string | null;
+  readonly created_at: string;
+}
+
+export interface ChatSessionDetail {
+  readonly session_id: string;
+  readonly user_id: string;
+  readonly title: string;
+  readonly messages: readonly ChatMessageItem[];
+}
+
+export interface ChatResponse {
+  readonly session_id: string;
+  readonly user_id: string;
+  readonly message: string;
+  readonly response: string;
+  readonly intent_type: string | null;
+  readonly graph_path: string | null;
+}
+
+export interface BudgetResponse {
+  readonly user_id: string;
+  readonly year_month: string;
+  readonly total_budget: number;
+  readonly categories: readonly { category: string; monthly_limit: number }[];
+  readonly total_allocated: number;
+  readonly remaining_unallocated: number;
+  readonly is_valid: boolean;
+}
+
+export interface TransactionsResponse {
+  readonly user_id: string;
+  readonly total: number;
+  readonly transactions: readonly TransactionDto[];
+}

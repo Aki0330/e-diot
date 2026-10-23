@@ -1,0 +1,20 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 11 的构建脚本白名单（allowBuilds，旧名 onlyBuiltDependencies）
+# 只允许 esbuild（vite / vitest / tsx 的依赖）执行安装脚本
+allowBuilds:
+  esbuild: true
+
+# 供应链延迟策略的例外：vite 8.3.5 发布不足最小等待期，安装时被记录在此
+minimumReleaseAgeExclude:
+  - vite@8.3.5
+  - "@pnpm/exe@11.28.7"
+  - "@pnpm/linux-arm64@11.28.7"
+  - "@pnpm/linux-x64@11.28.7"
+  - "@pnpm/linuxstatic-x64@11.28.7"
+  - "@pnpm/macos-arm64@11.28.7"
+  - "@pnpm/win-arm64@11.28.7"
+  - "@pnpm/win-x64@11.28.7"
+  - "@fastify/static@10.1.7"

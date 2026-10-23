@@ -1,0 +1,41 @@
+{
+  "name": "cyberbudget",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CyberBudget 智能记账 —— TypeScript 重构（Fastify + Drizzle + MCP + React）",
+  "packageManager": "pnpm@11.28.7",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "dev:api": "pnpm --filter @cyberbudget/api dev",
+    "dev:web": "pnpm --filter @cyberbudget/web dev",
+    "dev:mcp": "pnpm --filter @cyberbudget/mcp dev",
+    "mcp:start": "pnpm --filter @cyberbudget/mcp start",
+    "db:generate": "pnpm --filter @cyberbudget/db db:generate",
+    "db:migrate": "pnpm --filter @cyberbudget/db db:migrate",
+    "db:baseline": "pnpm --filter @cyberbudget/db db:baseline",
+    "start": "pnpm --filter @cyberbudget/api start"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.39.5",
+    "globals": "^16.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^3.2.7"
+  }
+}

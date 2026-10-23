@@ -1,0 +1,142 @@
+networks:
+  cyber-budget-network:
+    driver: bridge
+
+volumes:
+  pgsql_data:
+  pgadmin_data:
+  etcd_data:
+  minio_data:
+  milvus_data:
+  redis_data:
+
+services:
+  # ============================================================================
+  # 1. 关系型数据库：PostgreSQL (存储用户账户、交易流水、账单分类)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: cyber-budget-postgres
+    environment:
+      POSTGRES_DB: cyber_budget_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgsql_data:/var/lib/postgresql/data
+    networks:
+      - cyber-budget-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL 可视化管理后台 (浏览器访问 http://localhost:8080)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cyber-budget-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - cyber-budget-network
+    depends_on:
+      - postgres
+
+  # ============================================================================
+  # 2. 内存缓存与状态存储：Redis (用于 LangGraph Checkpoint 与快速缓存)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: cyber-budget-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cyber-budget-network
+
+  # ============================================================================
+  # 3. Milvus 依赖项：Etcd (元数据协调)
+  # ============================================================================
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: cyber-budget-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - etcd_data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls=http://0.0.0.0:2379 --data-dir=/etcd
+    networks:
+      - cyber-budget-network
+
+  # ============================================================================
+  # 4. Milvus 依赖项：MinIO (向量索引持久化存储)
+  # ============================================================================
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: cyber-budget-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    networks:
+      - cyber-budget-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ============================================================================
+  # 5. 向量数据库：Milvus Standalone (存储吃土/回血/平替文本向量)
+  # ============================================================================
+  milvus:
+    image: milvusdb/milvus:v2.4.0
+    container_name: cyber-budget-milvus
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    volumes:
+      - milvus_data:/var/lib/milvus
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    networks:
+      - cyber-budget-network
+    depends_on:
+      - etcd
+      - minio
+
+  # ============================================================================
+  # 6. Milvus GUI 界面：Attu (浏览器访问 http://localhost:3100)
+  #    宿主端口从 8000 改成 3100：旧版 Attu 占用 8000，与 API 默认端口冲突
+  # ============================================================================
+  attu:
+    image: zilliz/attu:v2.4.0
+    container_name: cyber-budget-attu
+    environment:
+      MILVUS_URL: milvus:19530
+    ports:
+      - "3100:3000"
+    networks:
+      - cyber-budget-network
+    depends_on:
+      - milvus

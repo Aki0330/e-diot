@@ -1,0 +1,10 @@
+# 统一按 LF 入库与检出，避免 Windows 上 CRLF 导致 Prettier/ESLint 抖动
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

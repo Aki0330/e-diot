@@ -1,0 +1,204 @@
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+
+import { performWebSearch, type WebSearchOptions } from "./tavily.js";
+
+/**
+ * MCP Server 组装（对应旧 `backend/mcp/server.py`）。
+ *
+ * P4a 范围：BMI、长任务（进度通知）、Tavily 联网搜索、两个资源、一个 prompt。
+ * `knowledge_search`（Milvus + BGE-M3 + Reranker）留到 P4b，先返回明确的占位提示，
+ * 工具签名与旧实现保持一致，客户端不需要改。
+ */
+
+export const MCP_SERVER_NAME = "My Advanced MCP Server";
+export const MCP_SERVER_VERSION = "1.0.0";
+
+export interface McpServerDeps extends WebSearchOptions {
+  /** 长任务每步等待时间，测试可注入 0 */
+  readonly sleep?: (ms: number) => Promise<void>;
+}
+
+const defaultSleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+function text(value: string): { content: { type: "text"; text: string }[] } {
+  return { content: [{ type: "text", text: value }] };
+}
+
+export function createMcpServer(deps: McpServerDeps): McpServer {
+  const server = new McpServer(
+    { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
+    // 长任务要用 notifications/message 汇报进度，需要声明 logging 能力
+    { capabilities: { logging: {} } },
+  );
+  const sleep = deps.sleep ?? defaultSleep;
+
+  // ── Tool: BMI ──
+  server.registerTool(
+    "calculate_bmi",
+    {
+      title: "BMI 计算器",
+      description: "计算人体体质指数 (BMI)。weight_kg: 体重（千克），height_m: 身高（米）",
+      inputSchema: { weight_kg: z.number(), height_m: z.number() },
+    },
+    ({ weight_kg, height_m }) => {
+      if (height_m <= 0) {
+        return text("错误：身高必须大于 0");
+      }
+      const bmi = weight_kg / height_m ** 2;
+      const category = bmi < 18.5 ? "偏瘦" : bmi < 24 ? "正常" : "偏胖";
+      return text(`BMI 指数为: ${bmi.toFixed(2)}，属于【${category}】区间。`);
+    },
+  );
+
+  // ── Tool: 长任务 + 进度通知 ──
+  server.registerTool(
+    "long_running_task",
+    {
+      title: "耗时任务（进度通知）",
+      description: "模拟一个耗时的异步任务，并向客户端汇报进度。steps: 步数",
+      inputSchema: { steps: z.number().int().min(1).max(50) },
+    },
+    async ({ steps }, extra) => {
+      const progressToken = extra._meta?.progressToken;
+
+      for (let step = 1; step <= steps; step += 1) {
+        await sleep(500);
+
+        if (progressToken !== undefined) {
+          await extra.sendNotification({
+            method: "notifications/progress",
+            params: { progressToken, progress: step, total: steps },
+          });
+        }
+        await extra.sendNotification({
+          method: "notifications/message",
+          params: { level: "info", data: `已完成第 ${step}/${steps} 步` },
+        });
+      }
+
+      return text(`成功完成全部 ${steps} 个步骤！`);
+    },
+  );
+
+  // ── Tool: Tavily 联网搜索 ──
+  server.registerTool(
+    "web_search",
+    {
+      title: "联网搜索 / 深度研究",
+      description:
+        "使用 Tavily API 进行联网搜索（search）或深度研究（research）。" +
+        "research 模式会提交异步任务并轮询结果（最多约 90 秒）。",
+      inputSchema: {
+        query: z.string().min(1),
+        mode: z.enum(["search", "research"]).default("search"),
+        search_depth: z.enum(["basic", "advanced"]).default("basic"),
+        max_results: z.number().int().min(0).max(20).default(5),
+        include_answer: z.enum(["basic", "advanced", "none"]).default("basic"),
+        topic: z.enum(["general", "news", "finance"]).default("general"),
+      },
+    },
+    async (args) =>
+      text(
+        await performWebSearch(
+          {
+            query: args.query,
+            mode: args.mode,
+            searchDepth: args.search_depth,
+            maxResults: args.max_results,
+            includeAnswer: args.include_answer,
+            topic: args.topic,
+          },
+          deps,
+        ),
+      ),
+  );
+
+  // ── Tool: 知识库检索（P4b 接入 Milvus） ──
+  server.registerTool(
+    "knowledge_search",
+    {
+      title: "知识库混合检索（暂未接入）",
+      description:
+        "基于 BGE-M3 双向量 + Milvus 混合检索 + Reranker 的知识库查询。" +
+        "当前为 P4a 占位实现，Milvus 检索将在 P4b 接入。",
+      inputSchema: {
+        query: z.string().min(1),
+        top_k: z.number().int().min(1).max(10).default(3),
+        category_filter: z.string().default(""),
+        candidate_pool: z.number().int().min(1).max(50).default(10),
+      },
+    },
+    ({ query }) =>
+      text(`⚠️ 知识库检索尚未接入（P4b 将接入 Milvus + 推理 sidecar）。\n` + `🔍 查询: "${query}"`),
+  );
+
+  // ── Resource: 系统状态 ──
+  server.registerResource(
+    "system-status",
+    "system://status",
+    {
+      title: "系统状态",
+      description: "服务端当前的系统运行状态",
+      mimeType: "application/json",
+    },
+    (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify({
+            status: "online",
+            version: MCP_SERVER_VERSION,
+            services: ["database", "cache"],
+          }),
+        },
+      ],
+    }),
+  );
+
+  // ── Resource: 用户 Profile（模板） ──
+  const userProfileTemplate = new ResourceTemplate("users://{user_id}/profile", {
+    list: undefined,
+  });
+  server.registerResource(
+    "user-profile",
+    userProfileTemplate,
+    { title: "用户 Profile", description: "根据用户 ID 返回 Profile 信息", mimeType: "text/plain" },
+    (uri, variables) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "text/plain",
+          text: `用户信息: ID=${String(variables.user_id)}, 角色=管理员, 状态=活跃`,
+        },
+      ],
+    }),
+  );
+
+  // ── Prompt: 代码审查 ──
+  server.registerPrompt(
+    "code_review_prompt",
+    {
+      title: "代码审查",
+      description: "生成专业的代码审查提示词",
+      argsSchema: { language: z.string(), code: z.string() },
+    },
+    ({ language, code }) => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `你是一位精通 ${language} 的高级工程师。\n请审查以下代码，检查性能问题、安全隐患以及代码规范：\n\n\`\`\`\n${code}\n\`\`\`\n`,
+          },
+        },
+      ],
+    }),
+  );
+
+  return server;
+}
