@@ -6,15 +6,17 @@ import { AuthPage } from "./pages/AuthPage.js";
 import { BudgetPage } from "./pages/BudgetPage.js";
 import { ChatPage } from "./pages/ChatPage.js";
 import { DashboardPage } from "./pages/DashboardPage.js";
+import { ProfilePage } from "./pages/ProfilePage.js";
 import { TransactionsPage } from "./pages/TransactionsPage.js";
 
-type Tab = "chat" | "dashboard" | "budget" | "transactions";
+type Tab = "chat" | "dashboard" | "budget" | "transactions" | "profile";
 
 const TABS: readonly { id: Tab; icon: string; label: string }[] = [
   { id: "chat", icon: "💬", label: "AI助手" },
   { id: "dashboard", icon: "📊", label: "总览" },
   { id: "budget", icon: "💰", label: "预算" },
   { id: "transactions", icon: "📝", label: "账单" },
+  { id: "profile", icon: "👤", label: "我的" },
 ];
 
 /**
@@ -129,6 +131,9 @@ export function App() {
           style={{ display: tab === "transactions" ? "block" : "none" }}
         >
           <TransactionsPage active={tab === "transactions"} refreshKey={refreshKey} />
+        </div>
+        <div className="page-wrapper" style={{ display: tab === "profile" ? "block" : "none" }}>
+          <ProfilePage active={tab === "profile"} />
         </div>
       </main>
 

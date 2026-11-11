@@ -8,6 +8,13 @@
       "when": 1792654875630,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794415444562,
+      "tag": "0001_user_llm_config",
+      "breakpoints": true
     }
   ]
 }

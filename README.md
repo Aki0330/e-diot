@@ -138,6 +138,7 @@ e-diot/
 | POST       | `/api/v1/auth/refresh`              | 只接受 `type=refresh` 的 token                                 |
 | GET        | `/api/v1/users/me`                  | 当前用户资料                                                   |
 | POST       | `/api/v1/users/set_budget`          | 更新月度总预算                                                 |
+| GET/PUT    | `/api/v1/users/llm-config`          | 用户级 LLM 配置（base_url + key；key 只回传是否已配置）        |
 | POST       | `/api/v1/budget/agent`              | Agent 解析 + MERGE（P2 阶段 Agent 是占位实现）                 |
 | POST       | `/api/v1/budget/manual`             | 全量替换；超总额→422，未设总预算→400                           |
 | POST       | `/api/v1/chat`                      | 对话 + 会话/消息持久化 + `graph_path` 追踪                     |
@@ -167,10 +168,10 @@ e-diot/
 ```
 api/        client.ts（fetch 封装、token、401 自动登出）、types.ts（响应 DTO）
 components/ Toast.tsx（上下文 + 2.5s 自动隐藏）、Modal.tsx（遮罩关闭 / 异步确认）
-pages/      AuthPage / ChatPage / DashboardPage / BudgetPage / TransactionsPage
+pages/      AuthPage / ChatPage / DashboardPage / BudgetPage / TransactionsPage / ProfilePage
 utils/      format.ts（金额千分位、日期、分类 emoji、消息格式化）
-style.css   旧 frontend/css/style.css 原样复用
-App.tsx     登录态 + 顶栏 + 4 页 + 底部导航（页面常驻，切 Tab 不丢对话状态）
+style.css   旧 frontend/css/style.css 原样复用 + 个人页样式
+App.tsx     登录态 + 顶栏 + 5 页 + 底部导航（页面常驻，切 Tab 不丢对话状态）
 ```
 
 - **登录/注册**：token 存 `localStorage.cb_token`，刷新后自动用 `/users/me` 恢复登录态。
@@ -180,6 +181,8 @@ App.tsx     登录态 + 顶栏 + 4 页 + 底部导航（页面常驻，切 Tab �
   最近 5 笔交易。
 - **预算 Tab**：总预算卡（已分配/剩余）+ 3 个弹窗（AI 自然语言分配 / 手动多行分配 / 设定总预算），提交后自动刷新。
 - **账单 Tab**：分类筛选 chips、交易列表（金额正负色、备注、时间）。
+- **我的 Tab**：账户信息（user_id/手机号/邮箱/预算/注册时间/状态）+ 用户级 LLM 配置
+  （`base_url` + `api_key`，保存后下一次对话即生效；密钥只落库、不回传，清除后回落到全局 `LLM_*`）。
 - **数据联动**：对话里出现「花了/赚了/买了/预算/分配」时，其余三个 Tab 的数据失效并在下次切换时刷新。
 - **同源托管**：`apps/api` 注册 `@fastify/static`，`apps/web/dist` 存在时 `GET /` 直接返回前端；缺失时跳过，
   只跑 API 或测试不受影响。

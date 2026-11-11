@@ -470,6 +470,63 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(again.statusCode).toBe(404);
   });
 
+  it("LLM 配置：默认未配置，保存后只回传状态不回传密钥", async () => {
+    const initial = await app.inject({
+      method: "GET",
+      url: "/api/v1/users/llm-config",
+      headers: auth(),
+    });
+    expect(initial.statusCode).toBe(200);
+    const initialBody = initial.json<{
+      base_url: string | null;
+      has_api_key: boolean;
+      model: string;
+    }>();
+    expect(initialBody.base_url).toBeNull();
+    expect(initialBody.has_api_key).toBe(false);
+    expect(initialBody.model.length).toBeGreaterThan(0);
+
+    const saved = await app.inject({
+      method: "PUT",
+      url: "/api/v1/users/llm-config",
+      headers: auth(),
+      payload: { base_url: "https://llm.example.com/v1", api_key: "sk-test-secret" },
+    });
+    expect(saved.statusCode).toBe(200);
+    expect(saved.body).not.toContain("sk-test-secret");
+    const savedBody = saved.json<{ base_url: string | null; has_api_key: boolean }>();
+    expect(savedBody.base_url).toBe("https://llm.example.com/v1");
+    expect(savedBody.has_api_key).toBe(true);
+
+    const me = await app.inject({ method: "GET", url: "/api/v1/users/me", headers: auth() });
+    const meBody = me.json<{ has_llm_key: boolean; llm_base_url: string | null }>();
+    expect(meBody.has_llm_key).toBe(true);
+    expect(meBody.llm_base_url).toBe("https://llm.example.com/v1");
+    expect(me.body).not.toContain("sk-test-secret");
+
+    const cleared = await app.inject({
+      method: "PUT",
+      url: "/api/v1/users/llm-config",
+      headers: auth(),
+      payload: { base_url: "", api_key: "" },
+    });
+    expect(cleared.statusCode).toBe(200);
+    const clearedBody = cleared.json<{ base_url: string | null; has_api_key: boolean }>();
+    expect(clearedBody.base_url).toBeNull();
+    expect(clearedBody.has_api_key).toBe(false);
+  });
+
+  it("LLM 配置：非法 base_url 返回校验错误", async () => {
+    const response = await app.inject({
+      method: "PUT",
+      url: "/api/v1/users/llm-config",
+      headers: auth(),
+      payload: { base_url: "ftp://llm.example.com", api_key: "sk-test-secret" },
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json<{ code: string }>().code).toBe("BAD_REQUEST");
+  });
+
   it("OpenAPI 文档可访问且包含全部业务路径", async () => {
     const response = await app.inject({ method: "GET", url: "/docs/json" });
 

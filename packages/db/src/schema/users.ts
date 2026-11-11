@@ -30,6 +30,9 @@ export const users = pgTable(
     monthlyBudget: numeric("monthly_budget", { precision: 12, scale: 2 }).default("0"),
     currency: varchar("currency", { length: 10 }).default("CNY"),
     isActive: boolean("is_active").default(true),
+    /** 用户级 LLM 覆盖：两者都非空时优先于全局 LLM_BASE_URL / LLM_API_KEY */
+    llmBaseUrl: varchar("llm_base_url", { length: 255 }),
+    llmApiKey: varchar("llm_api_key", { length: 500 }),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),

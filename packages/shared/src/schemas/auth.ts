@@ -70,6 +70,39 @@ export const userProfileResponseSchema = z.object({
   budget: z.number(),
   is_active: z.boolean(),
   created_at: z.string().nullable().optional(),
+  /** 用户自配的 LLM base_url（不含密钥） */
+  llm_base_url: z.string().nullable().optional(),
+  has_llm_key: z.boolean().optional(),
 });
 
 export type UserProfileResponse = z.infer<typeof userProfileResponseSchema>;
+
+/** 用户级 LLM 配置（密钥只回传「是否已配置」，绝不回传明文） */
+export const llmConfigResponseSchema = z.object({
+  base_url: z.string().nullable(),
+  has_api_key: z.boolean(),
+  model: z.string(),
+});
+
+export type LlmConfigResponse = z.infer<typeof llmConfigResponseSchema>;
+
+const llmBaseUrlSchema = z
+  .string()
+  .max(255, "base_url 最长 255 个字符")
+  .refine(
+    (value) => value === "" || /^https?:\/\/\S+$/i.test(value),
+    "base_url 必须是 http(s) URL，留空表示清除",
+  );
+
+export const updateLlmConfigRequestSchema = z
+  .object({
+    /** 传空字符串表示清除；不传表示保持原值 */
+    base_url: llmBaseUrlSchema.nullable().optional(),
+    /** 传空字符串表示清除；不传表示保持原值 */
+    api_key: z.string().max(500, "api_key 最长 500 个字符").nullable().optional(),
+  })
+  .refine((value) => value.base_url !== undefined || value.api_key !== undefined, {
+    message: "至少提供一个字段",
+  });
+
+export type UpdateLlmConfigRequest = z.infer<typeof updateLlmConfigRequestSchema>;

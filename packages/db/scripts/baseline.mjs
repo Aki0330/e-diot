@@ -75,7 +75,9 @@ try {
     const lastCreatedAt = applied.rows[0]?.created_at;
     let inserted = 0;
 
-    for (const migration of migrations) {
+    // 只把「初始迁移」记为已应用：旧库的表结构对应 baseline，
+    // 之后新增的迁移（0001+）必须由 db:migrate 真正执行。
+    for (const migration of migrations.slice(0, 1)) {
       if (lastCreatedAt !== undefined && Number(lastCreatedAt) >= migration.createdAt) {
         console.log(`已存在，跳过：${migration.tag}`);
         continue;

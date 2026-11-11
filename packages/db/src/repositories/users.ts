@@ -56,6 +56,29 @@ export async function markLogin(
   await db.update(users).set({ lastLoginAt: at, updatedAt: at }).where(eq(users.userId, userId));
 }
 
+export interface LlmConfigPatch {
+  readonly baseUrl?: string | null;
+  readonly apiKey?: string | null;
+}
+
+/** 用户级 LLM 覆盖配置；只更新显式传入的字段（undefined 表示保持原值） */
+export async function updateLlmConfig(
+  db: Executor,
+  userId: string,
+  patch: LlmConfigPatch,
+): Promise<UserRow | undefined> {
+  const rows = await db
+    .update(users)
+    .set({
+      ...(patch.baseUrl === undefined ? {} : { llmBaseUrl: patch.baseUrl }),
+      ...(patch.apiKey === undefined ? {} : { llmApiKey: patch.apiKey }),
+      updatedAt: new Date(),
+    })
+    .where(eq(users.userId, userId))
+    .returning();
+  return rows[0];
+}
+
 async function exists(db: Executor, condition: SQL | undefined): Promise<boolean> {
   if (condition === undefined) return false;
   const rows = await db

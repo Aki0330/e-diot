@@ -21,6 +21,8 @@ export function toUserProfile(row: UserRow): UserProfileResponse {
     budget: toMoneyNumber(row.monthlyBudget ?? "0"),
     is_active: row.isActive ?? false,
     created_at: row.createdAt?.toISOString() ?? null,
+    llm_base_url: row.llmBaseUrl,
+    has_llm_key: (row.llmApiKey ?? "").trim() !== "",
   };
 }
 

@@ -6,6 +6,15 @@ export interface UserProfile {
   readonly budget: number;
   readonly is_active: boolean;
   readonly created_at: string | null;
+  readonly llm_base_url?: string | null;
+  readonly has_llm_key?: boolean;
+}
+
+/** 用户级 LLM 配置（接口不会回传密钥明文） */
+export interface LlmConfig {
+  readonly base_url: string | null;
+  readonly has_api_key: boolean;
+  readonly model: string;
 }
 
 export interface TokenResponse {

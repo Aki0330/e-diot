@@ -2,6 +2,7 @@ import type {
   ChatResponse,
   ChatSessionDetail,
   DashboardData,
+  LlmConfig,
   TokenResponse,
   TransactionsResponse,
   UserProfile,
@@ -43,7 +44,7 @@ export class ApiError extends Error {
 }
 
 interface ApiOptions {
-  readonly method?: "GET" | "POST" | "DELETE";
+  readonly method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   readonly body?: unknown;
 }
 
@@ -83,6 +84,9 @@ export const api = {
   me: () => request<UserProfile>("/users/me"),
   setBudget: (budget: number) =>
     request<UserProfile>("/users/set_budget", { method: "POST", body: { budget } }),
+  llmConfig: () => request<LlmConfig>("/users/llm-config"),
+  saveLlmConfig: (body: { base_url?: string; api_key?: string }) =>
+    request<LlmConfig>("/users/llm-config", { method: "PUT", body }),
   dashboard: () => request<DashboardData>("/chat/dashboard"),
   transactions: (category: string) =>
     request<TransactionsResponse>(
