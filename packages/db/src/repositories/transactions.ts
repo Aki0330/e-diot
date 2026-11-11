@@ -20,6 +20,43 @@ export interface ListTransactionsParams {
   readonly limit?: number;
 }
 
+/** 交易可更新字段（金额用 numeric(12,2) 字符串传给驱动） */
+export interface TransactionPatch {
+  readonly amount?: string;
+  readonly type?: TransactionType;
+  readonly category?: string;
+  readonly note?: string | null;
+  readonly transactionTime?: Date;
+}
+
+/** 按 id + 归属更新；不存在或不属于该用户时返回 undefined（路由统一转 404） */
+export async function updateTransaction(
+  db: Executor,
+  userId: string,
+  transactionId: number,
+  patch: TransactionPatch,
+): Promise<TransactionRow | undefined> {
+  const rows = await db
+    .update(transactions)
+    .set({ ...patch })
+    .where(and(eq(transactions.transactionId, transactionId), eq(transactions.userId, userId)))
+    .returning();
+  return rows[0];
+}
+
+/** 按 id + 归属删除；返回是否真的删掉了 */
+export async function deleteTransaction(
+  db: Executor,
+  userId: string,
+  transactionId: number,
+): Promise<boolean> {
+  const rows = await db
+    .delete(transactions)
+    .where(and(eq(transactions.transactionId, transactionId), eq(transactions.userId, userId)))
+    .returning({ transactionId: transactions.transactionId });
+  return rows.length > 0;
+}
+
 /** 按时间倒序取交易；`limit` 上限 100（与旧 `/chat/transactions` 一致） */
 export async function listTransactions(
   db: Executor,

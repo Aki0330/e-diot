@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 
-import { insertTransaction } from "@cyberbudget/db";
+import { insertTransaction, insertUser } from "@cyberbudget/db";
 import {
   generateUserId,
   parseConfig,
@@ -333,6 +333,141 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
       headers: auth(),
     });
     expect(missing.statusCode).toBe(404);
+  });
+
+  it("更新交易：部分字段生效，其余保持不变", async () => {
+    const created = await insertTransaction(app.db, {
+      userId,
+      amount: "10.00",
+      type: "EXPENSE",
+      category: "其他",
+      note: "旧备注",
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/chat/transactions/${created.transactionId}`,
+      headers: auth(),
+      payload: { amount: 88.5, category: "餐饮", note: "改过" },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json<{
+      transaction_id: number;
+      amount: number;
+      category: string;
+      note: string;
+      type: string;
+    }>();
+    expect(body.transaction_id).toBe(created.transactionId);
+    expect(body.amount).toBe(88.5);
+    expect(body.category).toBe("餐饮");
+    expect(body.note).toBe("改过");
+    expect(body.type).toBe("EXPENSE");
+  });
+
+  it("更新交易：空 body 返回校验错误", async () => {
+    const created = await insertTransaction(app.db, {
+      userId,
+      amount: "1.00",
+      type: "EXPENSE",
+      category: "其他",
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/chat/transactions/${created.transactionId}`,
+      headers: auth(),
+      payload: {},
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json<{ code: string }>().code).toBe("BAD_REQUEST");
+  });
+
+  it("更新/删除不存在的交易返回 404", async () => {
+    const patch = await app.inject({
+      method: "PATCH",
+      url: "/api/v1/chat/transactions/99999999",
+      headers: auth(),
+      payload: { note: "x" },
+    });
+    expect(patch.statusCode).toBe(404);
+    expect(patch.json<{ code: string }>().code).toBe("NOT_FOUND");
+
+    const remove = await app.inject({
+      method: "DELETE",
+      url: "/api/v1/chat/transactions/99999999",
+      headers: auth(),
+    });
+    expect(remove.statusCode).toBe(404);
+  });
+
+  it("不能更新/删除其他用户的交易（404）", async () => {
+    const otherPhone = `137${String(randomInt(10_000_000, 99_999_999))}`;
+    const otherUserId = generateUserId({ phoneNum: otherPhone });
+    await insertUser(app.db, {
+      userId: otherUserId,
+      username: `other-${otherPhone}`,
+      phoneNum: otherPhone,
+      passwordHash: "not-used-in-tests",
+    });
+    const othersTx = await insertTransaction(app.db, {
+      userId: otherUserId,
+      amount: "5.00",
+      type: "EXPENSE",
+      category: "其他",
+    });
+
+    const patch = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/chat/transactions/${othersTx.transactionId}`,
+      headers: auth(),
+      payload: { note: "hack" },
+    });
+    expect(patch.statusCode).toBe(404);
+
+    const remove = await app.inject({
+      method: "DELETE",
+      url: `/api/v1/chat/transactions/${othersTx.transactionId}`,
+      headers: auth(),
+    });
+    expect(remove.statusCode).toBe(404);
+  });
+
+  it("删除交易后列表不再包含，重复删除返回 404", async () => {
+    const created = await insertTransaction(app.db, {
+      userId,
+      amount: "66.00",
+      type: "EXPENSE",
+      category: "购物",
+      note: "待删除",
+    });
+
+    const removed = await app.inject({
+      method: "DELETE",
+      url: `/api/v1/chat/transactions/${created.transactionId}`,
+      headers: auth(),
+    });
+    expect(removed.statusCode).toBe(200);
+    expect(removed.json<{ deleted: number }>().deleted).toBe(created.transactionId);
+
+    const list = await app.inject({
+      method: "GET",
+      url: "/api/v1/chat/transactions?limit=100",
+      headers: auth(),
+    });
+    const ids = list
+      .json<{ transactions: { transaction_id: number }[] }>()
+      .transactions.map((tx) => tx.transaction_id);
+    expect(ids).not.toContain(created.transactionId);
+
+    const again = await app.inject({
+      method: "DELETE",
+      url: `/api/v1/chat/transactions/${created.transactionId}`,
+      headers: auth(),
+    });
+    expect(again.statusCode).toBe(404);
   });
 
   it("OpenAPI 文档可访问且包含全部业务路径", async () => {

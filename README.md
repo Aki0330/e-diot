@@ -145,6 +145,8 @@ e-diot/
 | GET/DELETE | `/api/v1/chat/sessions/:session_id` | 会话详情 / 删除（级联消息）                                    |
 | GET        | `/api/v1/chat/dashboard`            | 当月总览（UTC 口径、分类百分比、最近 10 条）                   |
 | GET        | `/api/v1/chat/transactions`         | 流水（`limit`、`category`）                                    |
+| PATCH      | `/api/v1/chat/transactions/:id`     | 更新交易（部分字段；归属校验，非本人→404）                     |
+| DELETE     | `/api/v1/chat/transactions/:id`     | 删除交易（归属校验，非本人→404）                               |
 
 - **JWT**：`jose` HS256，payload 为 `sub/username/phone_num/email/exp/iat`（秒）；refresh token 打 `type=refresh` 标记，
   业务接口收到直接 401（方案 5.2）。

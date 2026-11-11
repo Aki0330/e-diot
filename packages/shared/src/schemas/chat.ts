@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { positiveMoneySchema } from "./common.js";
+
 /**
  * 对话 / 会话 / 仪表盘 / 交易列表的请求与响应 schema。
  * 字段名全部 snake_case，与旧前端 `frontend/js/app.js` 读取的字段保持一致。
@@ -87,6 +89,30 @@ export const transactionsResponseSchema = z.object({
 });
 
 export type TransactionsResponse = z.infer<typeof transactionsResponseSchema>;
+
+/**
+ * 交易更新（P6 补全的 CRUD）：部分字段更新，至少提供一个字段。
+ * `note` 允许显式置空（null），其余字段不接受 null。
+ */
+export const updateTransactionRequestSchema = z
+  .object({
+    amount: positiveMoneySchema.optional(),
+    type: z.enum(["EXPENSE", "INCOME"]).optional(),
+    category: z.string().min(1, "分类不能为空").max(50, "分类最长 50 个字符").optional(),
+    note: z.string().max(2000, "备注最长 2000 个字符").nullable().optional(),
+    transaction_time: z.coerce.date().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "至少提供一个要更新的字段",
+  });
+
+export type UpdateTransactionRequest = z.infer<typeof updateTransactionRequestSchema>;
+
+export const deleteTransactionResponseSchema = z.object({
+  deleted: z.number().int().positive(),
+});
+
+export type DeleteTransactionResponse = z.infer<typeof deleteTransactionResponseSchema>;
 
 export const dashboardCategorySchema = z.object({
   category: z.string(),

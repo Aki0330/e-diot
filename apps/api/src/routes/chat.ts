@@ -4,6 +4,7 @@ import {
   appendMessage,
   createSession,
   deleteSession,
+  deleteTransaction,
   findSessionById,
   listMessages,
   listMonthBudgets,
@@ -12,7 +13,9 @@ import {
   sumAmountSince,
   sumByCategorySince,
   touchSession,
+  updateTransaction,
   type CategoryLimitRow,
+  type TransactionPatch,
 } from "@cyberbudget/db";
 import {
   AppError,
@@ -21,16 +24,22 @@ import {
   chatResponseSchema,
   dashboardResponseSchema,
   deleteSessionResponseSchema,
+  deleteTransactionResponseSchema,
+  formatCents,
   formatYearMonthUtc,
   monthStartUtc,
   parseCents,
   sessionDetailResponseSchema,
   sessionListResponseSchema,
+  transactionItemDtoSchema,
   transactionsResponseSchema,
+  updateTransactionRequestSchema,
   type ChatResponse,
   type DashboardResponse,
+  type DeleteTransactionResponse,
   type SessionDetailResponse,
   type SessionListResponse,
+  type TransactionItemDto,
   type TransactionsResponse,
 } from "@cyberbudget/shared";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
@@ -44,6 +53,10 @@ const sessionParamsSchema = z.object({ session_id: z.string().min(1) });
 const transactionsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(30),
   category: z.string().default(""),
+});
+
+const transactionParamsSchema = z.object({
+  transaction_id: z.coerce.number().int().positive(),
 });
 
 function percentageOf(spent: string, budget: string): number {
@@ -254,6 +267,62 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
         total: rows.length,
         transactions: rows.map(toTransactionDto),
       };
+    },
+  );
+
+  // PATCH /api/v1/chat/transactions/:transaction_id —— 部分字段更新（P6 补全）
+  app.patch(
+    "/chat/transactions/:transaction_id",
+    {
+      preHandler: app.authenticate,
+      schema: {
+        params: transactionParamsSchema,
+        body: updateTransactionRequestSchema,
+        response: { 200: transactionItemDtoSchema },
+      },
+    },
+    async (request): Promise<TransactionItemDto> => {
+      const user = await requireActiveUser(app.db, currentUser(request));
+      const body = request.body;
+
+      const patch: TransactionPatch = {
+        ...(body.amount === undefined ? {} : { amount: formatCents(parseCents(body.amount)) }),
+        ...(body.type === undefined ? {} : { type: body.type }),
+        ...(body.category === undefined ? {} : { category: body.category }),
+        ...(body.note === undefined ? {} : { note: body.note }),
+        ...(body.transaction_time === undefined ? {} : { transactionTime: body.transaction_time }),
+      };
+
+      const updated = await updateTransaction(
+        app.db,
+        user.userId,
+        request.params.transaction_id,
+        patch,
+      );
+      if (updated === undefined) {
+        throw new AppError("NOT_FOUND", "交易不存在");
+      }
+      return toTransactionDto(updated);
+    },
+  );
+
+  // DELETE /api/v1/chat/transactions/:transaction_id
+  app.delete(
+    "/chat/transactions/:transaction_id",
+    {
+      preHandler: app.authenticate,
+      schema: {
+        params: transactionParamsSchema,
+        response: { 200: deleteTransactionResponseSchema },
+      },
+    },
+    async (request): Promise<DeleteTransactionResponse> => {
+      const user = await requireActiveUser(app.db, currentUser(request));
+      const deleted = await deleteTransaction(app.db, user.userId, request.params.transaction_id);
+      if (!deleted) {
+        throw new AppError("NOT_FOUND", "交易不存在");
+      }
+      return { deleted: request.params.transaction_id };
     },
   );
 };
