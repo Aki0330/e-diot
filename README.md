@@ -167,12 +167,20 @@ e-diot/
 
 ```
 api/        client.ts（fetch 封装、token、401 自动登出）、types.ts（响应 DTO）
-components/ Toast.tsx（上下文 + 2.5s 自动隐藏）、Modal.tsx（遮罩关闭 / 异步确认）
+components/ Toast.tsx、Modal.tsx、Sidebar.tsx（桌面侧栏）、Topbar.tsx（面包屑/在线状态）
 pages/      AuthPage / ChatPage / DashboardPage / BudgetPage / TransactionsPage / ProfilePage
 utils/      format.ts（金额千分位、日期、分类 emoji、消息格式化）
+tabs.ts     导航元数据（中文标签 + 等宽英文副标签 + 面包屑分组）
 style.css   旧 frontend/css/style.css 原样复用 + 个人页样式
-App.tsx     登录态 + 顶栏 + 5 页 + 底部导航（页面常驻，切 Tab 不丢对话状态）
+theme.css   Cyberpunk 主题层：色板 / 桌面侧栏 / 顶栏 / 网格与辉光 / 组件皮肤
+App.tsx     登录态 + 桌面侧栏 / 移动底部导航 + 5 页（页面常驻，切 Tab 不丢对话状态）
 ```
+
+- **视觉主题（Cyberpunk）**：深海军蓝 `#111827` + 青柠绿 `#C8F169`，内容区网格底纹、
+  侧栏扫描线与径向辉光、等宽字体小标签；登录页为深色赛博入口。
+- **桌面布局（≥1024px）**：236px 深色侧栏（5 个入口 + 用户/退出/状态）+ 顶栏面包屑与 `ONLINE`
+  状态 + 内容区最大 1120px 网格卡片；聊天页会话栏常驻。
+- **移动布局（<1024px）**：沿用单列 + 底部 5 Tab（深色底 + 青柠高亮），会话栏可折叠。
 
 - **登录/注册**：token 存 `localStorage.cb_token`，刷新后自动用 `/users/me` 恢复登录态。
 - **对话 Tab**：会话侧栏（新建/切换/删除）、欢迎页 + 5 个建议问句、消息流（头像/气泡/`msg-trace` 意图标签）、
