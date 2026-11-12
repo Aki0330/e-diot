@@ -1477,3 +1477,10 @@
     justify-content: flex-start;
   }
 }
+
+/* 移动端聊天页：恢复内容内边距，避免标题贴边被裁 */
+@media (max-width: 1023px) {
+  .page-container.chat-mode .page {
+    padding: 12px 12px 0;
+  }
+}

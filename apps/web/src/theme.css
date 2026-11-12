@@ -658,3 +658,31 @@ body {
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 62px);
   }
 }
+
+/* ---------- 聊天气泡：头像与气泡成组，宽度约束放到外层 ---------- */
+.message {
+  align-items: flex-start;
+}
+
+.message > div:last-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: 80%;
+}
+
+.message.user > div:last-child {
+  align-items: flex-end;
+}
+
+.message-bubble {
+  max-width: 100%;
+}
+
+/* 用户头像与青柠气泡区分开，避免叠在一起看不清 */
+.message.user .message-avatar {
+  background: var(--ink);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px var(--primary-soft);
+}
