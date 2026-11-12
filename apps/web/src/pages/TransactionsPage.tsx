@@ -2,11 +2,30 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "../api/client.js";
 import type { TransactionDto } from "../api/types.js";
+import { Modal } from "../components/Modal.js";
+import { useToast } from "../components/Toast.js";
 import { catEmoji, fmt } from "../utils/format.js";
 
 export interface TransactionsPageProps {
   readonly active: boolean;
   readonly refreshKey: number;
+}
+
+interface RangeFilter {
+  readonly from: string;
+  readonly to: string;
+  readonly min: string;
+  readonly max: string;
+}
+
+const EMPTY_FILTER: RangeFilter = { from: "", to: "", min: "", max: "" };
+
+interface TxForm {
+  readonly type: "EXPENSE" | "INCOME";
+  readonly amount: string;
+  readonly category: string;
+  readonly note: string;
+  readonly time: string;
 }
 
 function keyOf(iso: string | null): string {
@@ -40,23 +59,47 @@ function timeOf(iso: string | null): string {
     : `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-/** 账单页：统计条 + 搜索/分类筛选 + 按日分组 + 展开明细 */
+function toLocalInput(iso: string | null): string {
+  const date = iso === null ? new Date() : new Date(iso);
+  const pad = (value: number): string => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** 账单页：统计 + 筛选（日期/金额/分类/关键词）+ 手动新增/编辑/删除 */
 export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) {
+  const toast = useToast();
   const [transactions, setTransactions] = useState<readonly TransactionDto[]>([]);
   const [category, setCategory] = useState("全部");
   const [keyword, setKeyword] = useState("");
+  const [draft, setDraft] = useState<RangeFilter>(EMPTY_FILTER);
+  const [applied, setApplied] = useState<RangeFilter>(EMPTY_FILTER);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<TransactionDto | null>(null);
+  const [form, setForm] = useState<TxForm>({
+    type: "EXPENSE",
+    amount: "",
+    category: "",
+    note: "",
+    time: toLocalInput(null),
+  });
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (): Promise<void> => {
     try {
-      const txns = await api.transactions("");
-      setTransactions(txns.transactions);
+      const response = await api.transactions({
+        limit: 100,
+        ...(applied.from === "" ? {} : { from: applied.from }),
+        ...(applied.to === "" ? {} : { to: applied.to }),
+        ...(applied.min === "" ? {} : { minAmount: applied.min }),
+        ...(applied.max === "" ? {} : { maxAmount: applied.max }),
+      });
+      setTransactions(response.transactions);
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
-  }, []);
+  }, [applied]);
 
   useEffect(() => {
     if (active) void load();
@@ -86,12 +129,70 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
     else groups.push({ key, items: [txn] });
   });
 
-  const totalExpense = transactions
+  const totalExpense = filtered
     .filter((txn) => txn.type === "EXPENSE")
     .reduce((sum, txn) => sum + txn.amount, 0);
-  const totalIncome = transactions
+  const totalIncome = filtered
     .filter((txn) => txn.type === "INCOME")
     .reduce((sum, txn) => sum + txn.amount, 0);
+
+  const openCreate = (): void => {
+    setEditing(null);
+    setForm({
+      type: "EXPENSE",
+      amount: "",
+      category: "",
+      note: "",
+      time: toLocalInput(null),
+    });
+    setFormOpen(true);
+  };
+
+  const openEdit = (txn: TransactionDto): void => {
+    setEditing(txn);
+    setForm({
+      type: txn.type === "INCOME" ? "INCOME" : "EXPENSE",
+      amount: String(txn.amount),
+      category: txn.category,
+      note: txn.note ?? "",
+      time: toLocalInput(txn.transaction_time),
+    });
+    setFormOpen(true);
+  };
+
+  const saveForm = async (): Promise<void> => {
+    const amount = Number(form.amount);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error("请输入有效金额");
+    const categoryName = form.category.trim();
+    if (categoryName === "") throw new Error("请填写分类");
+    const payload = {
+      amount,
+      type: form.type,
+      category: categoryName,
+      note: form.note.trim() === "" ? null : form.note.trim(),
+      transaction_time: new Date(form.time).toISOString(),
+    };
+    if (editing === null) {
+      await api.createTransaction(payload);
+      toast("账单已新增", "success");
+    } else {
+      await api.updateTransaction(editing.transaction_id, payload);
+      toast("账单已更新", "success");
+    }
+    setFormOpen(false);
+    await load();
+  };
+
+  const remove = async (txn: TransactionDto): Promise<void> => {
+    if (!window.confirm(`删除这笔「${txn.note ?? txn.category}」？`)) return;
+    try {
+      await api.deleteTransaction(txn.transaction_id);
+      await load();
+      toast("账单已删除", "success");
+    } catch (cause) {
+      toast(cause instanceof Error ? cause.message : String(cause), "error");
+    }
+  };
 
   return (
     <div className="page">
@@ -99,28 +200,32 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
         <div>
           <p className="eyebrow">TRANSACTIONS · 全部流水</p>
           <h2 className="page-title">账单</h2>
-          <p className="page-desc">每笔记录都能回到它被说出来的那句话。</p>
+          <p className="page-desc">支持手动记账与错账处理；任何一笔都能回到原始备注。</p>
         </div>
-        <span className="badge ink">共 {transactions.length} 笔</span>
+        <div className="head-side">
+          <button className="btn-primary" onClick={openCreate}>
+            ＋ 新增账单
+          </button>
+        </div>
       </div>
 
       <div className="bill-top">
         <div className="bill-stat">
-          <div className="k">全部支出</div>
+          <div className="k">筛选支出</div>
           <div className="v num">
             ¥{fmt(totalExpense)}
-            <small>{transactions.filter((t) => t.type === "EXPENSE").length} 笔</small>
+            <small>{filtered.filter((t) => t.type === "EXPENSE").length} 笔</small>
           </div>
         </div>
         <div className="bill-stat income">
-          <div className="k">全部收入</div>
+          <div className="k">筛选收入</div>
           <div className="v num">
             +¥{fmt(totalIncome)}
-            <small>{transactions.filter((t) => t.type === "INCOME").length} 笔</small>
+            <small>{filtered.filter((t) => t.type === "INCOME").length} 笔</small>
           </div>
         </div>
         <div className="bill-stat">
-          <div className="k">期间结余</div>
+          <div className="k">结余</div>
           <div className="v num">
             ¥{fmt(totalIncome - totalExpense)}
             <small>收入 − 支出</small>
@@ -146,6 +251,63 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
           </label>
           <span className="badge ink">{filtered.length} 条结果</span>
         </div>
+
+        <div className="filter-grid">
+          <label>
+            开始日期
+            <input
+              type="date"
+              value={draft.from}
+              onChange={(event) => setDraft({ ...draft, from: event.target.value })}
+            />
+          </label>
+          <label>
+            结束日期
+            <input
+              type="date"
+              value={draft.to}
+              onChange={(event) => setDraft({ ...draft, to: event.target.value })}
+            />
+          </label>
+          <label>
+            最低金额
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0"
+              value={draft.min}
+              onChange={(event) => setDraft({ ...draft, min: event.target.value })}
+            />
+          </label>
+          <label>
+            最高金额
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="不限"
+              value={draft.max}
+              onChange={(event) => setDraft({ ...draft, max: event.target.value })}
+            />
+          </label>
+          <div className="filter-actions">
+            <button className="btn-primary" type="button" onClick={() => setApplied({ ...draft })}>
+              应用筛选
+            </button>
+            <button
+              className="memory-btn"
+              type="button"
+              onClick={() => {
+                setDraft(EMPTY_FILTER);
+                setApplied(EMPTY_FILTER);
+              }}
+            >
+              重置
+            </button>
+          </div>
+        </div>
+
         <div className="cat-filter">
           {categories.map((name) => (
             <button
@@ -171,13 +333,15 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
         <div className="empty">
           <div className="empty-icon">🔍</div>
           <div className="empty-title">没有符合条件的记录</div>
-          <p className="empty-desc">换个关键词，或清除筛选看全部流水。</p>
+          <p className="empty-desc">调整日期/金额范围，或清除筛选看全部流水。</p>
           <button
             className="btn-secondary"
             type="button"
             onClick={() => {
               setKeyword("");
               setCategory("全部");
+              setDraft(EMPTY_FILTER);
+              setApplied(EMPTY_FILTER);
             }}
           >
             清除筛选
@@ -261,8 +425,16 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
                             </div>
                             <div className="detail-cell">
                               <div className="k">录入方式</div>
-                              <div className="v">自然语言</div>
+                              <div className="v">手动 / 自然语言</div>
                             </div>
+                          </div>
+                          <div className="tx-actions">
+                            <button className="memory-btn" onClick={() => openEdit(txn)}>
+                              编辑
+                            </button>
+                            <button className="memory-btn danger" onClick={() => void remove(txn)}>
+                              删除
+                            </button>
                           </div>
                         </div>
                       )}
@@ -273,6 +445,71 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             );
           })}
         </div>
+      )}
+
+      {formOpen && (
+        <Modal
+          title={editing === null ? "新增账单" : "编辑账单"}
+          onClose={() => setFormOpen(false)}
+          onConfirm={saveForm}
+          confirmLabel={editing === null ? "保存账单" : "保存修改"}
+        >
+          <div className="form-group">
+            <label>类型</label>
+            <select
+              value={form.type}
+              onChange={(event) =>
+                setForm({ ...form, type: event.target.value as "EXPENSE" | "INCOME" })
+              }
+            >
+              <option value="EXPENSE">支出</option>
+              <option value="INCOME">收入</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>金额</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="如 35.50"
+              value={form.amount}
+              onChange={(event) => setForm({ ...form, amount: event.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label>分类</label>
+            <input
+              list="tx-categories"
+              placeholder="如 餐饮"
+              value={form.category}
+              onChange={(event) => setForm({ ...form, category: event.target.value })}
+            />
+            <datalist id="tx-categories">
+              {categories
+                .filter((name) => name !== "全部")
+                .map((name) => (
+                  <option key={name} value={name} />
+                ))}
+            </datalist>
+          </div>
+          <div className="form-group">
+            <label>备注</label>
+            <input
+              placeholder="可选"
+              value={form.note}
+              onChange={(event) => setForm({ ...form, note: event.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label>时间</label>
+            <input
+              type="datetime-local"
+              value={form.time}
+              onChange={(event) => setForm({ ...form, time: event.target.value })}
+            />
+          </div>
+        </Modal>
       )}
     </div>
   );

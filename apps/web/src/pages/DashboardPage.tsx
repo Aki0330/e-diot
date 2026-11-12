@@ -27,7 +27,7 @@ export function DashboardPage({ active, refreshKey }: DashboardPageProps) {
 
   const load = useCallback(async (): Promise<void> => {
     try {
-      const [dashboard, txns] = await Promise.all([api.dashboard(), api.transactions("")]);
+      const [dashboard, txns] = await Promise.all([api.dashboard(), api.transactions()]);
       setData(dashboard);
       setTransactions(txns.transactions);
       setError(null);

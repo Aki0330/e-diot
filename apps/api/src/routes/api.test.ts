@@ -589,6 +589,64 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(response.json<{ code: string }>().code).toBe("BAD_REQUEST");
   });
 
+  it("手动新增账单：支持日期与金额筛选", async () => {
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/v1/chat/transactions",
+      headers: auth(),
+      payload: {
+        amount: 123.45,
+        type: "EXPENSE",
+        category: "餐饮",
+        note: "手动补录",
+        transaction_time: "2026-11-01T12:00:00.000Z",
+      },
+    });
+    expect(created.statusCode).toBe(200);
+    const body = created.json<{ transaction_id: number; amount: number; note: string }>();
+    expect(body.amount).toBe(123.45);
+    expect(body.note).toBe("手动补录");
+
+    const inRange = await app.inject({
+      method: "GET",
+      url: "/api/v1/chat/transactions?limit=100&from=2026-11-01&to=2026-11-01&min_amount=100&max_amount=200",
+      headers: auth(),
+    });
+    expect(
+      inRange
+        .json<{ transactions: { transaction_id: number }[] }>()
+        .transactions.map((txn) => txn.transaction_id),
+    ).toContain(body.transaction_id);
+
+    const outOfRange = await app.inject({
+      method: "GET",
+      url: "/api/v1/chat/transactions?limit=100&min_amount=500",
+      headers: auth(),
+    });
+    expect(
+      outOfRange
+        .json<{ transactions: { transaction_id: number }[] }>()
+        .transactions.map((txn) => txn.transaction_id),
+    ).not.toContain(body.transaction_id);
+
+    const removed = await app.inject({
+      method: "DELETE",
+      url: `/api/v1/chat/transactions/${body.transaction_id}`,
+      headers: auth(),
+    });
+    expect(removed.statusCode).toBe(200);
+  });
+
+  it("手动新增账单：非法金额返回校验错误", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/chat/transactions",
+      headers: auth(),
+      payload: { amount: 0, type: "EXPENSE", category: "餐饮" },
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
   it("记忆：新建为待确认，确认后生效，可纠正与删除", async () => {
     const created = await app.inject({
       method: "POST",

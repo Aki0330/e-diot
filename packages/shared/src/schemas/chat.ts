@@ -115,6 +115,17 @@ export const deleteTransactionResponseSchema = z.object({
 
 export type DeleteTransactionResponse = z.infer<typeof deleteTransactionResponseSchema>;
 
+/** 手动新增账单（区别于 Agent 自动记账） */
+export const createTransactionRequestSchema = z.object({
+  amount: positiveMoneySchema,
+  type: z.enum(["EXPENSE", "INCOME"]),
+  category: z.string().min(1, "分类不能为空").max(50, "分类最长 50 个字符"),
+  note: z.string().max(2000, "备注最长 2000 个字符").nullable().optional(),
+  transaction_time: z.coerce.date().optional(),
+});
+
+export type CreateTransactionRequest = z.infer<typeof createTransactionRequestSchema>;
+
 export const dashboardCategorySchema = z.object({
   category: z.string(),
   spent: z.number(),

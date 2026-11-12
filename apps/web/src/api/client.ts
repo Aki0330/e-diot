@@ -7,6 +7,7 @@ import type {
   MemoryItem,
   MemoryType,
   TokenResponse,
+  TransactionDto,
   TransactionsResponse,
   UserProfile,
   UserSettings,
@@ -110,10 +111,47 @@ export const api = {
       body: { value },
     }),
   dashboard: () => request<DashboardData>("/chat/dashboard"),
-  transactions: (category: string) =>
-    request<TransactionsResponse>(
-      `/chat/transactions?limit=50${category === "" ? "" : `&category=${encodeURIComponent(category)}`}`,
-    ),
+  transactions: (
+    options: {
+      category?: string;
+      from?: string;
+      to?: string;
+      minAmount?: string;
+      maxAmount?: string;
+      limit?: number;
+    } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(options.limit ?? 50));
+    if (options.category !== undefined && options.category !== "")
+      params.set("category", options.category);
+    if (options.from !== undefined && options.from !== "") params.set("from", options.from);
+    if (options.to !== undefined && options.to !== "") params.set("to", options.to);
+    if (options.minAmount !== undefined && options.minAmount !== "")
+      params.set("min_amount", options.minAmount);
+    if (options.maxAmount !== undefined && options.maxAmount !== "")
+      params.set("max_amount", options.maxAmount);
+    return request<TransactionsResponse>(`/chat/transactions?${params.toString()}`);
+  },
+  createTransaction: (body: {
+    amount: number;
+    type: "EXPENSE" | "INCOME";
+    category: string;
+    note?: string | null;
+    transaction_time?: string;
+  }) => request<TransactionDto>("/chat/transactions", { method: "POST", body }),
+  updateTransaction: (
+    id: number,
+    body: {
+      amount?: number;
+      type?: "EXPENSE" | "INCOME";
+      category?: string;
+      note?: string | null;
+      transaction_time?: string;
+    },
+  ) => request<TransactionDto>(`/chat/transactions/${id}`, { method: "PATCH", body }),
+  deleteTransaction: (id: number) =>
+    request<{ deleted: number }>(`/chat/transactions/${id}`, { method: "DELETE" }),
   sessions: () =>
     request<{
       sessions: { session_id: string; title: string; created_at: string; updated_at: string }[];

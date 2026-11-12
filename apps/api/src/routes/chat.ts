@@ -7,6 +7,7 @@ import {
   deleteTransaction,
   findSessionById,
   getUserSettings,
+  insertTransaction,
   listActiveMemories,
   listMessages,
   listMonthBudgets,
@@ -24,6 +25,7 @@ import {
   centsToNumber,
   chatRequestSchema,
   chatResponseSchema,
+  createTransactionRequestSchema,
   dashboardResponseSchema,
   deleteSessionResponseSchema,
   deleteTransactionResponseSchema,
@@ -62,6 +64,16 @@ const sessionParamsSchema = z.object({ session_id: z.string().min(1) });
 const transactionsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(30),
   category: z.string().default(""),
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "from 格式应为 YYYY-MM-DD")
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "to 格式应为 YYYY-MM-DD")
+    .optional(),
+  min_amount: z.coerce.number().nonnegative().optional(),
+  max_amount: z.coerce.number().nonnegative().optional(),
 });
 
 const transactionParamsSchema = z.object({
@@ -283,6 +295,32 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
+  // POST /api/v1/chat/transactions —— 手动新增账单（补录/错账）
+  app.post(
+    "/chat/transactions",
+    {
+      preHandler: app.authenticate,
+      schema: {
+        body: createTransactionRequestSchema,
+        response: { 200: transactionItemDtoSchema },
+      },
+    },
+    async (request): Promise<TransactionItemDto> => {
+      const user = await requireActiveUser(app.db, currentUser(request));
+      const body = request.body;
+      const row = await insertTransaction(app.db, {
+        userId: user.userId,
+        amount: formatCents(parseCents(body.amount)),
+        type: body.type,
+        category: body.category,
+        note: body.note ?? null,
+        transactionTime: body.transaction_time ?? new Date(),
+        rawText: null,
+      });
+      return toTransactionDto(row);
+    },
+  );
+
   // GET /api/v1/chat/transactions
   app.get(
     "/chat/transactions",
@@ -295,12 +333,16 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request): Promise<TransactionsResponse> => {
       const user = await requireActiveUser(app.db, currentUser(request));
-      const { limit, category } = request.query;
+      const { limit, category, from, to, min_amount, max_amount } = request.query;
 
       const rows = await listTransactions(app.db, {
         userId: user.userId,
         limit,
         ...(category === "" ? {} : { category }),
+        ...(from === undefined ? {} : { from: new Date(`${from}T00:00:00.000Z`) }),
+        ...(to === undefined ? {} : { to: new Date(`${to}T23:59:59.999Z`) }),
+        ...(min_amount === undefined ? {} : { minAmount: formatCents(parseCents(min_amount)) }),
+        ...(max_amount === undefined ? {} : { maxAmount: formatCents(parseCents(max_amount)) }),
       });
 
       return {

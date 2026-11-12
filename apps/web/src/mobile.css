@@ -289,3 +289,17 @@
   inset: 0;
   border-radius: inherit;
 }
+
+/* 手机框内的弹窗：相对手机屏幕定位 */
+.mobile-screen .modal-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.mobile-screen .modal-sheet {
+  max-width: none;
+}
+
+.mobile-screen .modal-sheet {
+  position: relative;
+}

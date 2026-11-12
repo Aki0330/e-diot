@@ -1,5 +1,5 @@
 import type { TransactionType } from "@cyberbudget/shared";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 import type { Executor } from "../client.js";
 import { transactions, type NewTransaction, type TransactionRow } from "../schema/transactions.js";
@@ -18,6 +18,11 @@ export interface ListTransactionsParams {
   readonly userId: string;
   readonly category?: string;
   readonly limit?: number;
+  readonly from?: Date;
+  readonly to?: Date;
+  /** numeric(12,2) 字符串，例如 "100.00" */
+  readonly minAmount?: string;
+  readonly maxAmount?: string;
 }
 
 /** 交易可更新字段（金额用 numeric(12,2) 字符串传给驱动） */
@@ -66,6 +71,18 @@ export async function listTransactions(
   const conditions = [eq(transactions.userId, params.userId)];
   if (params.category !== undefined && params.category !== "") {
     conditions.push(eq(transactions.category, params.category));
+  }
+  if (params.from !== undefined) {
+    conditions.push(gte(transactions.transactionTime, params.from));
+  }
+  if (params.to !== undefined) {
+    conditions.push(lte(transactions.transactionTime, params.to));
+  }
+  if (params.minAmount !== undefined) {
+    conditions.push(gte(transactions.amount, params.minAmount));
+  }
+  if (params.maxAmount !== undefined) {
+    conditions.push(lte(transactions.amount, params.maxAmount));
   }
 
   return db
