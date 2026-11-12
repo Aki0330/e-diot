@@ -282,3 +282,10 @@
 .mobile-screen .bt-cell {
   flex: 0 0 auto;
 }
+
+/* 手机框内的会话抽屉：相对手机屏幕定位，避免弹到框外 */
+.mobile-screen .session-drawer-mask {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
