@@ -309,9 +309,8 @@ pnpm mcp:start          # 或 pnpm --filter @cyberbudget/mcp start
 ## 产品介绍页（单文件，离线可看）
 
 - 直接双击打开：[`docs/e-diot-showcase.html`](docs/e-diot-showcase.html)（截图已转 base64 内嵌，无需服务器）
-- 14 页全屏幻灯片：`↑ / ↓` 或 `← / →` 翻页，`Home / End` 跳首尾，右侧圆点直达
-- 内容：问题 → 理念 → 四个层次 → Life Ledger（记账基本功）→ Companion → Life Insights → Life Memory → 人格 → 差异化 → 能力全景 → 技术 → Roadmap
-- 叙事参考了产品定位稿「AI Life Companion · 智账」，并区分「已实现 / Demo / 规划」三种成熟度
+- 7 页汇报版：核心定位 → 运作流程/生命周期 → 已有能力 → 规划目标 → 差异化 → 结论
+- 每页只讲一个结论；能力按「已上线 / 规划」标注，避免把 roadmap 写成已交付
 - 可编辑源：`apps/web/public/showcase.html` + `apps/web/public/showcase/`（修改后重新内嵌即可）
 
 ## 下一步：P4b（Milvus + 推理 sidecar）
