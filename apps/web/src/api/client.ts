@@ -22,9 +22,12 @@ import type {
  */
 
 const TOKEN_KEY = "cb_token";
+const REFRESH_KEY = "cb_refresh";
 export const UNAUTHORIZED_EVENT = "cb:unauthorized";
 
 let token = localStorage.getItem(TOKEN_KEY) ?? "";
+let refreshToken = localStorage.getItem(REFRESH_KEY) ?? "";
+let refreshing: Promise<boolean> | null = null;
 
 export function getToken(): string {
   return token;
@@ -32,8 +35,45 @@ export function getToken(): string {
 
 export function setToken(value: string | null): void {
   token = value ?? "";
-  if (token === "") localStorage.removeItem(TOKEN_KEY);
-  else localStorage.setItem(TOKEN_KEY, token);
+  if (token === "") {
+    refreshToken = "";
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+  } else {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+}
+
+/** 登录/注册/刷新成功后同时保存 access + refresh token */
+export function setTokens(access: string, refresh: string): void {
+  setToken(access);
+  refreshToken = refresh;
+  localStorage.setItem(REFRESH_KEY, refresh);
+}
+
+async function refreshSession(): Promise<boolean> {
+  if (refreshToken === "") return false;
+  if (refreshing !== null) return refreshing;
+
+  refreshing = (async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/v1/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+      if (!response.ok) return false;
+      const data = (await response.json()) as TokenResponse;
+      setTokens(data.access_token, data.refresh_token);
+      return true;
+    } catch {
+      return false;
+    }
+  })().finally(() => {
+    refreshing = null;
+  });
+
+  return refreshing;
 }
 
 export class ApiError extends Error {
@@ -54,31 +94,37 @@ interface ApiOptions {
 }
 
 async function request<T>(path: string, options: ApiOptions = {}): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
-  if (token !== "") headers["Authorization"] = `Bearer ${token}`;
+  for (let attempt = 0; ; attempt += 1) {
+    const headers: Record<string, string> = {};
+    if (options.body !== undefined) headers["Content-Type"] = "application/json";
+    if (token !== "") headers["Authorization"] = `Bearer ${token}`;
 
-  const response = await fetch(`/api/v1${path}`, {
-    method: options.method ?? "GET",
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+    const response = await fetch(`/api/v1${path}`, {
+      method: options.method ?? "GET",
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
 
-  const data = (await response.json().catch(() => ({}))) as {
-    detail?: unknown;
-    code?: string;
-  } & Record<string, unknown>;
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      setToken(null);
-      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    if (response.status === 401 && attempt === 0 && token !== "" && refreshToken !== "") {
+      if (await refreshSession()) continue;
     }
-    const detail = typeof data.detail === "string" ? data.detail : `HTTP ${response.status}`;
-    throw new ApiError(detail, response.status, data.code);
-  }
 
-  return data as T;
+    const data = (await response.json().catch(() => ({}))) as {
+      detail?: unknown;
+      code?: string;
+    } & Record<string, unknown>;
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        setToken(null);
+        window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+      }
+      const detail = typeof data.detail === "string" ? data.detail : `HTTP ${response.status}`;
+      throw new ApiError(detail, response.status, data.code);
+    }
+
+    return data as T;
+  }
 }
 
 export const api = {

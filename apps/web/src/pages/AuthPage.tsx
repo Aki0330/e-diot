@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 
-import { api, setToken } from "../api/client.js";
+import { api, setTokens } from "../api/client.js";
 import { useToast } from "../components/Toast.js";
 
 /** 登录 / 注册页（对应旧 `#auth-page` 与 index.html 里的两个表单） */
@@ -18,7 +18,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => Promise<v
     setBusy(true);
     try {
       const data = await api.login(account.trim(), loginPassword);
-      setToken(data.access_token);
+      setTokens(data.access_token, data.refresh_token);
       await onAuthenticated();
     } catch (error) {
       toast(error instanceof Error ? error.message : "登录失败", "error");
@@ -41,7 +41,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => Promise<v
         ...(reg.email.trim() === "" ? {} : { email: reg.email.trim() }),
         password: reg.password,
       });
-      setToken(data.access_token);
+      setTokens(data.access_token, data.refresh_token);
       await onAuthenticated();
     } catch (error) {
       toast(error instanceof Error ? error.message : "注册失败", "error");
