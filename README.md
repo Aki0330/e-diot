@@ -306,6 +306,15 @@ pnpm mcp:start          # 或 pnpm --filter @cyberbudget/mcp start
 # 端点：http://127.0.0.1:8001/mcp
 ```
 
+## 产品介绍页（PPT 式）
+
+`apps/web/public/showcase.html`，构建后由 API 同源托管：
+
+- 访问：`http://127.0.0.1:8000/showcase.html`（移动端/桌面均可，全屏翻页）
+- 操作：`↑ / ↓` 或 `← / →` 翻页，`Home / End` 跳首尾，右侧圆点直达
+- 内容：记账核心能力 → 预算/账单/总览 → 已有能力全景 → 知识库与数字人规划 → 差异化与竞品对比 → Roadmap
+- 截图素材：`apps/web/public/showcase/`
+
 ## 下一步：P4b（Milvus + 推理 sidecar）
 
 Milvus 相关事项按约定后置：

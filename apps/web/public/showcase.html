@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>e-diot · 智能记账产品介绍</title>
+    <style>
+      :root {
+        --ink: #0b1220;
+        --ink-2: #111827;
+        --ink-3: #1f2937;
+        --bg: #f5f7fa;
+        --card: #ffffff;
+        --lime: #c8f169;
+        --lime-soft: rgba(200, 241, 105, 0.16);
+        --muted: #5b6472;
+        --muted-2: #9aa3b2;
+        --line: #e3e8ef;
+        --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --font:
+          "Archivo", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+        --radius: 18px;
+        --shadow: 0 28px 70px -40px rgba(11, 18, 32, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+        background: var(--bg);
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: var(--lime);
+        color: var(--ink);
+      }
+
+      .slide {
+        position: relative;
+        height: 100dvh;
+        min-height: 620px;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .slide.dark {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .slide.soft {
+        background: linear-gradient(180deg, #f5f7fa 0%, #eef3f9 100%);
+      }
+
+      .inner {
+        width: min(1180px, 92vw);
+        margin: 0 auto;
+        max-height: 92dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: clamp(14px, 2.6vh, 28px);
+      }
+
+      .eyebrow {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted-2);
+      }
+
+      .dark .eyebrow {
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(36px, 5.4vw, 68px);
+        line-height: 1.06;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+      }
+
+      h2 {
+        font-size: clamp(26px, 3.4vw, 44px);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        font-weight: 800;
+      }
+
+      h3 {
+        font-size: clamp(15px, 1.35vw, 18px);
+        line-height: 1.3;
+        font-weight: 700;
+      }
+
+      .lead {
+        font-size: clamp(14px, 1.5vw, 18px);
+        line-height: 1.75;
+        color: var(--muted);
+        max-width: 46em;
+      }
+
+      .dark .lead {
+        color: rgba(255, 255, 255, 0.62);
+      }
+
+      .two {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: clamp(24px, 4vw, 56px);
+        align-items: center;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 11px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .dark .tag {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .tag.hot {
+        background: var(--lime);
+        border-color: var(--lime);
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .cards.two-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .cards.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: clamp(13px, 1.6vw, 18px);
+        box-shadow: 0 12px 30px -28px rgba(11, 18, 32, 0.3);
+      }
+
+      .dark .card {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+      }
+
+      .card .kicker {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        color: var(--muted-2);
+        text-transform: uppercase;
+      }
+
+      .dark .card .kicker {
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .card p {
+        margin-top: 6px;
+        font-size: clamp(12px, 1.1vw, 13.5px);
+        line-height: 1.65;
+        color: var(--muted);
+      }
+
+      .dark .card p {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .card .num {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--lime);
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .list li {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        font-size: clamp(12.5px, 1.15vw, 14px);
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .list li::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        margin-top: 7px;
+        border-radius: 50%;
+        background: var(--lime);
+        flex: none;
+      }
+
+      .dark .list li {
+        color: rgba(255, 255, 255, 0.62);
+      }
+
+      .phone-wrap {
+        display: flex;
+        justify-content: center;
+      }
+
+      .phone {
+        width: auto;
+        max-width: 100%;
+        max-height: 64dvh;
+        border-radius: 26px;
+        border: 8px solid #0b1220;
+        box-shadow: var(--shadow);
+        background: var(--bg);
+      }
+
+      .frame-img {
+        width: 100%;
+        height: auto;
+        max-height: 60dvh;
+        object-fit: contain;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      .quote {
+        border-left: 3px solid var(--lime);
+        padding: 10px 14px;
+        background: var(--lime-soft);
+        border-radius: 0 12px 12px 0;
+        font-size: clamp(13px, 1.2vw, 15px);
+        line-height: 1.7;
+      }
+
+      .dark .quote {
+        background: rgba(200, 241, 105, 0.08);
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: clamp(10.5px, 1vw, 13px);
+        line-height: 1.45;
+      }
+
+      th,
+      td {
+        padding: clamp(6px, 0.9vh, 10px) 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+
+      th {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        font-weight: 600;
+      }
+
+      td {
+        color: var(--muted);
+      }
+
+      td.us {
+        color: var(--ink);
+        font-weight: 700;
+        background: rgba(200, 241, 105, 0.14);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .ok {
+        color: #1f7a4d;
+        font-weight: 700;
+      }
+
+      .no {
+        color: var(--muted-2);
+      }
+
+      .mid {
+        color: #8a5a08;
+        font-weight: 600;
+      }
+
+      .footnote {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        color: var(--muted-2);
+      }
+
+      .dark .footnote {
+        color: rgba(255, 255, 255, 0.35);
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: var(--lime);
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .cta.ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      .cta-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* 导航 */
+      .progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(11, 18, 32, 0.08);
+        z-index: 50;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--lime);
+        transition: width 0.2s ease;
+      }
+
+      .dots {
+        position: fixed;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        z-index: 50;
+      }
+
+      .dots button {
+        width: 7px;
+        height: 7px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(11, 18, 32, 0.18);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .dots button.active {
+        background: var(--lime);
+        transform: scale(1.5);
+      }
+
+      .counter {
+        position: fixed;
+        right: 18px;
+        bottom: 16px;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        color: var(--muted-2);
+        z-index: 50;
+      }
+
+      .counter b {
+        color: var(--ink);
+      }
+
+      .hint {
+        position: fixed;
+        left: 18px;
+        bottom: 16px;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        color: var(--muted-2);
+        z-index: 50;
+      }
+
+      @media (max-width: 860px) {
+        .two {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 18px;
+        }
+
+        .phone-wrap {
+          display: none;
+        }
+
+        .cards,
+        .cards.four,
+        .cards.two-col {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dots {
+          display: none;
+        }
+
+        .slide {
+          min-height: 100dvh;
+        }
+
+        .inner {
+          max-height: 94dvh;
+          gap: 14px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .cards,
+        .cards.four,
+        .cards.two-col {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .slide {
+          min-height: 100dvh;
+        }
+
+        .inner {
+          width: 90vw;
+          max-height: 94dvh;
+          overflow: auto;
+          padding: 12px 0;
+        }
+
+        .hint {
+          display: none;
+        }
+      }
+
+      @media (max-height: 700px) {
+        .inner {
+          gap: 10px;
+        }
+
+        .card {
+          padding: 10px 12px;
+        }
+
+        .lead {
+          line-height: 1.6;
+        }
+
+        .phone {
+          max-height: 58dvh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress"><span id="bar"></span></div>
+    <nav class="dots" id="dots" aria-label="页面导航"></nav>
+    <div class="counter"><b id="cur">01</b> / <span id="total">14</span></div>
+    <div class="hint">↑ ↓ / ← → 翻页</div>
+
+    <main id="deck">
+      <!-- 01 封面 -->
+      <section class="slide dark">
+        <div class="inner two">
+          <div>
+            <p class="eyebrow">e-diot · AI BOOKKEEPING</p>
+            <h1 style="margin-top: 16px">把账记对，<br />把生活看清。</h1>
+            <p class="lead" style="margin-top: 18px">
+              一句话完成记账，预算、账单、总览自动联动。<br />
+              e-diot 不是聊天机器人，而是一个把「记账」做到最省力的 AI 记账工具。
+            </p>
+            <div class="tags" style="margin-top: 20px">
+              <span class="tag hot">自然语言记账</span>
+              <span class="tag">分类预算</span>
+              <span class="tag">账单管理</span>
+              <span class="tag">可控记忆</span>
+              <span class="tag">MCP 开放能力</span>
+            </div>
+            <div class="cta-row" style="margin-top: 24px">
+              <a class="cta" href="/m">打开移动端 Demo →</a>
+              <a class="cta ghost" href="/">桌面版 →</a>
+            </div>
+            <p class="footnote" style="margin-top: 18px">
+              记账是核心能力，AI 只是把它变简单 · 2026.11
+            </p>
+          </div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/chat.png" alt="e-diot 对话记账界面" />
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 问题 -->
+      <section class="slide">
+        <div class="inner">
+          <p class="eyebrow">01 / 问题</p>
+          <h2>记账难，不是不会记，<br />是坚持不下去。</h2>
+          <div class="cards" style="margin-top: 8px">
+            <div class="card">
+              <div class="kicker">FRICTION</div>
+              <h3 style="margin-top: 6px">录入太重</h3>
+              <p>打开 App、选分类、填金额、写备注、选时间——一笔账 8 个步骤，很容易放弃。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">NO FEEDBACK</div>
+              <h3 style="margin-top: 6px">记完没用</h3>
+              <p>流水只是流水：和预算、趋势、决策割裂，记了也不知道钱花到哪里去了。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">NOISE</div>
+              <h3 style="margin-top: 6px">提醒很烦</h3>
+              <p>固定时间推送、无关通知、重复提醒，用户最终关掉通知，也关掉了产品。</p>
+            </div>
+          </div>
+          <div class="quote" style="margin-top: 10px">
+            <b>e-diot 的答案：</b>把一笔账的成本降到「一句话」，并让每次记录立刻产生预算反馈。
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 定位 -->
+      <section class="slide soft">
+        <div class="inner">
+          <p class="eyebrow">02 / 产品定位</p>
+          <h2>一个把账记对的 AI 记账工具。</h2>
+          <div class="cards three" style="margin-top: 6px">
+            <div class="card">
+              <div class="num">01</div>
+              <h3 style="margin-top: 4px">核心 · 记账</h3>
+              <p>自然语言 + 手动补录双通道；金额、分类、备注、时间自动结构化，写入真实账本。</p>
+            </div>
+            <div class="card">
+              <div class="num">02</div>
+              <h3 style="margin-top: 4px">增强 · 理解</h3>
+              <p>预算联动、分类分布、趋势与规则建议，让每一笔记录都能回答问题。</p>
+            </div>
+            <div class="card">
+              <div class="num">03</div>
+              <h3 style="margin-top: 4px">延伸 · 陪伴</h3>
+              <p>在用户允许的时间主动出现一次；人格与记忆只服务于「更好地记账」，不喧宾夺主。</p>
+            </div>
+          </div>
+          <p class="lead" style="margin-top: 6px">
+            我们不以「陪聊时长」为目标。记账是入口，理解是结果，陪伴是克制后的附加值。
+          </p>
+        </div>
+      </section>
+
+      <!-- 04 记账能力 -->
+      <section class="slide">
+        <div class="inner two">
+          <div>
+            <p class="eyebrow">03 / 核心能力 · 记账</p>
+            <h2 style="margin-top: 10px">一句话，3 秒记一笔。</h2>
+            <ul class="list" style="margin-top: 18px">
+              <li>意图识别：记账 / 查预算 / 查账单 / 分配预算 / 闲聊自动分流</li>
+              <li>字段抽取：金额、分类、备注、时间，缺失字段有兜底与追问</li>
+              <li>写库即校验：记账同时检查分类预算与总预算，超支立即提示</li>
+              <li>失败兜底：模型异常不丢数据，返回可理解的提示而不是静默失败</li>
+              <li>手动补录：错账、漏账可随时增删改，AI 记账与手动账本共用同一份数据</li>
+            </ul>
+            <div class="quote" style="margin-top: 16px">
+              示例：「午餐花了 50 元」→ 餐饮 · 支出 · ¥50 · 今天 12:30 → 已记账，并检查餐饮预算。
+            </div>
+          </div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/chat.png" alt="自然语言记账" />
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 预算能力 -->
+      <section class="slide soft">
+        <div class="inner two">
+          <div>
+            <p class="eyebrow">04 / 核心能力 · 预算</p>
+            <h2 style="margin-top: 10px">记完就知道：<br />还能花多少。</h2>
+            <ul class="list" style="margin-top: 18px">
+              <li>总预算 + 分类预算，两套语义同时在记账时校验</li>
+              <li>自然语言分配：「餐饮 2000，交通 500」自动合并，校验总额</li>
+              <li>阈值提醒：仅在跨过 50% / 80% / 100% 时提醒，不每条对话都念预算</li>
+              <li>超支建议：只在该记账或用户主动查询时出现，避免打扰</li>
+              <li>手动兜底：预算页可手动编辑、设定总预算，改动立即生效</li>
+            </ul>
+          </div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/dashboard.png" alt="预算与总览" />
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 账单能力 -->
+      <section class="slide">
+        <div class="inner two">
+          <div>
+            <p class="eyebrow">05 / 核心能力 · 账单</p>
+            <h2 style="margin-top: 10px">错账能改，账才可信。</h2>
+            <ul class="list" style="margin-top: 18px">
+              <li>手动新增 / 编辑 / 删除：补录漏账、修正错账、删除重复账</li>
+              <li>日期范围筛选 + 金额上下限筛选，快速定位问题流水</li>
+              <li>分类 chips 与关键词搜索，原始备注可回溯</li>
+              <li>按日分组，当日收支一目了然</li>
+              <li>金额统一按「分」存储，避免浮点误差</li>
+            </ul>
+            <div class="quote" style="margin-top: 16px">
+              财务数据的第一要求是可信：能改、能删、能核对，才值得长期使用。
+            </div>
+          </div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/bills.png" alt="账单管理与筛选" />
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 总览与洞察 -->
+      <section class="slide soft">
+        <div class="inner">
+          <p class="eyebrow">06 / 总览与洞察</p>
+          <h2>从流水，到可核对的事实。</h2>
+          <div class="cards four" style="margin-top: 6px">
+            <div class="card">
+              <div class="kicker">SPENDING</div>
+              <h3 style="margin-top: 4px">本月支出</h3>
+              <p>总支出 / 预算使用率 / 剩余可用 / 日均可用，一屏看清。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">CATEGORY</div>
+              <h3 style="margin-top: 4px">分类分布</h3>
+              <p>分类预算进度、超支与接近上限状态，按使用率排序。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">TREND</div>
+              <h3 style="margin-top: 4px">近 7 日趋势</h3>
+              <p>日支出柱状与峰值，识别「哪一天花超了」。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">RULES</div>
+              <h3 style="margin-top: 4px">规则建议</h3>
+              <p>超支 / 接近上限触发，附金额与剩余天数，不做空洞评分。</p>
+            </div>
+          </div>
+          <p class="footnote" style="margin-top: 6px">
+            当前为规则统计；P1 将升级为「带依据与时间范围」的洞察引擎，每条观察都可回溯。
+          </p>
+        </div>
+      </section>
+
+      <!-- 08 能力全景 -->
+      <section class="slide">
+        <div class="inner">
+          <p class="eyebrow">07 / 能力全景</p>
+          <h2>已经上线的，与正在路上的。</h2>
+          <div class="cards two-col" style="margin-top: 6px">
+            <div class="card">
+              <div class="kicker">SHIPPED · 已上线</div>
+              <ul class="list" style="margin-top: 8px">
+                <li>自然语言记账、预算校验、超支建议</li>
+                <li>分类预算 AI 分配 / 手动编辑 / 总预算设置</li>
+                <li>账单增删改、日期与金额筛选、原始备注</li>
+                <li>总览（支出 / 收入 / 分类 / 7 日趋势 / 建议）</li>
+                <li>长期记忆（待确认 / 来源 / 纠正 / 删除）</li>
+                <li>4 种人格、主动程度、关怀时间与免打扰</li>
+                <li>主动关怀（预算 / 连续未记账触发）</li>
+                <li>MCP 6 个工具（含查询/设置预算）、移动端专用入口</li>
+                <li>用户级 LLM 配置（base_url / key）与登录鉴权</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="kicker">ROADMAP · 规划</div>
+              <ul class="list" style="margin-top: 8px">
+                <li>洞察引擎：每条观察附带依据与时间范围（P1）</li>
+                <li>周度回顾：自动生成可核对的变化摘要</li>
+                <li>多维生活记录：饮食、作息、目标（P2）</li>
+                <li>知识库：BGE-M3 + Milvus 混合检索 + Rerank（P4b）</li>
+                <li>个性化数字人：形象、声音、表达风格与记忆联动</li>
+                <li>通知渠道：Web Push / 邮件（站内已可用）</li>
+                <li>数据导出与账号/记忆删除的隐私闭环</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 知识库 -->
+      <section class="slide soft">
+        <div class="inner">
+          <p class="eyebrow">08 / 规划能力 · 知识库</p>
+          <h2>让 AI 回答的不只是「多少」，<br />还有「为什么」。</h2>
+          <div class="cards four" style="margin-top: 6px">
+            <div class="card">
+              <div class="kicker">01 INGEST</div>
+              <h3 style="margin-top: 4px">语料入库</h3>
+              <p>理财知识、消费建议、用户自建笔记，切分后写入向量库。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">02 EMBED</div>
+              <h3 style="margin-top: 4px">双向量</h3>
+              <p>BGE-M3 同时产出 dense + sparse，兼顾语义与关键词。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">03 RETRIEVE</div>
+              <h3 style="margin-top: 4px">混合检索</h3>
+              <p>Milvus 混合检索（0.7 / 0.3）+ Reranker 精排，返回可引用片段。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">04 ANSWER</div>
+              <h3 style="margin-top: 4px">有依据的回答</h3>
+              <p>回答附来源与时间范围；MCP 的 knowledge_search 已预留接口。</p>
+            </div>
+          </div>
+          <p class="lead" style="margin-top: 6px">
+            典型问题：「上个月外卖花太多，有什么适合我的控制方法？」——先查账本，再查知识库，最后给出带依据的建议。
+          </p>
+        </div>
+      </section>
+
+      <!-- 10 数字人 -->
+      <section class="slide dark">
+        <div class="inner">
+          <p class="eyebrow">09 / 规划能力 · 个性化数字人</p>
+          <h2>同一个 AI，<br />四种相处方式。</h2>
+          <div class="cards four" style="margin-top: 6px">
+            <div class="card">
+              <div class="kicker">LURKER</div>
+              <h3 style="margin-top: 4px">潜水型</h3>
+              <p>安静记录，只在真正重要时出现。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">INTROVERT</div>
+              <h3 style="margin-top: 4px">i 人型</h3>
+              <p>温和、低频、不打扰，先确认再开口。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">BUDDY</div>
+              <h3 style="margin-top: 4px">搭子型</h3>
+              <p>像朋友一样自然交流，适度提醒。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">CHATTERBOX</div>
+              <h3 style="margin-top: 4px">话痨型</h3>
+              <p>主动分享发现，但说完就停。</p>
+            </div>
+          </div>
+          <p class="lead" style="margin-top: 6px">
+            人格只影响语气与存在感，不影响判断标准。下一步：形象与声音定制、人格 × 记忆联动，
+            让「数字人」成为用户愿意长期相处的财务搭子，而不是换皮聊天框。
+          </p>
+        </div>
+      </section>
+
+      <!-- 11 差异化 -->
+      <section class="slide">
+        <div class="inner">
+          <p class="eyebrow">10 / 为什么选 e-diot</p>
+          <h2>不是功能更多，<br />而是把记账这件事做到最省力。</h2>
+          <div class="cards" style="margin-top: 6px">
+            <div class="card">
+              <div class="kicker">SPEED</div>
+              <h3 style="margin-top: 4px">3 秒一笔</h3>
+              <p>自然语言 + 手动补录双通道；比表单少 80% 的操作步骤。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">FEEDBACK</div>
+              <h3 style="margin-top: 4px">记账即反馈</h3>
+              <p>每次记账自动校验预算，跨阈值才提醒，拒绝骚扰式通知。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">CONTROL</div>
+              <h3 style="margin-top: 4px">记忆可控</h3>
+              <p>每条记忆可查来源、可纠正、可删除；理解错了能改回来。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">OPEN</div>
+              <h3 style="margin-top: 4px">MCP 开放</h3>
+              <p>任何 LLM / 客户端都能通过 MCP 调用记账与预算工具，不被单一助手绑定。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">PERSONA</div>
+              <h3 style="margin-top: 4px">人格化陪伴</h3>
+              <p>4 种人格 + 主动程度 + 免打扰，把「什么时候说话」交给用户。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">OWNERSHIP</div>
+              <h3 style="margin-top: 4px">数据自托管</h3>
+              <p>PostgreSQL + 自有服务，数据在用户手里；规划导出与彻底删除。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12 竞品对比 -->
+      <section class="slide soft">
+        <div class="inner">
+          <p class="eyebrow">11 / 竞品对比</p>
+          <h2>记账工具很多，<br />但缺少一个「记完有用」的。</h2>
+          <table style="margin-top: 6px">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>传统记账 App</th>
+                <th>通用 AI 助手</th>
+                <th>银行 / 支付账单</th>
+                <th>e-diot</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>录入成本</td>
+                <td class="mid">表单，步骤多</td>
+                <td class="no">能聊天，但不记账</td>
+                <td class="ok">自动导入</td>
+                <td class="us">一句话 / 手动补录</td>
+              </tr>
+              <tr>
+                <td>分类预算联动</td>
+                <td class="ok">强</td>
+                <td class="no">无</td>
+                <td class="no">无</td>
+                <td class="us">记账即校验 + 阈值提醒</td>
+              </tr>
+              <tr>
+                <td>长期记忆 / 个性化</td>
+                <td class="no">无</td>
+                <td class="mid">有，但无财务数据</td>
+                <td class="no">无</td>
+                <td class="us">可控记忆 + 4 种人格</td>
+              </tr>
+              <tr>
+                <td>主动关怀</td>
+                <td class="mid">固定提醒</td>
+                <td class="no">无</td>
+                <td class="no">无</td>
+                <td class="us">到点一次，频控 + 免打扰</td>
+              </tr>
+              <tr>
+                <td>开放工具 / 可扩展</td>
+                <td class="no">封闭</td>
+                <td class="mid">插件生态，非财务</td>
+                <td class="no">封闭</td>
+                <td class="us">MCP 标准协议，6 个工具</td>
+              </tr>
+              <tr>
+                <td>数据归属</td>
+                <td class="mid">厂商云</td>
+                <td class="mid">厂商云</td>
+                <td class="no">机构</td>
+                <td class="us">可自托管</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="footnote" style="margin-top: 4px">
+            对比为产品定位层面的能力归纳，不针对具体厂商功能做绝对化结论。
+          </p>
+        </div>
+      </section>
+
+      <!-- 13 Roadmap -->
+      <section class="slide">
+        <div class="inner">
+          <p class="eyebrow">12 / Roadmap</p>
+          <h2>先把「记得住、记得对」做扎实，<br />再扩展记录的维度。</h2>
+          <div class="cards" style="margin-top: 6px">
+            <div class="card">
+              <div class="kicker">NOW · 已实现</div>
+              <h3 style="margin-top: 4px">记账闭环</h3>
+              <p>自然语言记账 / 预算 / 账单 / 总览 / 记忆 / 人格 / 主动关怀 / MCP 预算工具。</p>
+              <p class="footnote" style="margin-top: 6px">P0 – P4a</p>
+            </div>
+            <div class="card">
+              <div class="kicker">NEXT · 3 个月</div>
+              <h3 style="margin-top: 4px">理解与回顾</h3>
+              <p>洞察引擎（附依据）、周度回顾、多维生活记录、通知渠道。</p>
+              <p class="footnote" style="margin-top: 6px">P1 – P2</p>
+            </div>
+            <div class="card">
+              <div class="kicker">LATER · 6 个月</div>
+              <h3 style="margin-top: 4px">知识与数字人</h3>
+              <p>Milvus 知识库、个性化数字人（形象/声音）、跨场景长期陪伴。</p>
+              <p class="footnote" style="margin-top: 6px">P4b · 探索</p>
+            </div>
+          </div>
+          <p class="lead" style="margin-top: 6px">
+            账本始终是入口，被理解才是产品目标；但顺序不能反——先让用户愿意记，再谈理解。
+          </p>
+        </div>
+      </section>
+
+      <!-- 14 结尾 -->
+      <section class="slide dark">
+        <div class="inner" style="text-align: center; align-items: center">
+          <p class="eyebrow">e-diot · RECORDING YOUR LIVES</p>
+          <h1 style="font-size: clamp(34px, 4.6vw, 58px); max-width: 18em">
+            先记对一笔账，<br />再谈理解一个人。
+          </h1>
+          <p class="lead" style="max-width: 40em">
+            e-diot
+            用一句话降低记账成本，用预算与洞察让记录产生价值，用可控记忆与人格让陪伴恰到好处。
+          </p>
+          <div class="cta-row" style="justify-content: center; margin-top: 8px">
+            <a class="cta" href="/m">体验移动端</a>
+            <a class="cta ghost" href="/">打开桌面版</a>
+            <a class="cta ghost" href="https://github.com/Aki0330/e-diot">查看代码仓库</a>
+          </div>
+          <p class="footnote" style="margin-top: 8px">
+            e-diot 智能账本 · 2026.11 · 演示数据与真实能力混合展示
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const dots = document.getElementById("dots");
+      const bar = document.getElementById("bar");
+      const cur = document.getElementById("cur");
+      document.getElementById("total").textContent = String(slides.length).padStart(2, "0");
+
+      slides.forEach((_, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("aria-label", `第 ${index + 1} 页`);
+        button.addEventListener("click", () => go(index));
+        dots.appendChild(button);
+      });
+
+      function go(index) {
+        const target = slides[Math.max(0, Math.min(slides.length - 1, index))];
+        target?.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function currentIndex() {
+        return Math.round(window.scrollY / window.innerHeight);
+      }
+
+      function update() {
+        const index = currentIndex();
+        cur.textContent = String(index + 1).padStart(2, "0");
+        bar.style.width = `${((index + 1) / slides.length) * 100}%`;
+        [...dots.children].forEach((dot, i) => dot.classList.toggle("active", i === index));
+      }
+
+      window.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+      window.addEventListener("keydown", (event) => {
+        if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(event.key)) {
+          event.preventDefault();
+          go(currentIndex() + 1);
+        }
+        if (["ArrowUp", "ArrowLeft", "PageUp"].includes(event.key)) {
+          event.preventDefault();
+          go(currentIndex() - 1);
+        }
+        if (event.key === "Home") go(0);
+        if (event.key === "End") go(slides.length - 1);
+      });
+
+      update();
+    </script>
+  </body>
+</html>
