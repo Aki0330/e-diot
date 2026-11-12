@@ -49,12 +49,13 @@
   - 验收：接口 CRUD + 注入单测通过；真实库写入 5 条记忆后用真实 LLM 验证，回复引用了「少糖奶茶 / 手冲咖啡」。
   - 存储决策：**v1 用 PostgreSQL，不先上 Milvus**，见 [memory-storage-decision.md](memory-storage-decision.md)。
 
-- [ ] **P0-4 主动关怀 v1（站内）**（2–3d）
-  - 调度器（进程内定时任务）：每天 `care_time` 检查一次，结合洞察/预算生成一条消息，写入当天会话并标记 `proactive`。
-  - 频控：每日上限、安静时段、`snooze` 生效；失败/无内容不发送。
-  - 前端：消息标记「主动消息」，支持「有帮助 / 不准确 / 暂时别提醒」。
-  - 验收：到点只发一条；免打扰与暂停生效；反馈写回记忆/设置。
-  - 依赖：P0-2 设置、P1-1 洞察（可先内置简单规则）。
+- [x] **P0-4 主动关怀 v1（站内）**（已完成 2026-11-12）
+  - 进程内调度器（60s tick）：`care_time` 后 2 小时内补发；固定 `Asia/Shanghai`；免打扰跨午夜判断，`care_time` 落在免打扰内直接跳过。
+  - 规则按 `budget_over > budget_near > inactivity(≥3 天)` 取一条；无命中不发。
+  - 频控：low 1/周、medium 1/天、high 2/天；`proactive_events` 唯一约束保证重启/重复 tick 幂等。
+  - 文案：模板 + 4 种人格前缀（不调用 LLM）；消息写入 `chat_messages.is_proactive=true`。
+  - 前端：消息「主动消息」标记、帮助/不准确/暂时别提醒反馈（mute = 暂停 1 天）；新增「历史会话」抽屉。
+  - 验收：`runProactiveTick` 单测 + 临时库集成测试；真实库触发 inactivity 消息并用 API 反馈验证通过。
 
 ### P1 · 支撑说服力（约 3.5–5.5 人日）
 

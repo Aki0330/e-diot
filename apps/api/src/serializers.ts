@@ -51,6 +51,7 @@ export function toChatMessageItem(row: ChatMessageRow): ChatMessageItem {
     message_id: row.messageId,
     role: row.role,
     content: row.content,
+    is_proactive: row.isProactive,
     intent_type: row.intentType,
     graph_path: row.graphPath,
     execution_data: row.executionData ?? null,

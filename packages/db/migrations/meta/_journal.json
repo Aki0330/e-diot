@@ -29,6 +29,13 @@
       "when": 1794465602488,
       "tag": "0003_memories",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794474765243,
+      "tag": "0004_proactive",
+      "breakpoints": true
     }
   ]
 }

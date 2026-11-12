@@ -1484,3 +1484,66 @@
     padding: 12px 12px 0;
   }
 }
+
+/* ---------- 主动消息与会话抽屉 ---------- */
+.chat-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-sessions-btn {
+  display: none;
+}
+
+.proactive-head {
+  margin-bottom: 6px;
+}
+
+.proactive-feedback {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.session-drawer-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(17, 24, 39, 0.45);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.session-drawer {
+  width: min(320px, 86vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--card);
+  box-shadow: -12px 0 40px rgba(17, 24, 39, 0.22);
+  overflow-y: auto;
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.session-drawer .rail-sessions {
+  flex: 1;
+  max-height: none;
+}
+
+@media (max-width: 1099px) {
+  .chat-sessions-btn {
+    display: inline-flex;
+  }
+}

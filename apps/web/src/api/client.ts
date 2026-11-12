@@ -104,6 +104,11 @@ export const api = {
   deleteMemory: (id: string) =>
     request<{ deleted: string }>(`/memories/${id}`, { method: "DELETE" }),
   memoryBasis: (id: string) => request<MemoryBasis>(`/memories/${id}/basis`),
+  proactiveFeedback: (messageId: number, value: "helpful" | "inaccurate" | "mute") =>
+    request<{ ok: boolean; snooze_until: string | null }>(`/chat/proactive/${messageId}/feedback`, {
+      method: "POST",
+      body: { value },
+    }),
   dashboard: () => request<DashboardData>("/chat/dashboard"),
   transactions: (category: string) =>
     request<TransactionsResponse>(

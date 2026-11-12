@@ -18,6 +18,8 @@ interface ChatMessage {
   readonly content: string;
   readonly intentType?: string | null;
   readonly graphPath?: string | null;
+  readonly messageId?: number;
+  readonly isProactive?: boolean;
 }
 
 export interface ChatPageProps {
@@ -35,6 +37,8 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
   const [messages, setMessages] = useState<readonly ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [feedbackDone, setFeedbackDone] = useState<Record<number, string>>({});
 
   const messagesRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +108,8 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
           content: message.content,
           intentType: message.intent_type,
           graphPath: message.graph_path,
+          messageId: message.message_id,
+          isProactive: message.is_proactive ?? false,
         })),
       );
     } catch {
@@ -129,6 +135,30 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
       await loadSessions();
     } catch {
       toast("删除失败", "error");
+    }
+  };
+
+  const sendFeedback = async (
+    messageId: number | undefined,
+    value: "helpful" | "inaccurate" | "mute",
+  ): Promise<void> => {
+    if (messageId === undefined) return;
+    try {
+      const result = await api.proactiveFeedback(messageId, value);
+      setFeedbackDone((prev) => ({ ...prev, [messageId]: value }));
+      toast(
+        value === "mute"
+          ? "好的，1 天内不再主动提醒"
+          : value === "inaccurate"
+            ? "收到，会调整判断"
+            : "谢谢反馈",
+        "success",
+      );
+      if (result.snooze_until !== null) {
+        setSessionsOpen(false);
+      }
+    } catch (cause) {
+      toast(cause instanceof Error ? cause.message : String(cause), "error");
     }
   };
 
@@ -162,7 +192,15 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
             <span className="badge ink tiny">
               {currentSessionId === null ? "新会话" : "会话中"}
             </span>
-            <span className="badge lime tiny">自然语言</span>
+            <div className="chat-panel-actions">
+              <button
+                className="memory-btn chat-sessions-btn"
+                onClick={() => setSessionsOpen(true)}
+              >
+                历史会话 {sessions.length}
+              </button>
+              <span className="badge lime tiny">自然语言</span>
+            </div>
           </div>
 
           <div className="chat-messages" ref={messagesRef}>
@@ -189,6 +227,11 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
               <div key={index} className={`message ${message.role}`}>
                 <div className="message-avatar">{message.role === "user" ? "😎" : "🤖"}</div>
                 <div>
+                  {message.isProactive === true && (
+                    <div className="proactive-head">
+                      <span className="badge amber tiny">主动消息</span>
+                    </div>
+                  )}
                   <div
                     className="message-bubble"
                     dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
@@ -197,6 +240,41 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
                     <div className="msg-trace">
                       {INTENT_LABELS[message.intentType] ?? message.intentType} ·{" "}
                       {message.graphPath}
+                    </div>
+                  )}
+                  {message.isProactive === true && message.messageId !== undefined && (
+                    <div className="proactive-feedback">
+                      {feedbackDone[message.messageId] !== undefined ? (
+                        <span className="profile-hint">
+                          已反馈：
+                          {feedbackDone[message.messageId] === "mute"
+                            ? "暂停提醒"
+                            : feedbackDone[message.messageId] === "inaccurate"
+                              ? "不准确"
+                              : "有帮助"}
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            className="memory-btn"
+                            onClick={() => void sendFeedback(message.messageId, "helpful")}
+                          >
+                            有帮助
+                          </button>
+                          <button
+                            className="memory-btn"
+                            onClick={() => void sendFeedback(message.messageId, "inaccurate")}
+                          >
+                            不准确
+                          </button>
+                          <button
+                            className="memory-btn"
+                            onClick={() => void sendFeedback(message.messageId, "mute")}
+                          >
+                            暂时别提醒
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -293,6 +371,52 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
             </div>
           </div>
         </aside>
+
+        {sessionsOpen && (
+          <div className="session-drawer-mask" onClick={() => setSessionsOpen(false)}>
+            <div className="session-drawer" onClick={(event) => event.stopPropagation()}>
+              <div className="drawer-head">
+                <b>历史会话</b>
+                <button className="memory-btn" onClick={() => setSessionsOpen(false)}>
+                  关闭
+                </button>
+              </div>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  newSession();
+                  setSessionsOpen(false);
+                }}
+              >
+                ＋ 新对话
+              </button>
+              <div className="rail-sessions">
+                {sessions.map((session) => (
+                  <div
+                    key={session.session_id}
+                    className={`rail-session${session.session_id === currentSessionId ? " active" : ""}`}
+                    onClick={() => {
+                      void switchSession(session.session_id);
+                      setSessionsOpen(false);
+                    }}
+                  >
+                    <span className="t">{session.title}</span>
+                    <button
+                      className="del"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void deleteSession(session.session_id);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {sessions.length === 0 && <p className="profile-hint">还没有历史会话。</p>}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

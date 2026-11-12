@@ -19,4 +19,5 @@ export * from "./schemas/auth.js";
 export * from "./schemas/budget.js";
 export * from "./schemas/chat.js";
 export * from "./schemas/memory.js";
+export * from "./schemas/proactive.js";
 export * from "./schemas/intent.js";

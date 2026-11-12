@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import type { Executor } from "../client.js";
+import { users } from "../schema/users.js";
 import { userSettings, type UserSettingsRow } from "../schema/user-settings.js";
 
 export interface UserSettingsPatch {
@@ -38,4 +39,33 @@ export async function upsertUserSettings(
   const row = rows[0];
   if (row === undefined) throw new Error("保存用户设置失败：没有返回记录");
   return row;
+}
+
+export interface ActiveUserSettings {
+  readonly userId: string;
+  readonly persona: string;
+  readonly proactiveLevel: string;
+  readonly careTime: string;
+  readonly quietStart: string;
+  readonly quietEnd: string;
+  readonly snoozeUntil: Date | null;
+  readonly monthlyBudget: string | null;
+}
+
+/** 调度器用：所有启用用户 + 他们的相处设置 */
+export async function listActiveUserSettings(db: Executor): Promise<ActiveUserSettings[]> {
+  return db
+    .select({
+      userId: userSettings.userId,
+      persona: userSettings.persona,
+      proactiveLevel: userSettings.proactiveLevel,
+      careTime: userSettings.careTime,
+      quietStart: userSettings.quietStart,
+      quietEnd: userSettings.quietEnd,
+      snoozeUntil: userSettings.snoozeUntil,
+      monthlyBudget: users.monthlyBudget,
+    })
+    .from(userSettings)
+    .innerJoin(users, eq(userSettings.userId, users.userId))
+    .where(eq(users.isActive, true));
 }

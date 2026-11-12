@@ -660,6 +660,16 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(response.statusCode).toBe(400);
   });
 
+  it("主动消息反馈：不存在的消息返回 404", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/chat/proactive/99999999/feedback",
+      headers: auth(),
+      payload: { value: "helpful" },
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
   it("OpenAPI 文档可访问且包含全部业务路径", async () => {
     const response = await app.inject({ method: "GET", url: "/docs/json" });
 

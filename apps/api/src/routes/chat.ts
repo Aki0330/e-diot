@@ -38,6 +38,8 @@ import {
   transactionItemDtoSchema,
   transactionsResponseSchema,
   updateTransactionRequestSchema,
+  proactiveFeedbackRequestSchema,
+  proactiveFeedbackResponseSchema,
   type ChatResponse,
   type DashboardResponse,
   type DeleteTransactionResponse,
@@ -46,12 +48,14 @@ import {
   type SessionListResponse,
   type TransactionItemDto,
   type TransactionsResponse,
+  type ProactiveFeedbackResponse,
 } from "@cyberbudget/shared";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 
 import { toChatMessageItem, toSessionItem, toTransactionDto } from "../serializers.js";
 import { currentUser, requireActiveUser } from "../services/users.js";
+import { submitProactiveFeedback } from "../services/proactive.js";
 
 const sessionParamsSchema = z.object({ session_id: z.string().min(1) });
 
@@ -62,6 +66,10 @@ const transactionsQuerySchema = z.object({
 
 const transactionParamsSchema = z.object({
   transaction_id: z.coerce.number().int().positive(),
+});
+
+const proactiveParamsSchema = z.object({
+  message_id: z.coerce.number().int().positive(),
 });
 
 function percentageOf(spent: string, budget: string): number {
@@ -356,6 +364,35 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
         throw new AppError("NOT_FOUND", "交易不存在");
       }
       return { deleted: request.params.transaction_id };
+    },
+  );
+
+  // POST /api/v1/chat/proactive/:message_id/feedback —— 主动消息反馈
+  app.post(
+    "/chat/proactive/:message_id/feedback",
+    {
+      preHandler: app.authenticate,
+      schema: {
+        params: proactiveParamsSchema,
+        body: proactiveFeedbackRequestSchema,
+        response: { 200: proactiveFeedbackResponseSchema },
+      },
+    },
+    async (request): Promise<ProactiveFeedbackResponse> => {
+      const user = await requireActiveUser(app.db, currentUser(request));
+      const result = await submitProactiveFeedback(
+        app.db,
+        user.userId,
+        request.params.message_id,
+        request.body.value,
+      );
+      if (!result.ok) {
+        throw new AppError("NOT_FOUND", "主动消息不存在");
+      }
+      return {
+        ok: true,
+        snooze_until: result.snoozeUntil?.toISOString() ?? null,
+      };
     },
   );
 };

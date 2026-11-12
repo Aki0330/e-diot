@@ -1,4 +1,13 @@
-import { index, jsonb, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 import { users } from "./users.js";
 
@@ -35,6 +44,7 @@ export const chatMessages = pgTable(
       .references(() => chatSessions.sessionId, { onDelete: "cascade" }),
     role: varchar("role", { length: 20 }).notNull(),
     content: text("content").notNull(),
+    isProactive: boolean("is_proactive").notNull().default(false),
     intentType: varchar("intent_type", { length: 30 }),
     graphPath: varchar("graph_path", { length: 300 }),
     executionData: jsonb("execution_data").$type<ExecutionData>(),

@@ -104,6 +104,7 @@ export interface ChatMessageItem {
   readonly message_id: number;
   readonly role: string;
   readonly content: string;
+  readonly is_proactive?: boolean;
   readonly intent_type: string | null;
   readonly graph_path: string | null;
   readonly created_at: string;

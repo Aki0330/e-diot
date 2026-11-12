@@ -140,3 +140,14 @@ export async function findTransactionById(
     .where(and(eq(transactions.transactionId, transactionId), eq(transactions.userId, userId)));
   return rows[0];
 }
+
+/** 主动关怀用：最近一笔交易时间（没有记录返回 undefined） */
+export async function latestTransactionAt(db: Executor, userId: string): Promise<Date | undefined> {
+  const rows = await db
+    .select({ at: transactions.transactionTime })
+    .from(transactions)
+    .where(eq(transactions.userId, userId))
+    .orderBy(desc(transactions.transactionTime))
+    .limit(1);
+  return rows[0]?.at ?? undefined;
+}

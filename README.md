@@ -131,28 +131,29 @@ e-diot/
 
 ## P2 已完成的内容（API + 认证）
 
-| 方法         | 路径                                | 说明                                                           |
-| ------------ | ----------------------------------- | -------------------------------------------------------------- |
-| POST         | `/api/v1/auth/register`             | 注册（201；手机号/邮箱/用户名冲突→409，`detail` 用「；」拼接） |
-| POST         | `/api/v1/auth/login`                | account 含 `@` 走邮箱，否则手机号；密码错→401，禁用→403        |
-| POST         | `/api/v1/auth/refresh`              | 只接受 `type=refresh` 的 token                                 |
-| GET          | `/api/v1/users/me`                  | 当前用户资料                                                   |
-| POST         | `/api/v1/users/set_budget`          | 更新月度总预算                                                 |
-| GET/PUT      | `/api/v1/users/llm-config`          | 用户级 LLM 配置（base_url + key；key 只回传是否已配置）        |
-| GET/PUT      | `/api/v1/users/settings`            | 相处方式：人格 / 主动程度 / 关怀时间 / 免打扰 / 暂停           |
-| GET/POST     | `/api/v1/memories`                  | 记忆列表 / 新增（待确认）                                      |
-| POST         | `/api/v1/memories/:id/confirm`      | 确认记忆，之后参与回复                                         |
-| PATCH/DELETE | `/api/v1/memories/:id`              | 纠正内容 / 软删除（删除后不再参与任何回复）                    |
-| GET          | `/api/v1/memories/:id/basis`        | 查看依据（交易 / 对话 / 手动）                                 |
-| POST         | `/api/v1/budget/agent`              | Agent 解析 + MERGE（P2 阶段 Agent 是占位实现）                 |
-| POST         | `/api/v1/budget/manual`             | 全量替换；超总额→422，未设总预算→400                           |
-| POST         | `/api/v1/chat`                      | 对话 + 会话/消息持久化 + `graph_path` 追踪                     |
-| GET          | `/api/v1/chat/sessions`             | 会话列表（按 `updated_at` 倒序）                               |
-| GET/DELETE   | `/api/v1/chat/sessions/:session_id` | 会话详情 / 删除（级联消息）                                    |
-| GET          | `/api/v1/chat/dashboard`            | 当月总览（UTC 口径、分类百分比、最近 10 条）                   |
-| GET          | `/api/v1/chat/transactions`         | 流水（`limit`、`category`）                                    |
-| PATCH        | `/api/v1/chat/transactions/:id`     | 更新交易（部分字段；归属校验，非本人→404）                     |
-| DELETE       | `/api/v1/chat/transactions/:id`     | 删除交易（归属校验，非本人→404）                               |
+| 方法         | 路径                                  | 说明                                                           |
+| ------------ | ------------------------------------- | -------------------------------------------------------------- |
+| POST         | `/api/v1/auth/register`               | 注册（201；手机号/邮箱/用户名冲突→409，`detail` 用「；」拼接） |
+| POST         | `/api/v1/auth/login`                  | account 含 `@` 走邮箱，否则手机号；密码错→401，禁用→403        |
+| POST         | `/api/v1/auth/refresh`                | 只接受 `type=refresh` 的 token                                 |
+| GET          | `/api/v1/users/me`                    | 当前用户资料                                                   |
+| POST         | `/api/v1/users/set_budget`            | 更新月度总预算                                                 |
+| GET/PUT      | `/api/v1/users/llm-config`            | 用户级 LLM 配置（base_url + key；key 只回传是否已配置）        |
+| GET/PUT      | `/api/v1/users/settings`              | 相处方式：人格 / 主动程度 / 关怀时间 / 免打扰 / 暂停           |
+| GET/POST     | `/api/v1/memories`                    | 记忆列表 / 新增（待确认）                                      |
+| POST         | `/api/v1/memories/:id/confirm`        | 确认记忆，之后参与回复                                         |
+| PATCH/DELETE | `/api/v1/memories/:id`                | 纠正内容 / 软删除（删除后不再参与任何回复）                    |
+| GET          | `/api/v1/memories/:id/basis`          | 查看依据（交易 / 对话 / 手动）                                 |
+| POST         | `/api/v1/chat/proactive/:id/feedback` | 主动消息反馈（helpful / inaccurate / mute；mute=暂停 1 天）    |
+| POST         | `/api/v1/budget/agent`                | Agent 解析 + MERGE（P2 阶段 Agent 是占位实现）                 |
+| POST         | `/api/v1/budget/manual`               | 全量替换；超总额→422，未设总预算→400                           |
+| POST         | `/api/v1/chat`                        | 对话 + 会话/消息持久化 + `graph_path` 追踪                     |
+| GET          | `/api/v1/chat/sessions`               | 会话列表（按 `updated_at` 倒序）                               |
+| GET/DELETE   | `/api/v1/chat/sessions/:session_id`   | 会话详情 / 删除（级联消息）                                    |
+| GET          | `/api/v1/chat/dashboard`              | 当月总览（UTC 口径、分类百分比、最近 10 条）                   |
+| GET          | `/api/v1/chat/transactions`           | 流水（`limit`、`category`）                                    |
+| PATCH        | `/api/v1/chat/transactions/:id`       | 更新交易（部分字段；归属校验，非本人→404）                     |
+| DELETE       | `/api/v1/chat/transactions/:id`       | 删除交易（归属校验，非本人→404）                               |
 
 - **JWT**：`jose` HS256，payload 为 `sub/username/phone_num/email/exp/iat`（秒）；refresh token 打 `type=refresh` 标记，
   业务接口收到直接 401（方案 5.2）。
@@ -209,6 +210,10 @@ App.tsx     登录态 + 桌面侧栏 / 移动底部导航 + 6 页（页面常驻
 - **记忆 Tab（P0-3）**：PostgreSQL `memories` 表（类型/来源/状态/置信度），新增即「待确认」，
   确认后按 `边界 > 目标 > 偏好 > 习惯` 取前 8 条注入回复 prompt（1200 字符预算）；
   支持查看依据、纠正、软删除；存储决策见 [docs/memory-storage-decision.md](docs/memory-storage-decision.md)。
+- **主动关怀（P0-4）**：进程内调度器每 60s 检查一次，`care_time` 后 2 小时内补发；规则为
+  `budget_over > budget_near > inactivity(≥3 天无记录)`；频控 low 1/周、medium 1/天、high 2/天；
+  免打扰跨午夜、`snooze` 自动生效；消息写入会话并标记「主动消息」，支持有帮助/不准确/暂时别提醒。
+- **会话历史**：移动端聊天页新增「历史会话」抽屉（新建/切换/删除），会话与消息持久化在数据库，刷新/重启不丢。
 - **数据联动**：对话里出现「花了/赚了/买了/预算/分配」时，其余三个 Tab 的数据失效并在下次切换时刷新。
 - **同源托管**：`apps/api` 注册 `@fastify/static`，`apps/web/dist` 存在时 `GET /` 直接返回前端；缺失时跳过，
   只跑 API 或测试不受影响。

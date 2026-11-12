@@ -50,6 +50,7 @@ export const chatMessageItemSchema = z.object({
   message_id: z.number(),
   role: z.string(),
   content: z.string(),
+  is_proactive: z.boolean().optional().default(false),
   intent_type: z.string().nullable(),
   graph_path: z.string().nullable(),
   execution_data: executionDataSchema,
