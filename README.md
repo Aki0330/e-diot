@@ -309,7 +309,7 @@ pnpm mcp:start          # 或 pnpm --filter @cyberbudget/mcp start
 ## 产品介绍页（单文件，离线可看）
 
 - 直接双击打开：[`docs/e-diot-showcase.html`](docs/e-diot-showcase.html)（截图已转 base64 内嵌，无需服务器）
-- 7 页汇报版：核心定位 → 运作流程/生命周期 → 已有能力 → 规划目标 → 差异化 → 结论
+- 9 页汇报版：核心定位 → 运作流程/生命周期 → 已有能力 → 规划总览 → 知识库/数字人 → 情绪价值/消费建议 → 差异化 → 结论
 - 每页只讲一个结论；能力按「已上线 / 规划」标注，避免把 roadmap 写成已交付
 - 可编辑源：`apps/web/public/showcase.html` + `apps/web/public/showcase/`（修改后重新内嵌即可）
 
