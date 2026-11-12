@@ -596,3 +596,65 @@ body {
     padding-bottom: 20px;
   }
 }
+
+/* ---------- 移动端底部 Dock（贴合卡片风格） ---------- */
+@media (max-width: 1023px) {
+  .bottom-nav {
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 14px 34px -16px rgba(17, 24, 39, 0.45);
+  }
+
+  .nav-item {
+    gap: 3px;
+    padding: 7px 2px 6px;
+    border-radius: 12px;
+    color: var(--text-muted);
+  }
+
+  .nav-item.active {
+    background: var(--primary-soft);
+    color: var(--ink);
+  }
+
+  .nav-item.active .nav-icon {
+    filter: none;
+    transform: translateY(-1px);
+  }
+
+  .nav-item .nav-icon {
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .nav-item .nav-label {
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-item.active .nav-label {
+    font-weight: 700;
+  }
+
+  .page-container {
+    padding-bottom: 104px;
+  }
+
+  .page-container.chat-mode {
+    padding-bottom: 0;
+  }
+
+  .chat-input-area {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + 62px);
+  }
+}
