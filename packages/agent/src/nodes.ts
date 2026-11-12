@@ -22,6 +22,7 @@ import {
 } from "@cyberbudget/shared";
 
 import { HISTORY_NOTE, historyMessages, type ChatTurn } from "./history.js";
+import { budgetCrossings, shouldMentionBudget } from "./budget-reminder.js";
 import { memoryBlock, type MemoryContext } from "./memory.js";
 import {
   FALLBACK_BUDGET_ERROR,
@@ -134,6 +135,16 @@ export async function checkBudgetNode(state: AgentState, db: Executor): Promise<
     ...(category === ALL_CATEGORY ? {} : { category }),
   });
   const spentCents = parseCents(spent);
+  const totalSpentCents =
+    category === ALL_CATEGORY
+      ? spentCents
+      : parseCents(
+          await sumAmountSince(db, {
+            userId,
+            type: "EXPENSE",
+            since: monthStartUtc(now),
+          }),
+        );
 
   const over = isOverBudget({
     spent: centsToNumber(spentCents),
@@ -147,6 +158,7 @@ export async function checkBudgetNode(state: AgentState, db: Executor): Promise<
     monthly_budget: centsToNumber(monthlyBudgetCents),
     is_over_budget: over,
     remaining: centsToNumber(monthlyBudgetCents - spentCents),
+    total_spent_this_month: centsToNumber(totalSpentCents),
     category_budget: centsToNumber(categoryBudgetCents),
     category_remaining: centsToNumber(categoryBudgetCents - spentCents),
   };
@@ -252,7 +264,13 @@ export async function generateResponseNode(
     contextParts.push(`预算校验失败: ${state.budget_validation_error}`);
   }
 
-  if (budget) {
+  if (budget && shouldMentionBudget(state)) {
+    for (const crossing of budgetCrossings(state)) {
+      contextParts.push(
+        `预算提醒: 本次记账后${crossing.label}使用率跨过 ${crossing.threshold}%（当前 ${crossing.currentPercent}%）。`,
+      );
+    }
+
     const lines = [`预算状态: ${budget.category}`, `  已花: ${budget.spent_this_month}元`];
     if (budget.category_budget > 0) {
       lines.push(`  该分类预算: ${budget.category_budget}元`);

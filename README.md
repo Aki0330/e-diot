@@ -243,8 +243,11 @@ nodes.ts         6 个节点（parseIntent / writeTransaction / checkBudget / wr
 pipeline.ts      类型化执行器 + deriveGraphPath + buildExecutionData
 ```
 
-- **路由**：与旧 `graph.py` 一致 —— 记账 → `write_transaction → check_budget → (advice | generate_response)`；
-  预算分配 → `write_budget → generate_response`；其余（含解析失败）→ `check_budget → (advice | generate_response)`。
+- **路由**：记账 → `write_transaction → check_budget → (advice | generate_response)`；
+  预算分配 → `write_budget → generate_response`；查预算 → `check_budget → (advice | generate_response)`；
+  其（闲聊 / 查账单）→ `check_budget → generate_response`（**不再因为超支就每条都念预算**）。
+- **预算提醒策略**：默认不把预算写进回复上下文；只有「本次记账跨过 50% / 80% / 100%」或「用户明确查预算」时
+  才附预算与提醒，避免每次对话都提预算影响体验。
 - **`graph_path`**：逐字复刻 `_derive_graph_path`，包括 `write_budget(validation_failed)`、`parse_intent→error`
   这些特殊路径，以及「预算分配不经过 check_budget」的细节。
 - **`execution_data`**：字段名与旧 `_build_execution_data` 完全一致（`transaction` / `budget_allocations` /

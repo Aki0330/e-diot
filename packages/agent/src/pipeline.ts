@@ -79,12 +79,7 @@ export function deriveGraphPath(state: AgentState): string {
     path.push("check_budget");
   }
 
-  if (
-    intentType === "add_transaction" ||
-    intentType === "query_budget" ||
-    intentType === "query_transactions" ||
-    intentType === "chat"
-  ) {
+  if (intentType === "add_transaction" || intentType === "query_budget") {
     path.push(state.is_over_budget ? "advice" : "generate_response");
   } else {
     path.push("generate_response");
@@ -160,11 +155,14 @@ export async function runAgentWithTrace(
   } else if (intentType === "set_category_budget" && intent?.budget_allocations) {
     state = await writeBudgetNode(state, deps.db);
     state = await generateResponseNode(state, deps.llm, options);
-  } else {
+  } else if (intentType === "query_budget") {
     state = await checkBudgetNode(state, deps.db);
     state = state.is_over_budget
       ? await adviceNode(state, deps.llm, options)
       : await generateResponseNode(state, deps.llm, options);
+  } else {
+    state = await checkBudgetNode(state, deps.db);
+    state = await generateResponseNode(state, deps.llm, options);
   }
 
   return {

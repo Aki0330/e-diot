@@ -52,6 +52,8 @@ export const budgetStatusSchema = z.object({
   is_over_budget: z.boolean(),
   /** monthly_budget - spent_this_month */
   remaining: z.number(),
+  /** 当月总支出（与 spent_this_month 区分：后者在有分类时是分类支出） */
+  total_spent_this_month: nonNegativeMoneySchema.default(0),
   /** 该分类的预算额度（budgets 表，0=未设置） */
   category_budget: nonNegativeMoneySchema.default(0),
   category_remaining: z.number().default(0),
