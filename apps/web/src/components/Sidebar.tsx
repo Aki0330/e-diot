@@ -53,6 +53,9 @@ export function Sidebar({ tab, user, onNavigate, onLogout }: SidebarProps) {
         <button type="button" className="side-logout" onClick={onLogout}>
           退出登录
         </button>
+        <a className="side-preview" href="/m">
+          📱 移动端预览
+        </a>
         <div className="side-legend">
           <span>
             <i className="dot lime" />

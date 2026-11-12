@@ -686,3 +686,19 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 0 0 2px var(--primary-soft);
 }
+
+/* 侧栏底部：移动端预览入口 */
+.side-preview {
+  display: block;
+  padding: 7px 10px;
+  border: 1px dashed rgba(200, 241, 105, 0.4);
+  border-radius: 8px;
+  color: var(--primary);
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.side-preview:hover {
+  background: rgba(200, 241, 105, 0.08);
+}

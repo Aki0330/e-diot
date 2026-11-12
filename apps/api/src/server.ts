@@ -114,6 +114,9 @@ export function buildServer(
   // 这样只跑 API / 测试时不会因为缺 dist 而报错。
   if (existsSync(join(config.server.staticDir, "index.html"))) {
     app.register(fastifyStatic, { root: config.server.staticDir, prefix: "/" });
+    // 移动端专用入口（SPA 的 /m 复用同一份 index.html）
+    app.get("/m", (_request, reply) => reply.sendFile("index.html"));
+    app.get("/m/", (_request, reply) => reply.sendFile("index.html"));
   }
 
   app.setErrorHandler((error, request, reply) => {
