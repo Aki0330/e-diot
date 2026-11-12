@@ -6,6 +6,7 @@ import type {
   TokenResponse,
   TransactionsResponse,
   UserProfile,
+  UserSettings,
   BudgetResponse,
 } from "./types.js";
 
@@ -87,6 +88,10 @@ export const api = {
   llmConfig: () => request<LlmConfig>("/users/llm-config"),
   saveLlmConfig: (body: { base_url?: string; api_key?: string }) =>
     request<LlmConfig>("/users/llm-config", { method: "PUT", body }),
+  settings: () => request<UserSettings>("/users/settings"),
+  saveSettings: (
+    body: Partial<Omit<UserSettings, "snooze_until">> & { snooze_until?: string | null },
+  ) => request<UserSettings>("/users/settings", { method: "PUT", body }),
   dashboard: () => request<DashboardData>("/chat/dashboard"),
   transactions: (category: string) =>
     request<TransactionsResponse>(

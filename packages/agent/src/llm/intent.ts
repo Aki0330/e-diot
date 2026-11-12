@@ -1,5 +1,6 @@
 import { intentResultSchema, type IntentResult } from "@cyberbudget/shared";
 
+import { HISTORY_NOTE, historyMessages, type ChatTurn } from "../history.js";
 import { INTENT_JSON_FORMAT_HINT, INTENT_SYSTEM_PROMPT } from "../prompts.js";
 import type { LlmClient } from "./client.js";
 
@@ -26,10 +27,17 @@ export function stripMarkdownFence(text: string): string {
   return trimmed;
 }
 
-export async function parseIntent(llm: LlmClient, userInput: string): Promise<IntentResult> {
+export async function parseIntent(
+  llm: LlmClient,
+  userInput: string,
+  history: readonly ChatTurn[] = [],
+): Promise<IntentResult> {
   const raw = await llm.complete([
     { role: "system", content: INTENT_SYSTEM_PROMPT },
     { role: "system", content: INTENT_JSON_FORMAT_HINT },
+    ...(history.length === 0
+      ? []
+      : [{ role: "system" as const, content: HISTORY_NOTE }, ...historyMessages(history)]),
     { role: "user", content: userInput },
   ]);
 

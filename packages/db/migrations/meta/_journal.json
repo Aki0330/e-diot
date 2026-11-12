@@ -15,6 +15,13 @@
       "when": 1794415444562,
       "tag": "0001_user_llm_config",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794459505959,
+      "tag": "0002_user_settings",
+      "breakpoints": true
     }
   ]
 }

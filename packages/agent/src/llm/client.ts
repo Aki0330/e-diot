@@ -6,7 +6,7 @@
  */
 
 export interface ChatMessage {
-  readonly role: "system" | "user";
+  readonly role: "system" | "user" | "assistant";
   readonly content: string;
 }
 

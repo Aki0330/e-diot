@@ -1,6 +1,7 @@
 import type { Executor } from "@cyberbudget/db";
-import type { AgentState, IntentResult } from "@cyberbudget/shared";
+import type { AgentState, IntentResult, Persona } from "@cyberbudget/shared";
 
+import type { ChatTurn } from "./history.js";
 import type { LlmClient } from "./llm/client.js";
 import {
   adviceNode,
@@ -24,6 +25,12 @@ import {
 export interface AgentDeps {
   readonly db: Executor;
   readonly llm: LlmClient;
+}
+
+/** 单次运行的上下文：同会话历史与用户人格（都可选） */
+export interface AgentRunOptions {
+  readonly history?: readonly ChatTurn[];
+  readonly persona?: Persona;
 }
 
 export interface AgentTraceResult {
@@ -133,10 +140,11 @@ export async function runAgentWithTrace(
   deps: AgentDeps,
   userId: string,
   userInput: string,
+  options: AgentRunOptions = {},
 ): Promise<AgentTraceResult> {
   let state = createInitialState(userId, userInput);
 
-  state = await parseIntentNode(state, deps.llm);
+  state = await parseIntentNode(state, deps.llm, options);
 
   const intent: IntentResult | null = state.intent ?? null;
   const intentType = intent?.intent_type ?? null;
@@ -145,16 +153,16 @@ export async function runAgentWithTrace(
     state = await writeTransactionNode(state, deps.db);
     state = await checkBudgetNode(state, deps.db);
     state = state.is_over_budget
-      ? await adviceNode(state, deps.llm)
-      : await generateResponseNode(state, deps.llm);
+      ? await adviceNode(state, deps.llm, options)
+      : await generateResponseNode(state, deps.llm, options);
   } else if (intentType === "set_category_budget" && intent?.budget_allocations) {
     state = await writeBudgetNode(state, deps.db);
-    state = await generateResponseNode(state, deps.llm);
+    state = await generateResponseNode(state, deps.llm, options);
   } else {
     state = await checkBudgetNode(state, deps.db);
     state = state.is_over_budget
-      ? await adviceNode(state, deps.llm)
-      : await generateResponseNode(state, deps.llm);
+      ? await adviceNode(state, deps.llm, options)
+      : await generateResponseNode(state, deps.llm, options);
   }
 
   return {
@@ -171,6 +179,7 @@ export async function runAgent(
   deps: AgentDeps,
   userId: string,
   userInput: string,
+  options: AgentRunOptions = {},
 ): Promise<string> {
-  return (await runAgentWithTrace(deps, userId, userInput)).response;
+  return (await runAgentWithTrace(deps, userId, userInput, options)).response;
 }

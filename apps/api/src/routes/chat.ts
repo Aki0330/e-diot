@@ -6,6 +6,7 @@ import {
   deleteSession,
   deleteTransaction,
   findSessionById,
+  getUserSettings,
   listMessages,
   listMonthBudgets,
   listSessions,
@@ -29,6 +30,7 @@ import {
   formatYearMonthUtc,
   monthStartUtc,
   parseCents,
+  PERSONAS,
   sessionDetailResponseSchema,
   sessionListResponseSchema,
   transactionItemDtoSchema,
@@ -103,7 +105,24 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
 
       await appendMessage(app.db, { sessionId, role: "user", content: body.message });
 
-      const trace = await app.agent.runWithTrace(user.userId, body.message);
+      const historyRows = await listMessages(app.db, sessionId);
+      const history = historyRows
+        .filter((row) => row.content.trim() !== "")
+        .slice(-12)
+        .map((row) => ({
+          role: row.role === "assistant" ? ("assistant" as const) : ("user" as const),
+          content: row.content,
+        }));
+      // 去掉刚刚写入的当前用户消息，避免与最后一条输入重复
+      history.pop();
+
+      const settings = await getUserSettings(app.db, user.userId);
+      const persona = PERSONAS.find((item) => item === settings?.persona);
+
+      const trace = await app.agent.runWithTrace(user.userId, body.message, {
+        history,
+        ...(persona === undefined ? {} : { persona }),
+      });
 
       await appendMessage(app.db, {
         sessionId,

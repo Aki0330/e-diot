@@ -3,6 +3,8 @@
  * 修改前请先确认行为契约（graph_path、兜底文案）。
  */
 
+import type { Persona } from "@cyberbudget/shared";
+
 export const INTENT_SYSTEM_PROMPT = `你是一个财务助理的意图解析器。根据用户输入，判断意图并提取结构化数据。
 
 规则：
@@ -62,4 +64,17 @@ export const FALLBACK_NO_TOTAL_BUDGET =
 /** 把 `{key}` 占位符替换成字符串值（等价 Python `str.format` 的最小子集） */
 export function formatTemplate(template: string, values: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_match, key: string) => values[key] ?? `{${key}}`);
+}
+
+/** 四种人格的表达策略：只影响语气/长度，不影响判断标准 */
+export const PERSONA_INSTRUCTIONS: Record<Persona, string> = {
+  lurker: "潜水型：话很少，只给结论和必要数字，不寒暄、不追问，最多 2 句话。",
+  introvert: "i 人型：温和克制，先确认事实再补充一句，不主动扩展话题，2-3 句话。",
+  buddy: "搭子型：像朋友一样自然，可以有轻微幽默和适度关心，2-4 句话。",
+  chatterbox: "话痨型：热情、主动分享一个小观察或建议，3-5 句话，但不刷屏、不重复。",
+};
+
+export function withPersona(base: string, persona?: Persona): string {
+  if (persona === undefined) return base;
+  return `${base}\n\n当前相处人格——${PERSONA_INSTRUCTIONS[persona]}`;
 }

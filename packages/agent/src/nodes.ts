@@ -18,8 +18,10 @@ import {
   toDbTransactionType,
   type AgentState,
   type BudgetStatus,
+  type Persona,
 } from "@cyberbudget/shared";
 
+import { HISTORY_NOTE, historyMessages, type ChatTurn } from "./history.js";
 import {
   FALLBACK_BUDGET_ERROR,
   FALLBACK_NO_TOTAL_BUDGET,
@@ -30,6 +32,7 @@ import {
   OVERSPEND_ADVICE_SYSTEM_PROMPT,
   OVERSPEND_USER_PROMPT_TEMPLATE,
   formatTemplate,
+  withPersona,
 } from "./prompts.js";
 import { parseIntent } from "./llm/intent.js";
 import type { LlmClient } from "./llm/client.js";
@@ -52,10 +55,21 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+export interface NodeOptions {
+  /** 同一会话的最近历史（已截断） */
+  readonly history?: readonly ChatTurn[];
+  /** 用户的相处人格（只影响回复语气） */
+  readonly persona?: Persona;
+}
+
 /** Node 1：LLM 解析意图；失败时保留兜底文案，流程继续（与旧图一致） */
-export async function parseIntentNode(state: AgentState, llm: LlmClient): Promise<AgentState> {
+export async function parseIntentNode(
+  state: AgentState,
+  llm: LlmClient,
+  options: NodeOptions = {},
+): Promise<AgentState> {
   try {
-    const intent = await parseIntent(llm, state.user_input ?? "");
+    const intent = await parseIntent(llm, state.user_input ?? "", options.history ?? []);
     return { ...state, intent, error: null };
   } catch (error) {
     return {
@@ -199,7 +213,11 @@ export async function writeBudgetNode(state: AgentState, db: Executor): Promise<
 }
 
 /** Node 4a：正常回复（记账成功 / 查询 / 分配成功） */
-export async function generateResponseNode(state: AgentState, llm: LlmClient): Promise<AgentState> {
+export async function generateResponseNode(
+  state: AgentState,
+  llm: LlmClient,
+  options: NodeOptions = {},
+): Promise<AgentState> {
   const intent = state.intent;
   const budget = state.budget_status;
   const contextParts = [`用户输入: ${state.user_input ?? ""}`];
@@ -244,7 +262,13 @@ export async function generateResponseNode(state: AgentState, llm: LlmClient): P
 
   try {
     const response = await llm.complete([
-      { role: "system", content: NORMAL_RESPONSE_SYSTEM_PROMPT },
+      { role: "system", content: withPersona(NORMAL_RESPONSE_SYSTEM_PROMPT, options.persona) },
+      ...(options.history === undefined || options.history.length === 0
+        ? []
+        : [
+            { role: "system" as const, content: HISTORY_NOTE },
+            ...historyMessages(options.history),
+          ]),
       { role: "user", content: contextParts.join("\n") },
     ]);
     return { ...state, response };
@@ -257,7 +281,11 @@ export async function generateResponseNode(state: AgentState, llm: LlmClient): P
 }
 
 /** Node 4b：超支建议 */
-export async function adviceNode(state: AgentState, llm: LlmClient): Promise<AgentState> {
+export async function adviceNode(
+  state: AgentState,
+  llm: LlmClient,
+  options: NodeOptions = {},
+): Promise<AgentState> {
   const budget = state.budget_status;
   if (!budget) {
     return { ...state, response: FALLBACK_BUDGET_ERROR };
@@ -282,7 +310,13 @@ export async function adviceNode(state: AgentState, llm: LlmClient): Promise<Age
 
   try {
     const response = await llm.complete([
-      { role: "system", content: OVERSPEND_ADVICE_SYSTEM_PROMPT },
+      { role: "system", content: withPersona(OVERSPEND_ADVICE_SYSTEM_PROMPT, options.persona) },
+      ...(options.history === undefined || options.history.length === 0
+        ? []
+        : [
+            { role: "system" as const, content: HISTORY_NOTE },
+            ...historyMessages(options.history),
+          ]),
       { role: "user", content: userPrompt },
     ]);
     return { ...state, response };

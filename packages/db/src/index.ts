@@ -14,5 +14,6 @@ export * from "./repositories/users.js";
 export * from "./repositories/transactions.js";
 export * from "./repositories/budgets.js";
 export * from "./repositories/chat.js";
+export * from "./repositories/settings.js";
 export * from "./services/budget-merge.js";
 export * from "./services/budget-status.js";

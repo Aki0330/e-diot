@@ -31,16 +31,15 @@
 
 ### P0 · 必须先成立（约 6–9 人日）
 
-- [ ] **P0-1 对话历史注入**（0.5–1d）
-  - Agent 读取同会话最近 N 条消息（按字符预算截断），拼入 prompt；预算/闲聊路径同样生效。
-  - 验收：同一会话连续 3 轮，第 3 轮能引用第 1 轮内容；超长会话不爆 token。
-  - 依赖：无（`chat_messages` 已存在）。
+- [x] **P0-1 对话历史注入**（已完成 2026-11-12）
+  - Agent 读取同会话最近消息（默认 8 条 / 1800 字符预算，API 侧取 12 条），拼入意图解析与回复 prompt。
+  - 验收：`selectHistory` 截断单测 + `parseIntent` 历史注入单测；对话路由已接入 `listMessages`。
 
-- [ ] **P0-2 人格与相处设置**（1.5–2d）
-  - 新表 `user_settings`（persona、proactive_level、care_time、quiet_hours、snooze_until）。
-  - API：`GET/PUT /users/settings`；前端「我的」页增加人格选择（4 档 + 实时预览）、主动程度、时间管理。
-  - Agent：4 套 persona system prompt，语气/长度可区分；设置持久化。
-  - 验收：切换人格后同一问题回复风格可区分；刷新后设置保留。
+- [x] **P0-2 人格与相处设置**（已完成 2026-11-12）
+  - 新表 `user_settings` + 迁移 `0002`；API `GET/PUT /users/settings`。
+  - 前端「我的」页新增「相处方式」：4 档人格、主动程度、关怀时间、免打扰、暂停。
+  - Agent：4 套 persona 提示词（`withPersona`），只影响语气/长度。
+  - 验收：接口默认值/持久化/非法时间用例 + persona 单测；真实库实测通过。
 
 - [ ] **P0-3 记忆系统 v1**（2–3d）
   - 新表 `memories`（type/content/source/source_ref/status/created_at/updated_at/deleted_at）。
@@ -48,6 +47,7 @@
   - Agent：注入最近/高优先级记忆（偏好、目标、边界）。
   - 前端：记忆页（来源、更新时间、查看依据/纠正/删除）+ 待确认卡片。
   - 验收：新增→确认→注入生效；删除后不再出现在回复与列表。
+  - 存储决策：**v1 用 PostgreSQL，不先上 Milvus**，见 [memory-storage-decision.md](memory-storage-decision.md)。
 
 - [ ] **P0-4 主动关怀 v1（站内）**（2–3d）
   - 调度器（进程内定时任务）：每天 `care_time` 检查一次，结合洞察/预算生成一条消息，写入当天会话并标记 `proactive`。

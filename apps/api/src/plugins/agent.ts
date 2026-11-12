@@ -2,10 +2,11 @@ import {
   createOpenAiCompatibleClient,
   runAgent,
   runAgentWithTrace,
+  type ChatTurn,
   type LlmClient,
 } from "@cyberbudget/agent";
 import { findUserById, type Database } from "@cyberbudget/db";
-import type { AppConfig } from "@cyberbudget/shared";
+import type { AppConfig, Persona } from "@cyberbudget/shared";
 import type { FastifyInstance } from "fastify";
 
 /**
@@ -20,18 +21,29 @@ export interface AgentTrace {
   readonly executionData: Record<string, unknown> | null;
 }
 
+export interface AgentRunOptions {
+  /** 同一会话的最近历史（Agent 内部会再做截断） */
+  readonly history?: readonly ChatTurn[];
+  /** 用户相处人格 */
+  readonly persona?: Persona;
+}
+
 export interface AgentRunner {
   /** 只取回复文本（对应旧 `run_agent`），预算 Agent 端点用 */
-  run(userId: string, message: string): Promise<string>;
+  run(userId: string, message: string, options?: AgentRunOptions): Promise<string>;
   /** 带执行追踪（对应旧 `run_agent_with_trace`），对话端点用 */
-  runWithTrace(userId: string, message: string): Promise<AgentTrace>;
+  runWithTrace(userId: string, message: string, options?: AgentRunOptions): Promise<AgentTrace>;
 }
 
 export const PLACEHOLDER_GRAPH_PATH = "parse_intent→generate_response";
 
 /** 占位实现：测试与本地无 LLM key 时使用，只回显、不写库。 */
 export function createPlaceholderAgent(): AgentRunner {
-  const runWithTrace = (_userId: string, message: string): Promise<AgentTrace> =>
+  const runWithTrace = (
+    _userId: string,
+    message: string,
+    _options?: AgentRunOptions,
+  ): Promise<AgentTrace> =>
     Promise.resolve({
       response: `已收到：「${message.slice(0, 200)}」。记账 Agent 将在 P3 接入，当前为接口占位回复。`,
       intentType: "chat",
@@ -40,7 +52,8 @@ export function createPlaceholderAgent(): AgentRunner {
     });
 
   return {
-    run: async (userId, message) => (await runWithTrace(userId, message)).response,
+    run: async (userId, message, options) =>
+      (await runWithTrace(userId, message, options)).response,
     runWithTrace,
   };
 }
@@ -82,10 +95,15 @@ export function createAgentRunner({ db, config }: AgentRunnerOptions): AgentRunn
   };
 
   return {
-    run: async (userId, message) =>
-      runAgent({ db, llm: await llmForUser(userId) }, userId, message),
-    runWithTrace: async (userId, message) => {
-      const trace = await runAgentWithTrace({ db, llm: await llmForUser(userId) }, userId, message);
+    run: async (userId, message, options) =>
+      runAgent({ db, llm: await llmForUser(userId) }, userId, message, options),
+    runWithTrace: async (userId, message, options) => {
+      const trace = await runAgentWithTrace(
+        { db, llm: await llmForUser(userId) },
+        userId,
+        message,
+        options,
+      );
       return {
         response: trace.response,
         intentType: trace.intentType,

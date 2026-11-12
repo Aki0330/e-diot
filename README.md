@@ -139,6 +139,7 @@ e-diot/
 | GET        | `/api/v1/users/me`                  | 当前用户资料                                                   |
 | POST       | `/api/v1/users/set_budget`          | 更新月度总预算                                                 |
 | GET/PUT    | `/api/v1/users/llm-config`          | 用户级 LLM 配置（base_url + key；key 只回传是否已配置）        |
+| GET/PUT    | `/api/v1/users/settings`            | 相处方式：人格 / 主动程度 / 关怀时间 / 免打扰 / 暂停           |
 | POST       | `/api/v1/budget/agent`              | Agent 解析 + MERGE（P2 阶段 Agent 是占位实现）                 |
 | POST       | `/api/v1/budget/manual`             | 全量替换；超总额→422，未设总预算→400                           |
 | POST       | `/api/v1/chat`                      | 对话 + 会话/消息持久化 + `graph_path` 追踪                     |
@@ -197,6 +198,10 @@ App.tsx     登录态 + 桌面侧栏 / 移动底部导航 + 5 页（页面常驻
 - **账单 Tab**：分类筛选 chips、交易列表（金额正负色、备注、时间）。
 - **我的 Tab**：账户信息（user_id/手机号/邮箱/预算/注册时间/状态）+ 用户级 LLM 配置
   （`base_url` + `api_key`，保存后下一次对话即生效；密钥只落库、不回传，清除后回落到全局 `LLM_*`）。
+- **相处方式（P0-2）**：4 档人格（潜水/i 人/搭子/话痨）只影响回复语气与长度，不影响判断标准；
+  主动程度、每日关怀时间、免打扰与暂停持久化到 `user_settings`，对话时注入 persona 提示词。
+- **对话上下文（P0-1）**：`/chat` 会读取同会话最近 12 条消息，Agent 侧按 8 条 / 1800 字符预算截断，
+  拼入意图解析与回复 prompt；超出预算时优先保留最新消息。
 - **数据联动**：对话里出现「花了/赚了/买了/预算/分配」时，其余三个 Tab 的数据失效并在下次切换时刷新。
 - **同源托管**：`apps/api` 注册 `@fastify/static`，`apps/web/dist` 存在时 `GET /` 直接返回前端；缺失时跳过，
   只跑 API 或测试不受影响。

@@ -11,6 +11,7 @@
 export * from "./config.js";
 export * from "./errors.js";
 export * from "./money.js";
+export * from "./persona.js";
 export * from "./types.js";
 export * from "./auth/user-id.js";
 export * from "./schemas/common.js";

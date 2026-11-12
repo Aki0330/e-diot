@@ -527,6 +527,68 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(response.json<{ code: string }>().code).toBe("BAD_REQUEST");
   });
 
+  it("相处设置：默认值可读，保存后持久化", async () => {
+    const initial = await app.inject({
+      method: "GET",
+      url: "/api/v1/users/settings",
+      headers: auth(),
+    });
+    expect(initial.statusCode).toBe(200);
+    const initialBody = initial.json<{
+      persona: string;
+      proactive_level: string;
+      care_time: string;
+      quiet_start: string;
+      quiet_end: string;
+      snooze_until: string | null;
+    }>();
+    expect(initialBody.persona).toBe("buddy");
+    expect(initialBody.proactive_level).toBe("medium");
+    expect(initialBody.care_time).toBe("17:45");
+    expect(initialBody.snooze_until).toBeNull();
+
+    const saved = await app.inject({
+      method: "PUT",
+      url: "/api/v1/users/settings",
+      headers: auth(),
+      payload: {
+        persona: "lurker",
+        proactive_level: "low",
+        care_time: "20:15",
+        quiet_start: "23:00",
+        quiet_end: "07:30",
+        snooze_until: "2026-11-20T00:00:00.000Z",
+      },
+    });
+    expect(saved.statusCode).toBe(200);
+    const savedBody = saved.json<{
+      persona: string;
+      care_time: string;
+      snooze_until: string | null;
+    }>();
+    expect(savedBody.persona).toBe("lurker");
+    expect(savedBody.care_time).toBe("20:15");
+    expect(savedBody.snooze_until).toBe("2026-11-20T00:00:00.000Z");
+
+    const again = await app.inject({
+      method: "GET",
+      url: "/api/v1/users/settings",
+      headers: auth(),
+    });
+    expect(again.json<{ persona: string }>().persona).toBe("lurker");
+  });
+
+  it("相处设置：非法时间返回校验错误", async () => {
+    const response = await app.inject({
+      method: "PUT",
+      url: "/api/v1/users/settings",
+      headers: auth(),
+      payload: { care_time: "25:00" },
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json<{ code: string }>().code).toBe("BAD_REQUEST");
+  });
+
   it("OpenAPI 文档可访问且包含全部业务路径", async () => {
     const response = await app.inject({ method: "GET", url: "/docs/json" });
 

@@ -17,6 +17,19 @@ export interface LlmConfig {
   readonly model: string;
 }
 
+export type PersonaId = "lurker" | "introvert" | "buddy" | "chatterbox";
+export type ProactiveLevel = "low" | "medium" | "high";
+
+/** 相处方式：人格、主动程度、关怀时间与免打扰 */
+export interface UserSettings {
+  readonly persona: PersonaId;
+  readonly proactive_level: ProactiveLevel;
+  readonly care_time: string;
+  readonly quiet_start: string;
+  readonly quiet_end: string;
+  readonly snooze_until: string | null;
+}
+
 export interface TokenResponse {
   readonly access_token: string;
   readonly refresh_token: string;
