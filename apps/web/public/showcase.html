@@ -15,106 +15,521 @@
         --muted-2: #9aa3b2;
         --line: #e3e8ef;
         --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        --font: "Archivo", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+        --font:
+          "Archivo", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
         --radius: 16px;
         --shadow: 0 28px 70px -40px rgba(11, 18, 32, 0.45);
       }
-      * { box-sizing: border-box; }
-      html { scroll-snap-type: y mandatory; scroll-behavior: smooth; background: var(--bg); }
-      body { margin: 0; font-family: var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
-      ::selection { background: var(--lime); color: var(--ink); }
-      .slide { position: relative; height: 100dvh; min-height: 620px; scroll-snap-align: start; scroll-snap-stop: always; display: flex; align-items: center; overflow: hidden; }
-      .slide.dark { background: var(--ink); color: #fff; }
-      .slide.soft { background: linear-gradient(180deg, #f5f7fa 0%, #eef3f9 100%); }
-      .inner { width: min(1180px, 92vw); margin: 0 auto; max-height: 92dvh; display: flex; flex-direction: column; justify-content: center; gap: clamp(12px, 2.2vh, 24px); }
-      .eyebrow { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted-2); }
-      .dark .eyebrow { color: rgba(255, 255, 255, 0.45); }
-      h1, h2, h3, p { margin: 0; }
-      h1 { font-size: clamp(36px, 5.2vw, 64px); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; }
-      h2 { font-size: clamp(26px, 3.3vw, 42px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 800; }
-      h3 { font-size: clamp(14px, 1.3vw, 17px); line-height: 1.3; font-weight: 700; }
-      .hero-en { font-size: clamp(30px, 4.4vw, 54px); line-height: 1.06; letter-spacing: -0.035em; }
-      .hero-en em { color: var(--lime); font-style: normal; }
-      .lead { font-size: clamp(13.5px, 1.4vw, 17px); line-height: 1.7; color: var(--muted); max-width: 46em; }
-      .dark .lead { color: rgba(255, 255, 255, 0.62); }
-      .two { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: clamp(22px, 4vw, 52px); align-items: center; }
-      .tags { display: flex; flex-wrap: wrap; gap: 7px; }
-      .tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.05em; color: var(--muted); white-space: nowrap; }
-      .dark .tag { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.7); }
-      .tag.hot { background: var(--lime); border-color: var(--lime); color: var(--ink); font-weight: 700; }
-      .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
-      .cards.two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .cards.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: clamp(12px, 1.5vw, 17px); box-shadow: 0 12px 30px -28px rgba(11, 18, 32, 0.3); }
-      .dark .card { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1); box-shadow: none; }
-      .kicker { font-family: var(--mono); font-size: 9px; letter-spacing: 0.13em; color: var(--muted-2); text-transform: uppercase; }
-      .dark .kicker { color: rgba(255, 255, 255, 0.4); }
-      .num { font-family: var(--mono); font-size: 12px; color: var(--lime); }
-      .card p { margin-top: 5px; font-size: clamp(11.5px, 1.05vw, 13px); line-height: 1.6; color: var(--muted); }
-      .dark .card p { color: rgba(255, 255, 255, 0.6); }
-      .list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
-      .list li { display: flex; gap: 8px; align-items: flex-start; font-size: clamp(12px, 1.1vw, 13.5px); line-height: 1.6; color: var(--muted); }
-      .list li::before { content: ""; width: 5px; height: 5px; margin-top: 7px; border-radius: 50%; background: var(--lime); flex: none; }
-      .dark .list li { color: rgba(255, 255, 255, 0.62); }
-      .phone { width: auto; max-width: 100%; max-height: 62dvh; border-radius: 24px; border: 7px solid #0b1220; box-shadow: var(--shadow); background: var(--bg); }
-      .phone-wrap { display: flex; justify-content: center; }
-      .quote { border-left: 3px solid var(--lime); padding: 9px 13px; background: var(--lime-soft); border-radius: 0 10px 10px 0; font-size: clamp(12.5px, 1.15vw, 14.5px); line-height: 1.65; }
-      .dark .quote { background: rgba(200, 241, 105, 0.08); color: rgba(255, 255, 255, 0.8); }
-      .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-      .flow span { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.04em; padding: 4px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--card); color: var(--muted); }
-      .flow i { font-style: normal; color: var(--muted-2); font-size: 10px; }
-      .status { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 999px; }
-      .status::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-      .status.ok { color: #1f7a4d; background: rgba(31, 122, 77, 0.09); }
-      .status.plan { color: #8a5a08; background: rgba(138, 90, 8, 0.1); }
-      .status.demo { color: #3b5bdb; background: rgba(59, 91, 219, 0.1); }
-      table { width: 100%; border-collapse: collapse; font-size: clamp(10px, 1vw, 12.5px); line-height: 1.4; }
-      th, td { padding: clamp(5px, 0.8vh, 9px) 9px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
-      th { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-2); font-weight: 600; }
-      td { color: var(--muted); }
-      tr:last-child td { border-bottom: 0; }
-      td.us { color: var(--ink); font-weight: 700; background: rgba(200, 241, 105, 0.12); }
-      .insight { display: flex; flex-direction: column; gap: 5px; }
-      .insight .ev { font-family: var(--mono); font-size: 9px; color: var(--muted-2); letter-spacing: 0.02em; }
-      .fb { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
-      .fb span { font-size: 9px; padding: 2px 6px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
-      .persona-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: clamp(12px, 1.1vw, 13.5px); color: var(--muted); }
-      .persona-line b { color: var(--ink); }
-      .dark .persona-line { color: rgba(255, 255, 255, 0.65); }
-      .dark .persona-line b { color: #fff; }
-      .footnote { font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; color: var(--muted-2); }
-      .dark .footnote { color: rgba(255, 255, 255, 0.35); }
-      .cta { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 999px; background: var(--lime); color: var(--ink); font-weight: 700; font-size: 12.5px; text-decoration: none; }
-      .cta.ghost { background: transparent; border: 1px solid rgba(255, 255, 255, 0.22); color: #fff; }
-      .cta-row { display: flex; gap: 9px; flex-wrap: wrap; }
-      .progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: rgba(11, 18, 32, 0.08); z-index: 50; }
-      .progress > span { display: block; height: 100%; width: 0; background: var(--lime); transition: width 0.2s ease; }
-      .dots { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 50; }
-      .dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgba(11, 18, 32, 0.18); cursor: pointer; transition: all 0.2s ease; }
-      .dots button.active { background: var(--lime); transform: scale(1.5); }
-      .counter { position: fixed; right: 16px; bottom: 14px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; color: var(--muted-2); z-index: 50; }
-      .counter b { color: var(--ink); }
-      .hint { position: fixed; left: 16px; bottom: 14px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; color: var(--muted-2); z-index: 50; }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+        background: var(--bg);
+      }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+      }
+      ::selection {
+        background: var(--lime);
+        color: var(--ink);
+      }
+      .slide {
+        position: relative;
+        height: 100dvh;
+        min-height: 620px;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+      }
+      .slide.dark {
+        background: var(--ink);
+        color: #fff;
+      }
+      .slide.soft {
+        background: linear-gradient(180deg, #f5f7fa 0%, #eef3f9 100%);
+      }
+      .inner {
+        width: min(1180px, 92vw);
+        margin: 0 auto;
+        max-height: 92dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: clamp(12px, 2.2vh, 24px);
+      }
+      .eyebrow {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted-2);
+      }
+      .dark .eyebrow {
+        color: rgba(255, 255, 255, 0.45);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(36px, 5.2vw, 64px);
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+        font-weight: 800;
+      }
+      h2 {
+        font-size: clamp(26px, 3.3vw, 42px);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        font-weight: 800;
+      }
+      h3 {
+        font-size: clamp(14px, 1.3vw, 17px);
+        line-height: 1.3;
+        font-weight: 700;
+      }
+      .hero-en {
+        font-size: clamp(30px, 4.4vw, 54px);
+        line-height: 1.06;
+        letter-spacing: -0.035em;
+      }
+      .hero-en em {
+        color: var(--lime);
+        font-style: normal;
+      }
+      .lead {
+        font-size: clamp(13.5px, 1.4vw, 17px);
+        line-height: 1.7;
+        color: var(--muted);
+        max-width: 46em;
+      }
+      .dark .lead {
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1.06fr 0.94fr;
+        gap: clamp(22px, 4vw, 52px);
+        align-items: center;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .dark .tag {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .tag.hot {
+        background: var(--lime);
+        border-color: var(--lime);
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 11px;
+      }
+      .cards.two-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .cards.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: clamp(12px, 1.5vw, 17px);
+        box-shadow: 0 12px 30px -28px rgba(11, 18, 32, 0.3);
+      }
+      .dark .card {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+      }
+      .kicker {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.13em;
+        color: var(--muted-2);
+        text-transform: uppercase;
+      }
+      .dark .kicker {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .num {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--lime);
+      }
+      .card p {
+        margin-top: 5px;
+        font-size: clamp(11.5px, 1.05vw, 13px);
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .dark .card p {
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .list li {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: clamp(12px, 1.1vw, 13.5px);
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .list li::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        margin-top: 7px;
+        border-radius: 50%;
+        background: var(--lime);
+        flex: none;
+      }
+      .dark .list li {
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .phone {
+        width: auto;
+        max-width: 100%;
+        max-height: 62dvh;
+        border-radius: 24px;
+        border: 7px solid #0b1220;
+        box-shadow: var(--shadow);
+        background: var(--bg);
+      }
+      .phone-wrap {
+        display: flex;
+        justify-content: center;
+      }
+      .quote {
+        border-left: 3px solid var(--lime);
+        padding: 9px 13px;
+        background: var(--lime-soft);
+        border-radius: 0 10px 10px 0;
+        font-size: clamp(12.5px, 1.15vw, 14.5px);
+        line-height: 1.65;
+      }
+      .dark .quote {
+        background: rgba(200, 241, 105, 0.08);
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+      .flow span {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.04em;
+        padding: 4px 8px;
+        border-radius: 7px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--muted);
+      }
+      .flow i {
+        font-style: normal;
+        color: var(--muted-2);
+        font-size: 10px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.05em;
+        padding: 3px 8px;
+        border-radius: 999px;
+      }
+      .status::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .status.ok {
+        color: #1f7a4d;
+        background: rgba(31, 122, 77, 0.09);
+      }
+      .status.plan {
+        color: #8a5a08;
+        background: rgba(138, 90, 8, 0.1);
+      }
+      .status.demo {
+        color: #3b5bdb;
+        background: rgba(59, 91, 219, 0.1);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: clamp(10px, 1vw, 12.5px);
+        line-height: 1.4;
+      }
+      th,
+      td {
+        padding: clamp(5px, 0.8vh, 9px) 9px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      th {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted-2);
+        font-weight: 600;
+      }
+      td {
+        color: var(--muted);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td.us {
+        color: var(--ink);
+        font-weight: 700;
+        background: rgba(200, 241, 105, 0.12);
+      }
+      .insight {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .insight .ev {
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--muted-2);
+        letter-spacing: 0.02em;
+      }
+      .fb {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-top: 3px;
+      }
+      .fb span {
+        font-size: 9px;
+        padding: 2px 6px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+      }
+      .persona-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: clamp(12px, 1.1vw, 13.5px);
+        color: var(--muted);
+      }
+      .persona-line b {
+        color: var(--ink);
+      }
+      .dark .persona-line {
+        color: rgba(255, 255, 255, 0.65);
+      }
+      .dark .persona-line b {
+        color: #fff;
+      }
+      .footnote {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        color: var(--muted-2);
+      }
+      .dark .footnote {
+        color: rgba(255, 255, 255, 0.35);
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: var(--lime);
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 12.5px;
+        text-decoration: none;
+      }
+      .cta.ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #fff;
+      }
+      .cta-row {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap;
+      }
+      .progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(11, 18, 32, 0.08);
+        z-index: 50;
+      }
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--lime);
+        transition: width 0.2s ease;
+      }
+      .dots {
+        position: fixed;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 50;
+      }
+      .dots button {
+        width: 7px;
+        height: 7px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(11, 18, 32, 0.18);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .dots button.active {
+        background: var(--lime);
+        transform: scale(1.5);
+      }
+      .counter {
+        position: fixed;
+        right: 16px;
+        bottom: 14px;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        color: var(--muted-2);
+        z-index: 50;
+      }
+      .counter b {
+        color: var(--ink);
+      }
+      .hint {
+        position: fixed;
+        left: 16px;
+        bottom: 14px;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--muted-2);
+        z-index: 50;
+      }
       @media (max-width: 860px) {
-        .two { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-        .phone-wrap { display: none; }
-        .cards, .cards.four, .cards.two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .dots { display: none; }
-        .slide { min-height: 100dvh; }
-        .inner { max-height: 94dvh; gap: 12px; }
+        .two {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 14px;
+        }
+        .phone-wrap {
+          display: none;
+        }
+        .cards,
+        .cards.four,
+        .cards.two-col {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .dots {
+          display: none;
+        }
+        .slide {
+          min-height: 100dvh;
+        }
+        .inner {
+          max-height: 94dvh;
+          gap: 12px;
+        }
       }
       @media (max-width: 560px) {
-        .cards, .cards.four, .cards.two-col { grid-template-columns: minmax(0, 1fr); }
-        .inner { width: 90vw; max-height: 94dvh; overflow: auto; padding: 10px 0; }
-        .hint { display: none; }
-        table { font-size: 9.5px; }
-        th, td { padding: 5px 5px; }
+        .cards,
+        .cards.four,
+        .cards.two-col {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .inner {
+          width: 90vw;
+          max-height: 94dvh;
+          overflow: auto;
+          padding: 10px 0;
+        }
+        .hint {
+          display: none;
+        }
+        table {
+          font-size: 9.5px;
+        }
+        th,
+        td {
+          padding: 5px 5px;
+        }
       }
       @media (max-height: 700px) {
-        .inner { gap: 8px; }
-        .card { padding: 9px 11px; }
-        .phone { max-height: 56dvh; }
-        .lead { line-height: 1.55; }
+        .inner {
+          gap: 8px;
+        }
+        .card {
+          padding: 9px 11px;
+        }
+        .phone {
+          max-height: 56dvh;
+        }
+        .lead {
+          line-height: 1.55;
+        }
       }
     </style>
   </head>
@@ -129,18 +544,29 @@
         <div class="inner two">
           <div>
             <p class="eyebrow">E-DIOT · 智账 v2.0</p>
-            <h1 class="hero-en" style="margin-top: 14px">Not just remembering<br />your life.<br /><em>Understanding you.</em></h1>
-            <p class="lead" style="margin-top: 16px">记录很多，却很少被真正理解。<br />E-diot 从记账出发，逐渐成为一个记得住、读得懂、也知道什么时候该出现的 AI 生活伙伴。</p>
+            <h1 class="hero-en" style="margin-top: 14px">
+              Not just remembering<br />your life.<br /><em>Understanding you.</em>
+            </h1>
+            <p class="lead" style="margin-top: 16px">
+              记录很多，却很少被真正理解。<br />E-diot
+              从记账出发，逐渐成为一个记得住、读得懂、也知道什么时候该出现的 AI 生活伙伴。
+            </p>
             <div class="tags" style="margin-top: 16px">
-              <span class="tag hot">自然语言记账</span><span class="tag">预算</span><span class="tag">洞察</span><span class="tag">记忆</span><span class="tag">人格</span><span class="tag">MCP</span>
+              <span class="tag hot">自然语言记账</span><span class="tag">预算</span
+              ><span class="tag">洞察</span><span class="tag">记忆</span
+              ><span class="tag">人格</span><span class="tag">MCP</span>
             </div>
             <div class="cta-row" style="margin-top: 20px">
               <a class="cta" href="http://127.0.0.1:8000/m">体验 Demo →</a>
               <a class="cta ghost" href="https://github.com/Aki0330/e-diot">查看代码仓库</a>
             </div>
-            <p class="footnote" style="margin-top: 14px">记账是它认识你的入口，不是产品的全部 · 2026.11</p>
+            <p class="footnote" style="margin-top: 14px">
+              记账是它认识你的入口，不是产品的全部 · 2026.11
+            </p>
           </div>
-          <div class="phone-wrap"><img class="phone" src="/showcase/chat.png" alt="E-diot 对话界面" /></div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/chat.png" alt="E-diot 对话界面" />
+          </div>
         </div>
       </section>
 
@@ -148,13 +574,31 @@
         <div class="inner">
           <p class="eyebrow">01 / 问题</p>
           <h2>痕迹留下来了，<br />读懂的却很少。</h2>
-          <p class="lead">工具擅长保存，不擅长理解。生活被切成一条条记录，存进不同的应用；它们可以被查询、被统计，却拼不出一个正在生活的人。</p>
+          <p class="lead">
+            工具擅长保存，不擅长理解。生活被切成一条条记录，存进不同的应用；它们可以被查询、被统计，却拼不出一个正在生活的人。
+          </p>
           <div class="cards" style="margin-top: 4px">
-            <div class="card"><div class="num">01</div><h3 style="margin-top: 4px">痕迹被保存，却没有被读懂</h3><p>消费、饮食、说过的话散落在不同工具里，被存成可查询的数据，而不是可以被理解的生活。</p></div>
-            <div class="card"><div class="num">02</div><h3 style="margin-top: 4px">记住的只是数字，不是生活</h3><p>工具记得你花了多少，却不记得那天你为什么花、当时在忙什么、后来有没有好一点。</p></div>
-            <div class="card"><div class="num">03</div><h3 style="margin-top: 4px">回应按时到达，却未必恰当</h3><p>提醒按规则推送，不问此刻你是否想被说话，也不记得你上周说过「最近有点累」。</p></div>
+            <div class="card">
+              <div class="num">01</div>
+              <h3 style="margin-top: 4px">痕迹被保存，却没有被读懂</h3>
+              <p>
+                消费、饮食、说过的话散落在不同工具里，被存成可查询的数据，而不是可以被理解的生活。
+              </p>
+            </div>
+            <div class="card">
+              <div class="num">02</div>
+              <h3 style="margin-top: 4px">记住的只是数字，不是生活</h3>
+              <p>工具记得你花了多少，却不记得那天你为什么花、当时在忙什么、后来有没有好一点。</p>
+            </div>
+            <div class="card">
+              <div class="num">03</div>
+              <h3 style="margin-top: 4px">回应按时到达，却未必恰当</h3>
+              <p>提醒按规则推送，不问此刻你是否想被说话，也不记得你上周说过「最近有点累」。</p>
+            </div>
           </div>
-          <div class="quote" style="margin-top: 4px"><b>记录不是目的，被理解才是。</b> 这正是 E-diot 的出发点。</div>
+          <div class="quote" style="margin-top: 4px">
+            <b>记录不是目的，被理解才是。</b> 这正是 E-diot 的出发点。
+          </div>
         </div>
       </section>
 
@@ -162,12 +606,31 @@
         <div class="inner">
           <p class="eyebrow">02 / 理念</p>
           <h2>E-diot 希望成为<br />这样的存在。</h2>
-          <p class="lead">不是又一个更聪明的记账工具，而是一个记得住、读得懂、也知道什么时候该出现的 Companion。它从你的记录出发，而不是从预设的台词出发。</p>
+          <p class="lead">
+            不是又一个更聪明的记账工具，而是一个记得住、读得懂、也知道什么时候该出现的
+            Companion。它从你的记录出发，而不是从预设的台词出发。
+          </p>
           <div class="cards four" style="margin-top: 4px">
-            <div class="card"><div class="kicker">RECORD</div><h3 style="margin-top: 4px">留下痕迹</h3><p>一句话、一笔消费、一次对话，都成为它认识你的材料。</p></div>
-            <div class="card"><div class="kicker">UNDERSTAND</div><h3 style="margin-top: 4px">开始理解</h3><p>从时间窗口里读出频率、时段与重复的模式，并且说清依据。</p></div>
-            <div class="card"><div class="kicker">ACCOMPANY</div><h3 style="margin-top: 4px">恰当回应</h3><p>在你允许的时刻，用你选好的方式出现一次，说完就停。</p></div>
-            <div class="card"><div class="kicker">GROW</div><h3 style="margin-top: 4px">越懂，越少打扰</h3><p>你的反馈修正记忆，下一次它更懂得分寸。</p></div>
+            <div class="card">
+              <div class="kicker">RECORD</div>
+              <h3 style="margin-top: 4px">留下痕迹</h3>
+              <p>一句话、一笔消费、一次对话，都成为它认识你的材料。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">UNDERSTAND</div>
+              <h3 style="margin-top: 4px">开始理解</h3>
+              <p>从时间窗口里读出频率、时段与重复的模式，并且说清依据。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">ACCOMPANY</div>
+              <h3 style="margin-top: 4px">恰当回应</h3>
+              <p>在你允许的时刻，用你选好的方式出现一次，说完就停。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">GROW</div>
+              <h3 style="margin-top: 4px">越懂，越少打扰</h3>
+              <p>你的反馈修正记忆，下一次它更懂得分寸。</p>
+            </div>
           </div>
           <p class="footnote" style="margin-top: 2px">痕迹越多，理解越深；理解越深，回应越轻。</p>
         </div>
@@ -178,12 +641,30 @@
           <p class="eyebrow">03 / 四个层次</p>
           <h2>先记住，再理解，<br />然后才开口。</h2>
           <div class="cards four" style="margin-top: 4px">
-            <div class="card"><div class="kicker">COMPANION</div><h3 style="margin-top: 4px">聊天、主动消息</h3><p>产品的核心交互入口。用户不需要为了使用 AI 而进入复杂的功能菜单。</p></div>
-            <div class="card"><div class="kicker">LIFE LEDGER</div><h3 style="margin-top: 4px">记账、预算、分类</h3><p>用对话完成记录，保留预算进度与历史查询，但不让账本占据首页。</p></div>
-            <div class="card"><div class="kicker">LIFE INSIGHTS</div><h3 style="margin-top: 4px">规律、周期、趋势</h3><p>把数据翻译成有依据的观察，并标明依据与时间范围，而不是给一个评分。</p></div>
-            <div class="card"><div class="kicker">LIFE MEMORY</div><h3 style="margin-top: 4px">偏好、目标、习惯</h3><p>记住你说过的事与边界，让下一次对话接得上这一次。</p></div>
+            <div class="card">
+              <div class="kicker">COMPANION</div>
+              <h3 style="margin-top: 4px">聊天、主动消息</h3>
+              <p>产品的核心交互入口。用户不需要为了使用 AI 而进入复杂的功能菜单。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">LIFE LEDGER</div>
+              <h3 style="margin-top: 4px">记账、预算、分类</h3>
+              <p>用对话完成记录，保留预算进度与历史查询，但不让账本占据首页。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">LIFE INSIGHTS</div>
+              <h3 style="margin-top: 4px">规律、周期、趋势</h3>
+              <p>把数据翻译成有依据的观察，并标明依据与时间范围，而不是给一个评分。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">LIFE MEMORY</div>
+              <h3 style="margin-top: 4px">偏好、目标、习惯</h3>
+              <p>记住你说过的事与边界，让下一次对话接得上这一次。</p>
+            </div>
           </div>
-          <div class="quote" style="margin-top: 4px">记账是它认识你的入口，不是产品的全部。理解来自你愿意说出的每一句话，记住是你允许它保留的部分，回应只发生在你设定的时间里。</div>
+          <div class="quote" style="margin-top: 4px">
+            记账是它认识你的入口，不是产品的全部。理解来自你愿意说出的每一句话，记住是你允许它保留的部分，回应只发生在你设定的时间里。
+          </div>
         </div>
       </section>
 
@@ -192,7 +673,9 @@
           <div>
             <p class="eyebrow">04 / LIFE LEDGER</p>
             <h2 style="margin-top: 8px">记账是入口，<br />也是最硬的基本功。</h2>
-            <p class="lead">如果一笔账都记不准，理解就无从谈起。E-diot 先把「记得住、记得对」做扎实。</p>
+            <p class="lead">
+              如果一笔账都记不准，理解就无从谈起。E-diot 先把「记得住、记得对」做扎实。
+            </p>
             <ul class="list" style="margin-top: 12px">
               <li>自然语言记账：一句话完成金额、分类、备注与时间结构化</li>
               <li>预算联动：总预算 + 分类预算，跨 50% / 80% / 100% 才提醒</li>
@@ -200,9 +683,13 @@
               <li>总览与规则建议：支出、收入、分类分布、近 7 日趋势</li>
               <li>数据可信：金额按「分」存储，原始备注可回溯</li>
             </ul>
-            <div class="tags" style="margin-top: 12px"><span class="status ok">已实现</span><span class="tag">MCP 可调用记账/预算</span></div>
+            <div class="tags" style="margin-top: 12px">
+              <span class="status ok">已实现</span><span class="tag">MCP 可调用记账/预算</span>
+            </div>
           </div>
-          <div class="phone-wrap"><img class="phone" src="/showcase/bills.png" alt="账单管理界面" /></div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/bills.png" alt="账单管理界面" />
+          </div>
         </div>
       </section>
 
@@ -211,16 +698,39 @@
           <div>
             <p class="eyebrow">05 / COMPANION</p>
             <h2 style="margin-top: 8px">先记住，再理解，<br />然后才开口。</h2>
-            <p class="lead">它的每一句话都从你的记录出发：先看清最近的痕迹，再判断此刻是否该说话。</p>
+            <p class="lead">
+              它的每一句话都从你的记录出发：先看清最近的痕迹，再判断此刻是否该说话。
+            </p>
             <div class="cards two-col" style="margin-top: 12px">
-              <div class="card"><div class="kicker">DAILY</div><h3 style="margin-top: 3px">日常对话</h3><p>记账、问近况、闲聊都在同一个对话里完成，不跳页面、不填表单。</p></div>
-              <div class="card"><div class="kicker">PROACTIVE</div><h3 style="margin-top: 3px">主动关怀</h3><p>在你设定的时间与频率内出现，不在深夜弹通知，也不每天重复同一句话。</p></div>
-              <div class="card"><div class="kicker">CONTEXT</div><h3 style="margin-top: 3px">结合历史理解你</h3><p>回答之前先看最近记录：工作日晚餐、预算状态、你说过不喜欢被问什么。</p></div>
-              <div class="card"><div class="kicker">CONTINUITY</div><h3 style="margin-top: 3px">持续的关系</h3><p>通过记忆累积，让今天这句话接得上上周那次对话，而不是每次重新认识。</p></div>
+              <div class="card">
+                <div class="kicker">DAILY</div>
+                <h3 style="margin-top: 3px">日常对话</h3>
+                <p>记账、问近况、闲聊都在同一个对话里完成，不跳页面、不填表单。</p>
+              </div>
+              <div class="card">
+                <div class="kicker">PROACTIVE</div>
+                <h3 style="margin-top: 3px">主动关怀</h3>
+                <p>在你设定的时间与频率内出现，不在深夜弹通知，也不每天重复同一句话。</p>
+              </div>
+              <div class="card">
+                <div class="kicker">CONTEXT</div>
+                <h3 style="margin-top: 3px">结合历史理解你</h3>
+                <p>回答之前先看最近记录：工作日晚餐、预算状态、你说过不喜欢被问什么。</p>
+              </div>
+              <div class="card">
+                <div class="kicker">CONTINUITY</div>
+                <h3 style="margin-top: 3px">持续的关系</h3>
+                <p>通过记忆累积，让今天这句话接得上上周那次对话，而不是每次重新认识。</p>
+              </div>
             </div>
-            <div class="flow" style="margin-top: 10px"><span>Record</span><i>→</i><span>Pattern</span><i>→</i><span>Decide</span><i>→</i><span>Remember</span></div>
+            <div class="flow" style="margin-top: 10px">
+              <span>Record</span><i>→</i><span>Pattern</span><i>→</i><span>Decide</span><i>→</i
+              ><span>Remember</span>
+            </div>
           </div>
-          <div class="phone-wrap"><img class="phone" src="/showcase/chat.png" alt="Companion 对话" /></div>
+          <div class="phone-wrap">
+            <img class="phone" src="/showcase/chat.png" alt="Companion 对话" />
+          </div>
         </div>
       </section>
 
@@ -228,14 +738,35 @@
         <div class="inner">
           <p class="eyebrow">06 / LIFE INSIGHTS</p>
           <h2>它说的每件事，<br />都能回到你的记录。</h2>
-          <p class="lead">这里没有评分，也没有结论，只有它在你的记录里读到、并且你可以核对的事实：发生在什么时候、一共几次、依据是哪几条记录。</p>
+          <p class="lead">
+            这里没有评分，也没有结论，只有它在你的记录里读到、并且你可以核对的事实：发生在什么时候、一共几次、依据是哪几条记录。
+          </p>
           <div class="cards two-col" style="margin-top: 2px">
-            <div class="card insight"><h3>最近两周，餐饮记录主要落在工作日。</h3><div class="ev">依据：近 14 天 9 笔餐饮 · 其中 7 笔在工作日 · 10-15 — 10-29</div><div class="fb"><span>有帮助</span><span>不准确</span><span>不想再看到</span></div></div>
-            <div class="card insight"><h3>这个月的外卖消费比上个月有所增加。</h3><div class="ev">依据：10 月 12 笔 · 9 月 7 笔 · 按月对比</div><div class="fb"><span>有帮助</span><span>不准确</span><span>不想再看到</span></div></div>
-            <div class="card insight"><h3>你最近几次的晚间消费，都提到了加班后的晚餐。</h3><div class="ev">依据：近 30 天 3 笔 21:00 后餐饮 · 备注含「加班」</div><div class="fb"><span>有帮助</span><span>不准确</span><span>不想再看到</span></div></div>
-            <div class="card insight"><div class="kicker">BOUNDARY</div><p style="margin-top: 4px">观察只描述记录范围内的事实与频率。没有记录的事，不当作没有发生；不推断健康状态，不评价身材，也不生成「健康分」这类缺乏依据的数字。</p></div>
+            <div class="card insight">
+              <h3>最近两周，餐饮记录主要落在工作日。</h3>
+              <div class="ev">依据：近 14 天 9 笔餐饮 · 其中 7 笔在工作日 · 10-15 — 10-29</div>
+              <div class="fb"><span>有帮助</span><span>不准确</span><span>不想再看到</span></div>
+            </div>
+            <div class="card insight">
+              <h3>这个月的外卖消费比上个月有所增加。</h3>
+              <div class="ev">依据：10 月 12 笔 · 9 月 7 笔 · 按月对比</div>
+              <div class="fb"><span>有帮助</span><span>不准确</span><span>不想再看到</span></div>
+            </div>
+            <div class="card insight">
+              <h3>你最近几次的晚间消费，都提到了加班后的晚餐。</h3>
+              <div class="ev">依据：近 30 天 3 笔 21:00 后餐饮 · 备注含「加班」</div>
+              <div class="fb"><span>有帮助</span><span>不准确</span><span>不想再看到</span></div>
+            </div>
+            <div class="card insight">
+              <div class="kicker">BOUNDARY</div>
+              <p style="margin-top: 4px">
+                观察只描述记录范围内的事实与频率。没有记录的事，不当作没有发生；不推断健康状态，不评价身材，也不生成「健康分」这类缺乏依据的数字。
+              </p>
+            </div>
           </div>
-          <p class="footnote" style="margin-top: 2px">当前：总览为规则统计；带依据的洞察引擎为 P1 规划 · 本页为规划形态示意</p>
+          <p class="footnote" style="margin-top: 2px">
+            当前：总览为规则统计；带依据的洞察引擎为 P1 规划 · 本页为规划形态示意
+          </p>
         </div>
       </section>
 
@@ -243,19 +774,52 @@
         <div class="inner">
           <p class="eyebrow">07 / LIFE MEMORY</p>
           <h2>它记住的，<br />都会交还给你。</h2>
-          <p class="lead">被理解的前提是可控。偏好、习惯、目标、不喜欢的话题——每一条记忆都能查看来源、纠正错误、彻底删除；理解错了，就改回来。</p>
+          <p class="lead">
+            被理解的前提是可控。偏好、习惯、目标、不喜欢的话题——每一条记忆都能查看来源、纠正错误、彻底删除；理解错了，就改回来。
+          </p>
           <div class="cards four" style="margin-top: 2px">
-            <div class="card"><div class="kicker">PREFERENCE</div><h3 style="margin-top: 3px">饮品偏好</h3><p>喜欢奶茶，通常选择少糖。</p><p class="footnote" style="margin-top: 4px">来源：4 次点单记录 · 10-18</p></div>
-            <div class="card"><div class="kicker">HABIT</div><h3 style="margin-top: 3px">工作习惯</h3><p>工作日经常加班，晚餐常在外解决。</p><p class="footnote" style="margin-top: 4px">来源：近 14 天 4 次记录 · 10-28</p></div>
-            <div class="card"><div class="kicker">TONE</div><h3 style="margin-top: 3px">交流偏好</h3><p>喜欢轻松、有幽默感的交流。</p><p class="footnote" style="margin-top: 4px">来源：人格设置 · 用户选择</p></div>
-            <div class="card"><div class="kicker">GOAL</div><h3 style="margin-top: 3px">近期目标</h3><p>餐饮月预算 ¥1,500，希望月底不透支。</p><p class="footnote" style="margin-top: 4px">来源：用户设定 · 可随时修改</p></div>
+            <div class="card">
+              <div class="kicker">PREFERENCE</div>
+              <h3 style="margin-top: 3px">饮品偏好</h3>
+              <p>喜欢奶茶，通常选择少糖。</p>
+              <p class="footnote" style="margin-top: 4px">来源：4 次点单记录 · 10-18</p>
+            </div>
+            <div class="card">
+              <div class="kicker">HABIT</div>
+              <h3 style="margin-top: 3px">工作习惯</h3>
+              <p>工作日经常加班，晚餐常在外解决。</p>
+              <p class="footnote" style="margin-top: 4px">来源：近 14 天 4 次记录 · 10-28</p>
+            </div>
+            <div class="card">
+              <div class="kicker">TONE</div>
+              <h3 style="margin-top: 3px">交流偏好</h3>
+              <p>喜欢轻松、有幽默感的交流。</p>
+              <p class="footnote" style="margin-top: 4px">来源：人格设置 · 用户选择</p>
+            </div>
+            <div class="card">
+              <div class="kicker">GOAL</div>
+              <h3 style="margin-top: 3px">近期目标</h3>
+              <p>餐饮月预算 ¥1,500，希望月底不透支。</p>
+              <p class="footnote" style="margin-top: 4px">来源：用户设定 · 可随时修改</p>
+            </div>
           </div>
           <div class="cards" style="margin-top: 2px">
-            <div class="card"><div class="kicker">可查看</div><p>每条记忆标注来源与更新时间，不写没有出处的结论。</p></div>
-            <div class="card"><div class="kicker">可纠正</div><p>理解错了就改；纠正后不会被反复推断回去。</p></div>
-            <div class="card"><div class="kicker">可删除</div><p>删除后不再参与任何判断；也可以整体暂停记录。</p></div>
+            <div class="card">
+              <div class="kicker">可查看</div>
+              <p>每条记忆标注来源与更新时间，不写没有出处的结论。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">可纠正</div>
+              <p>理解错了就改；纠正后不会被反复推断回去。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">可删除</div>
+              <p>删除后不再参与任何判断；也可以整体暂停记录。</p>
+            </div>
           </div>
-          <p class="footnote" style="margin-top: 2px">已实现：PostgreSQL 记忆表 · 待确认 / 确认 / 纠正 / 软删除 · 注入回复与主动消息</p>
+          <p class="footnote" style="margin-top: 2px">
+            已实现：PostgreSQL 记忆表 · 待确认 / 确认 / 纠正 / 软删除 · 注入回复与主动消息
+          </p>
         </div>
       </section>
 
@@ -263,20 +827,46 @@
         <div class="inner">
           <p class="eyebrow">08 / PERSONALITY</p>
           <h2>选择你的 Companion。</h2>
-          <p class="lead">同一个存在，四种相处方式。人格决定语气与存在感，主动程度决定它多久出现一次——两者分开设置。</p>
+          <p class="lead">
+            同一个存在，四种相处方式。人格决定语气与存在感，主动程度决定它多久出现一次——两者分开设置。
+          </p>
           <div class="cards four" style="margin-top: 2px">
-            <div class="card"><div class="kicker">LURKER</div><h3 style="margin-top: 3px">潜水型</h3><p>安静记录，必要时才出现。重要的事写进周总结，而不是当天打断你。</p></div>
-            <div class="card"><div class="kicker">INTROVERT</div><h3 style="margin-top: 3px">i 人型</h3><p>温和、低频、不打扰。会记得你的事，但不主动开启太多话题。</p></div>
-            <div class="card"><div class="kicker">BUDDY · 默认</div><h3 style="margin-top: 3px">搭子型</h3><p>像朋友一样自然交流，适时提醒，也愿意陪你分享日常。</p></div>
-            <div class="card"><div class="kicker">CHATTERBOX</div><h3 style="margin-top: 3px">话痨型</h3><p>主动分享发现，喜欢聊天，积极参与你的生活。</p></div>
+            <div class="card">
+              <div class="kicker">LURKER</div>
+              <h3 style="margin-top: 3px">潜水型</h3>
+              <p>安静记录，必要时才出现。重要的事写进周总结，而不是当天打断你。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">INTROVERT</div>
+              <h3 style="margin-top: 3px">i 人型</h3>
+              <p>温和、低频、不打扰。会记得你的事，但不主动开启太多话题。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">BUDDY · 默认</div>
+              <h3 style="margin-top: 3px">搭子型</h3>
+              <p>像朋友一样自然交流，适时提醒，也愿意陪你分享日常。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">CHATTERBOX</div>
+              <h3 style="margin-top: 3px">话痨型</h3>
+              <p>主动分享发现，喜欢聊天，积极参与你的生活。</p>
+            </div>
           </div>
           <div class="card" style="margin-top: 2px">
             <div class="kicker">同一条观察 · 四种表达</div>
             <p style="margin-top: 4px">观察：「你最近连续几天都在喝奶茶。」</p>
-            <div class="persona-line" style="margin-top: 6px"><b>潜水型</b> 记下了。<b>i 人型</b> 最近奶茶有点频繁，要不要换换？<b>搭子型</b> 这几天奶茶打卡有点多！明天要不要换个口味？<b>话痨型</b> 奶茶星人实锤了，明天试试果茶？</div>
-            <p class="footnote" style="margin-top: 5px">人格只影响语气、长度与存在感，不影响判断标准。触达策略：当天关怀时间出现，给一个可选建议，说完就停。</p>
+            <div class="persona-line" style="margin-top: 6px">
+              <b>潜水型</b> 记下了。<b>i 人型</b> 最近奶茶有点频繁，要不要换换？<b>搭子型</b>
+              这几天奶茶打卡有点多！明天要不要换个口味？<b>话痨型</b> 奶茶星人实锤了，明天试试果茶？
+            </div>
+            <p class="footnote" style="margin-top: 5px">
+              人格只影响语气、长度与存在感，不影响判断标准。触达策略：当天关怀时间出现，给一个可选建议，说完就停。
+            </p>
           </div>
-          <p class="footnote" style="margin-top: 2px">已实现：4 种人格 × 主动程度 × 关怀时间 × 免打扰 / 暂停；当前决策在提示词与调度层，策略层待抽出</p>
+          <p class="footnote" style="margin-top: 2px">
+            已实现：4 种人格 × 主动程度 × 关怀时间 × 免打扰 /
+            暂停；当前决策在提示词与调度层，策略层待抽出
+          </p>
         </div>
       </section>
 
@@ -285,14 +875,40 @@
           <p class="eyebrow">09 / 为什么是 E-DIOT</p>
           <h2>不是功能更多，<br />而是更值得被长期使用。</h2>
           <div class="cards" style="margin-top: 4px">
-            <div class="card"><div class="kicker">ENTRY</div><h3 style="margin-top: 3px">记账零门槛</h3><p>自然语言 + 手动补录双通道，把一笔账从 8 步降到一句话。</p></div>
-            <div class="card"><div class="kicker">FEEDBACK</div><h3 style="margin-top: 3px">记账即反馈</h3><p>记账同时校验预算，跨阈值才提醒；拒绝骚扰式推送。</p></div>
-            <div class="card"><div class="kicker">EVIDENCE</div><h3 style="margin-top: 3px">结论可核对</h3><p>洞察附依据与时间范围，不生成没有出处的评分或建议。</p></div>
-            <div class="card"><div class="kicker">CONTROL</div><h3 style="margin-top: 3px">记忆可控</h3><p>可查来源、可纠正、可删除；理解错了能改回来。</p></div>
-            <div class="card"><div class="kicker">RESTRAINT</div><h3 style="margin-top: 3px">克制的陪伴</h3><p>到点一次、频控、免打扰、随时暂停；不追求陪聊时长。</p></div>
-            <div class="card"><div class="kicker">OPEN</div><h3 style="margin-top: 3px">MCP 开放</h3><p>任何 LLM / 客户端都能调用记账与预算工具，不被单一助手绑定。</p></div>
+            <div class="card">
+              <div class="kicker">ENTRY</div>
+              <h3 style="margin-top: 3px">记账零门槛</h3>
+              <p>自然语言 + 手动补录双通道，把一笔账从 8 步降到一句话。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">FEEDBACK</div>
+              <h3 style="margin-top: 3px">记账即反馈</h3>
+              <p>记账同时校验预算，跨阈值才提醒；拒绝骚扰式推送。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">EVIDENCE</div>
+              <h3 style="margin-top: 3px">结论可核对</h3>
+              <p>洞察附依据与时间范围，不生成没有出处的评分或建议。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">CONTROL</div>
+              <h3 style="margin-top: 3px">记忆可控</h3>
+              <p>可查来源、可纠正、可删除；理解错了能改回来。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">RESTRAINT</div>
+              <h3 style="margin-top: 3px">克制的陪伴</h3>
+              <p>到点一次、频控、免打扰、随时暂停；不追求陪聊时长。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">OPEN</div>
+              <h3 style="margin-top: 3px">MCP 开放</h3>
+              <p>任何 LLM / 客户端都能调用记账与预算工具，不被单一助手绑定。</p>
+            </div>
           </div>
-          <p class="footnote" style="margin-top: 3px">一句话：我们先把「记账」做到最省力，再让记录产生理解与陪伴的复利。</p>
+          <p class="footnote" style="margin-top: 3px">
+            一句话：我们先把「记账」做到最省力，再让记录产生理解与陪伴的复利。
+          </p>
         </div>
       </section>
 
@@ -301,19 +917,59 @@
           <p class="eyebrow">10 / 能力全景</p>
           <h2>已经上线的，<br />与正在路上的。</h2>
           <table style="margin-top: 2px">
-            <thead><tr><th>模块</th><th>现在</th><th>下一步</th></tr></thead>
+            <thead>
+              <tr>
+                <th>模块</th>
+                <th>现在</th>
+                <th>下一步</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>自然语言记账 / 预算 / 账单</td><td><span class="status ok">已实现</span></td><td class="us">继续打磨准确率与边界</td></tr>
-              <tr><td>总览与分类统计</td><td><span class="status ok">已实现</span></td><td>升级为带依据的洞察</td></tr>
-              <tr><td>洞察引擎（依据 / 时间范围）</td><td><span class="status plan">P1 规划</span></td><td>周度回顾、变化摘要</td></tr>
-              <tr><td>长期记忆（可查 / 改 / 删）</td><td><span class="status ok">已实现</span></td><td>自动抽取 + 冲突处理</td></tr>
-              <tr><td>人格与主动关怀（站内）</td><td><span class="status ok">已实现</span></td><td>策略层抽出、真实推送</td></tr>
-              <tr><td>知识库（Milvus + Rerank）</td><td><span class="status plan">P4b 规划</span></td><td>让回答有出处</td></tr>
-              <tr><td>个性化数字人（形象 / 声音）</td><td><span class="status plan">规划</span></td><td>人格 × 记忆联动</td></tr>
-              <tr><td>MCP 工具（记账 / 预算等 6 个）</td><td><span class="status ok">已实现</span></td><td>知识检索接入</td></tr>
+              <tr>
+                <td>自然语言记账 / 预算 / 账单</td>
+                <td><span class="status ok">已实现</span></td>
+                <td class="us">继续打磨准确率与边界</td>
+              </tr>
+              <tr>
+                <td>总览与分类统计</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>升级为带依据的洞察</td>
+              </tr>
+              <tr>
+                <td>洞察引擎（依据 / 时间范围）</td>
+                <td><span class="status plan">P1 规划</span></td>
+                <td>周度回顾、变化摘要</td>
+              </tr>
+              <tr>
+                <td>长期记忆（可查 / 改 / 删）</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>自动抽取 + 冲突处理</td>
+              </tr>
+              <tr>
+                <td>人格与主动关怀（站内）</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>策略层抽出、真实推送</td>
+              </tr>
+              <tr>
+                <td>知识库（Milvus + Rerank）</td>
+                <td><span class="status plan">P4b 规划</span></td>
+                <td>让回答有出处</td>
+              </tr>
+              <tr>
+                <td>个性化数字人（形象 / 声音）</td>
+                <td><span class="status plan">规划</span></td>
+                <td>人格 × 记忆联动</td>
+              </tr>
+              <tr>
+                <td>MCP 工具（记账 / 预算等 6 个）</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>知识检索接入</td>
+              </tr>
             </tbody>
           </table>
-          <p class="footnote" style="margin-top: 2px">标注原则：只有真实可用才写「已实现」；演示数据与前端模拟单独标「Demo」。</p>
+          <p class="footnote" style="margin-top: 2px">
+            标注原则：只有真实可用才写「已实现」；演示数据与前端模拟单独标「Demo」。
+          </p>
         </div>
       </section>
 
@@ -322,26 +978,88 @@
           <p class="eyebrow">11 / TECHNOLOGY</p>
           <h2>它如何运作。</h2>
           <div class="cards four" style="margin-top: 2px">
-            <div class="card"><div class="kicker">01 INPUT</div><h3 style="margin-top: 3px">痕迹</h3><p>一句话、一笔消费、一次对话。</p></div>
-            <div class="card"><div class="kicker">02 NLU</div><h3 style="margin-top: 3px">理解</h3><p>意图、金额、时间、生活标签。</p></div>
-            <div class="card"><div class="kicker">03 DATA</div><h3 style="margin-top: 3px">结构化</h3><p>交易 / 预算 / 标签 / 备注原文。</p></div>
-            <div class="card"><div class="kicker">04 PATTERN</div><h3 style="margin-top: 3px">规律</h3><p>时间窗口内的频率与变化。</p></div>
+            <div class="card">
+              <div class="kicker">01 INPUT</div>
+              <h3 style="margin-top: 3px">痕迹</h3>
+              <p>一句话、一笔消费、一次对话。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">02 NLU</div>
+              <h3 style="margin-top: 3px">理解</h3>
+              <p>意图、金额、时间、生活标签。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">03 DATA</div>
+              <h3 style="margin-top: 3px">结构化</h3>
+              <p>交易 / 预算 / 标签 / 备注原文。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">04 PATTERN</div>
+              <h3 style="margin-top: 3px">规律</h3>
+              <p>时间窗口内的频率与变化。</p>
+            </div>
           </div>
           <div class="cards four" style="margin-top: 2px">
-            <div class="card"><div class="kicker">05 MEMORY</div><h3 style="margin-top: 3px">记忆</h3><p>偏好、目标、边界与反馈。</p></div>
-            <div class="card"><div class="kicker">06 DECIDE</div><h3 style="margin-top: 3px">决策</h3><p>是否回应、如何回应。</p></div>
-            <div class="card"><div class="kicker">LOOP</div><h3 style="margin-top: 3px">反馈闭环</h3><p>反馈更新记忆与判断；不反馈则保持原策略。</p></div>
-            <div class="card"><div class="kicker">BOUNDARY</div><h3 style="margin-top: 3px">边界</h3><p>不推断健康状态，不评价身材，不生成无依据的分数。</p></div>
+            <div class="card">
+              <div class="kicker">05 MEMORY</div>
+              <h3 style="margin-top: 3px">记忆</h3>
+              <p>偏好、目标、边界与反馈。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">06 DECIDE</div>
+              <h3 style="margin-top: 3px">决策</h3>
+              <p>是否回应、如何回应。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">LOOP</div>
+              <h3 style="margin-top: 3px">反馈闭环</h3>
+              <p>反馈更新记忆与判断；不反馈则保持原策略。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">BOUNDARY</div>
+              <h3 style="margin-top: 3px">边界</h3>
+              <p>不推断健康状态，不评价身材，不生成无依据的分数。</p>
+            </div>
           </div>
           <table style="margin-top: 4px">
-            <thead><tr><th>能力</th><th>状态</th><th>说明</th></tr></thead>
+            <thead>
+              <tr>
+                <th>能力</th>
+                <th>状态</th>
+                <th>说明</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>LLM 理解与生成</td><td><span class="status ok">已实现</span></td><td>意图解析、字段抽取、回复生成</td></tr>
-              <tr><td>结构化数据</td><td><span class="status ok">已实现</span></td><td>交易 / 预算 / 记忆入库，可回溯来源</td></tr>
-              <tr><td>Pattern Analysis</td><td><span class="status demo">规则统计</span></td><td>总览已有频率/分布；洞察引擎待建</td></tr>
-              <tr><td>Memory System</td><td><span class="status ok">已实现</span></td><td>待确认、纠正、软删除、注入</td></tr>
-              <tr><td>主动关怀调度</td><td><span class="status ok">已实现（站内）</span></td><td>频控 / 免打扰 / 补发；系统推送未建</td></tr>
-              <tr><td>Agent 决策层</td><td><span class="status demo">部分实现</span></td><td>意图路由已实现；人格策略待抽出</td></tr>
+              <tr>
+                <td>LLM 理解与生成</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>意图解析、字段抽取、回复生成</td>
+              </tr>
+              <tr>
+                <td>结构化数据</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>交易 / 预算 / 记忆入库，可回溯来源</td>
+              </tr>
+              <tr>
+                <td>Pattern Analysis</td>
+                <td><span class="status demo">规则统计</span></td>
+                <td>总览已有频率/分布；洞察引擎待建</td>
+              </tr>
+              <tr>
+                <td>Memory System</td>
+                <td><span class="status ok">已实现</span></td>
+                <td>待确认、纠正、软删除、注入</td>
+              </tr>
+              <tr>
+                <td>主动关怀调度</td>
+                <td><span class="status ok">已实现（站内）</span></td>
+                <td>频控 / 免打扰 / 补发；系统推送未建</td>
+              </tr>
+              <tr>
+                <td>Agent 决策层</td>
+                <td><span class="status demo">部分实现</span></td>
+                <td>意图路由已实现；人格策略待抽出</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -352,15 +1070,40 @@
           <p class="eyebrow">12 / ROADMAP</p>
           <h2>先把「记得住、回得恰当」<br />做扎实，再扩展维度。</h2>
           <div class="cards four" style="margin-top: 2px">
-            <div class="card"><div class="kicker">PHASE 1 · 当前</div><h3 style="margin-top: 3px">记账闭环</h3><p>自然语言记账、预算、账单、总览、人格、站内主动关怀、MCP 预算工具。</p></div>
-            <div class="card"><div class="kicker">PHASE 2</div><h3 style="margin-top: 3px">理解与回顾</h3><p>洞察附依据与时间范围；记忆自动抽取；关怀进入真实调度与通知渠道。</p></div>
-            <div class="card"><div class="kicker">PHASE 3</div><h3 style="margin-top: 3px">多维生活</h3><p>从消费扩展到饮食、作息与目标，让理解不依赖单一数据源。</p></div>
-            <div class="card"><div class="kicker">PHASE 4</div><h3 style="margin-top: 3px">数字人</h3><p>跨场景长期陪伴：理解更深，出现更少，但每一次都更合时宜。</p></div>
+            <div class="card">
+              <div class="kicker">PHASE 1 · 当前</div>
+              <h3 style="margin-top: 3px">记账闭环</h3>
+              <p>自然语言记账、预算、账单、总览、人格、站内主动关怀、MCP 预算工具。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">PHASE 2</div>
+              <h3 style="margin-top: 3px">理解与回顾</h3>
+              <p>洞察附依据与时间范围；记忆自动抽取；关怀进入真实调度与通知渠道。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">PHASE 3</div>
+              <h3 style="margin-top: 3px">多维生活</h3>
+              <p>从消费扩展到饮食、作息与目标，让理解不依赖单一数据源。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">PHASE 4</div>
+              <h3 style="margin-top: 3px">数字人</h3>
+              <p>跨场景长期陪伴：理解更深，出现更少，但每一次都更合时宜。</p>
+            </div>
           </div>
           <div class="cards" style="margin-top: 2px">
-            <div class="card"><div class="kicker">P0 · 必须先成立</div><p>连续对话与主动发起；人格切换可见；反馈能新增/修改/删除记忆。</p></div>
-            <div class="card"><div class="kicker">P1 · 支撑说服力</div><p>账单结构化；每条洞察可追溯；周度回顾呈现变化。</p></div>
-            <div class="card"><div class="kicker">P2 · 扩展空间</div><p>消费之外的生活目标，验证长期陪伴的延展性，不追求一次做全。</p></div>
+            <div class="card">
+              <div class="kicker">P0 · 必须先成立</div>
+              <p>连续对话与主动发起；人格切换可见；反馈能新增/修改/删除记忆。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">P1 · 支撑说服力</div>
+              <p>账单结构化；每条洞察可追溯；周度回顾呈现变化。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">P2 · 扩展空间</div>
+              <p>消费之外的生活目标，验证长期陪伴的延展性，不追求一次做全。</p>
+            </div>
           </div>
         </div>
       </section>
@@ -368,13 +1111,20 @@
       <section class="slide dark">
         <div class="inner" style="text-align: center; align-items: center">
           <p class="eyebrow">E-DIOT · 智账 v2.0</p>
-          <h1 class="hero-en" style="max-width: 20em">Not just remembering<br />your life. <em>Understanding you.</em></h1>
-          <p class="lead" style="max-width: 40em">记下生活，只是它认识你的开始；理解你，才是它留下来的理由。</p>
+          <h1 class="hero-en" style="max-width: 20em">
+            Not just remembering<br />your life. <em>Understanding you.</em>
+          </h1>
+          <p class="lead" style="max-width: 40em">
+            记下生活，只是它认识你的开始；理解你，才是它留下来的理由。
+          </p>
           <div class="cta-row" style="justify-content: center; margin-top: 6px">
             <a class="cta" href="http://127.0.0.1:8000/m">体验 Demo</a>
             <a class="cta ghost" href="https://github.com/Aki0330/e-diot">查看代码仓库</a>
           </div>
-          <p class="footnote" style="margin-top: 8px">数据说明：页面中的洞察、记忆与对话为 Demo 默认数据集或示意；成熟度以「已实现 / Demo / 规划」标注。</p>
+          <p class="footnote" style="margin-top: 8px">
+            数据说明：页面中的洞察、记忆与对话为 Demo 默认数据集或示意；成熟度以「已实现 / Demo /
+            规划」标注。
+          </p>
           <p class="footnote">E-diot · Recording your lives. · 2026.11</p>
         </div>
       </section>
@@ -394,7 +1144,9 @@
         dots.appendChild(button);
       });
       function go(index) {
-        slides[Math.max(0, Math.min(slides.length - 1, index))]?.scrollIntoView({ behavior: "smooth" });
+        slides[Math.max(0, Math.min(slides.length - 1, index))]?.scrollIntoView({
+          behavior: "smooth",
+        });
       }
       function currentIndex() {
         return Math.round(window.scrollY / window.innerHeight);
