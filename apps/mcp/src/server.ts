@@ -1,6 +1,16 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
+import {
+  findUserById,
+  listMonthBudgets,
+  mergeAndValidateBudgets,
+  updateMonthlyBudget,
+  upsertMonthBudgets,
+  type Database,
+} from "@cyberbudget/db";
+import { formatCents, formatYearMonthUtc, parseCents } from "@cyberbudget/shared";
+
 import { performWebSearch, type WebSearchOptions } from "./tavily.js";
 
 /**
@@ -17,6 +27,10 @@ export const MCP_SERVER_VERSION = "1.0.0";
 export interface McpServerDeps extends WebSearchOptions {
   /** 长任务每步等待时间，测试可注入 0 */
   readonly sleep?: (ms: number) => Promise<void>;
+  /** 预算工具使用的数据库连接（未配置时工具返回提示） */
+  readonly db?: Database;
+  /** 未在工具参数中传 user_id 时使用的默认用户 */
+  readonly defaultUserId?: string;
 }
 
 const defaultSleep = (ms: number): Promise<void> =>
@@ -26,6 +40,43 @@ const defaultSleep = (ms: number): Promise<void> =>
 
 function text(value: string): { content: { type: "text"; text: string }[] } {
   return { content: [{ type: "text", text: value }] };
+}
+
+function moneyText(value: string | null): string {
+  return Number(value ?? "0").toFixed(2);
+}
+
+function monthOf(): string {
+  return formatYearMonthUtc(new Date());
+}
+
+function resolveUserId(deps: McpServerDeps, explicit?: string): string | null {
+  const userId = (explicit ?? "").trim() || (deps.defaultUserId ?? "").trim();
+  return userId === "" ? null : userId;
+}
+
+async function budgetSummary(db: Database, userId: string): Promise<string> {
+  const user = await findUserById(db, userId);
+  if (user === undefined) return `❌ 用户不存在：${userId}`;
+  const month = monthOf();
+  const budgets = await listMonthBudgets(db, userId, month);
+  const lines = [
+    `💰 预算概览（${month}）`,
+    `用户：${user.username}（${userId}）`,
+    `总预算：¥${moneyText(user.monthlyBudget)}`,
+  ];
+  if (budgets.length === 0) {
+    lines.push("分类预算：暂无");
+  } else {
+    lines.push("分类预算：");
+    let total = 0;
+    for (const budget of budgets) {
+      total += Number(budget.monthlyLimit);
+      lines.push(`- ${budget.category}：¥${moneyText(budget.monthlyLimit)}`);
+    }
+    lines.push(`分类合计：¥${total.toFixed(2)}`);
+  }
+  return lines.join("\n");
 }
 
 export function createMcpServer(deps: McpServerDeps): McpServer {
@@ -51,6 +102,88 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
       const bmi = weight_kg / height_m ** 2;
       const category = bmi < 18.5 ? "偏瘦" : bmi < 24 ? "正常" : "偏胖";
       return text(`BMI 指数为: ${bmi.toFixed(2)}，属于【${category}】区间。`);
+    },
+  );
+
+  // ── Tool: 预算 ──
+  server.registerTool(
+    "get_budget",
+    {
+      title: "查询预算",
+      description:
+        "查询用户的月总预算与分类预算。user_id 可省略（使用 MCP_DEFAULT_USER_ID 配置的默认用户）。",
+      inputSchema: { user_id: z.string().optional() },
+    },
+    async ({ user_id }) => {
+      if (deps.db === undefined) return text("❌ MCP 未配置数据库连接，无法查询预算");
+      const userId = resolveUserId(deps, user_id);
+      if (userId === null) return text("❌ 请提供 user_id，或设置环境变量 MCP_DEFAULT_USER_ID");
+      return text(await budgetSummary(deps.db, userId));
+    },
+  );
+
+  server.registerTool(
+    "set_budget",
+    {
+      title: "设置预算",
+      description:
+        "设置月总预算，并按分类 MERGE 预算额度（不会删除未提及的分类）。" +
+        "user_id 可省略（使用 MCP_DEFAULT_USER_ID）；至少提供 total_budget 或 categories 之一。",
+      inputSchema: {
+        user_id: z.string().optional(),
+        total_budget: z.number().positive().optional(),
+        categories: z
+          .array(
+            z.object({
+              category: z.string().min(1),
+              monthly_limit: z.number().positive(),
+            }),
+          )
+          .optional(),
+      },
+    },
+    async ({ user_id, total_budget, categories }) => {
+      if (deps.db === undefined) return text("❌ MCP 未配置数据库连接，无法设置预算");
+      const userId = resolveUserId(deps, user_id);
+      if (userId === null) return text("❌ 请提供 user_id，或设置环境变量 MCP_DEFAULT_USER_ID");
+
+      const user = await findUserById(deps.db, userId);
+      if (user === undefined) return text(`❌ 用户不存在：${userId}`);
+
+      const hasCategories = categories !== undefined && categories.length > 0;
+      if (total_budget === undefined && !hasCategories) {
+        return text("❌ 请提供 total_budget 或至少一个 categories 额度");
+      }
+
+      if (total_budget !== undefined) {
+        const updated = await updateMonthlyBudget(
+          deps.db,
+          userId,
+          formatCents(parseCents(total_budget)),
+        );
+        if (updated === undefined) return text(`❌ 用户不存在：${userId}`);
+      }
+
+      if (hasCategories) {
+        const month = monthOf();
+        const existing = await listMonthBudgets(deps.db, userId, month);
+        const current = await findUserById(deps.db, userId);
+        const totalBudget = current?.monthlyBudget ?? "0";
+        const merged = mergeAndValidateBudgets({
+          existing,
+          incoming: categories.map((item) => ({
+            category: item.category.trim(),
+            monthlyLimit: item.monthly_limit,
+          })),
+          totalBudget,
+        });
+        if (!merged.isValid) {
+          return text(`❌ 预算未更新：${merged.message}`);
+        }
+        await upsertMonthBudgets(deps.db, userId, month, merged.merged);
+      }
+
+      return text(`✅ 预算已更新\n\n${await budgetSummary(deps.db, userId)}`);
     },
   );
 

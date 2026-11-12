@@ -45,13 +45,15 @@ afterEach(async () => {
 });
 
 describe("MCP tools", () => {
-  it("注册四个工具", async () => {
+  it("注册工具", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       "calculate_bmi",
+      "get_budget",
       "knowledge_search",
       "long_running_task",
+      "set_budget",
       "web_search",
     ]);
   });

@@ -1,3 +1,4 @@
+import { connectDatabase } from "@cyberbudget/db";
 import { getConfig, isConfigError, type AppConfig } from "@cyberbudget/shared";
 
 import { MCP_PATH, createMcpHttpServer } from "./http.js";
@@ -22,7 +23,14 @@ try {
   exitWithConfigError(error);
 }
 
-const server = createMcpHttpServer({ apiKey: config.tavily.apiKey });
+const dbHandle = connectDatabase(config);
+const server = createMcpHttpServer({
+  apiKey: config.tavily.apiKey,
+  db: dbHandle.db,
+  ...(process.env["MCP_DEFAULT_USER_ID"] === undefined
+    ? {}
+    : { defaultUserId: process.env["MCP_DEFAULT_USER_ID"] }),
+});
 
 server.listen(config.mcp.port, config.mcp.host, () => {
   process.stdout.write(
@@ -33,7 +41,7 @@ server.listen(config.mcp.port, config.mcp.host, () => {
 const shutdown = (signal: NodeJS.Signals): void => {
   process.stdout.write(`收到 ${signal}，正在关闭 MCP server\n`);
   server.close(() => {
-    process.exit(0);
+    void dbHandle.close().finally(() => process.exit(0));
   });
 };
 

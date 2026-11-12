@@ -245,6 +245,9 @@ importers:
 
   apps/mcp:
     dependencies:
+      '@cyberbudget/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@cyberbudget/shared':
         specifier: workspace:*
         version: link:../../packages/shared

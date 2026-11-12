@@ -283,6 +283,8 @@ main.ts          入口：127.0.0.1:8001（MCP_HOST / MCP_PORT）
 | 能力                        | 说明                                                                                  |
 | --------------------------- | ------------------------------------------------------------------------------------- |
 | `calculate_bmi`             | 文案与旧实现一致：`BMI 指数为: 22.86，属于【正常】区间。`                             |
+| `get_budget`                | 查询月总预算与分类预算；`user_id` 可省略（用 `MCP_DEFAULT_USER_ID`）                  |
+| `set_budget`                | 设置总预算 + 按分类 MERGE 额度（不删除未提及分类，超总额会拒绝写库）                  |
 | `long_running_task`         | 每步 500ms，`notifications/progress` + `notifications/message`（已声明 logging 能力） |
 | `web_search`                | Tavily search / research；research 保留 3s × 30 次轮询上限与全部文案                  |
 | `knowledge_search`          | **P4b 占位**：返回「知识库检索尚未接入」提示，签名与旧版一致，客户端不用改            |
@@ -295,7 +297,9 @@ main.ts          入口：127.0.0.1:8001（MCP_HOST / MCP_PORT）
 - **删除项**：旧 `_get_tushare_data`（注册成 tool 但永远返回 None）已按方案移除。
 - **验证**：MCP 单测 15 个（工具/资源/prompt + Tavily 参数与轮询）；并用 curl 走完整 JSON-RPC 流程
   （initialize → tools/list → tools/call → resources/read → prompts/get），
-  另用真实 Tavily key 验证了 `web_search` 的返回格式。
+  另用真实 Tavily key 验证了 `web_search` 的返回格式；预算工具另有临时库集成测试（设置/查询/超总额拒绝）。
+- **预算工具身份**：`MCP_DEFAULT_USER_ID` 指定默认用户（未设置时需在工具参数里传 `user_id`）；
+  预算工具会直接读写数据库，MCP 仅监听 `127.0.0.1`，请勿直接暴露到公网。
 
 ```bash
 pnpm mcp:start          # 或 pnpm --filter @cyberbudget/mcp start
