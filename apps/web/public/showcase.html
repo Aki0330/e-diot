@@ -355,6 +355,16 @@
       .phase .goal b {
         color: var(--ink);
       }
+      .mini-steps {
+        margin: 5px 0 0;
+        padding-left: 16px;
+        font-size: clamp(11.5px, 1.05vw, 12.5px);
+        line-height: 1.65;
+        color: var(--muted);
+      }
+      .mini-steps li {
+        margin-bottom: 3px;
+      }
 
       .footnote {
         font-family: var(--mono);
@@ -515,7 +525,7 @@
   <body>
     <div class="progress"><span id="bar"></span></div>
     <nav class="dots" id="dots" aria-label="页面导航"></nav>
-    <div class="counter"><b id="cur">01</b> / <span id="total">07</span></div>
+    <div class="counter"><b id="cur">01</b> / <span id="total">09</span></div>
     <div class="hint">↑ ↓ / ← → 翻页</div>
 
     <main id="deck">
@@ -680,22 +690,22 @@
           <h2>三步，把「记完有用」<br />做成壁垒。</h2>
           <div class="cards" style="margin-top: 2px">
             <div class="card phase">
-              <div class="when">近期 · 1–2 个月</div>
-              <h3 style="margin-top: 2px">洞察引擎</h3>
-              <p>每条观察附依据与时间范围；周度回顾呈现变化。</p>
-              <div class="goal"><b>成功标准：</b>用户能核对每条结论，并能标记不准确/不再显示。</div>
+              <div class="when">近期 · 0–2 个月</div>
+              <h3 style="margin-top: 2px">洞察 v1 + 建议模板</h3>
+              <p>每条观察附依据与时间范围；周报呈现变化；消费建议先跑模板。</p>
+              <div class="goal"><b>成功标准：</b>每条结论可核对；建议有帮助率可测。</div>
             </div>
             <div class="card phase">
-              <div class="when">中期 · 3–6 个月</div>
-              <h3 style="margin-top: 2px">多维生活记录</h3>
-              <p>从消费扩展到饮食、作息、目标；接入通知渠道。</p>
-              <div class="goal"><b>成功标准：</b>不依赖单一消费数据，也能形成连续理解。</div>
+              <div class="when">中期 · 2–6 个月</div>
+              <h3 style="margin-top: 2px">知识库 + 多维记录</h3>
+              <p>Milvus 混合检索接入；从消费扩展到饮食、作息、目标；通知渠道。</p>
+              <div class="goal"><b>成功标准：</b>回答有出处；不依赖单一消费数据。</div>
             </div>
             <div class="card phase">
-              <div class="when">长期 · 6 个月以上</div>
-              <h3 style="margin-top: 2px">知识库与数字人</h3>
-              <p>Milvus 混合检索 + Rerank；人格 × 记忆 × 形象/声音。</p>
-              <div class="goal"><b>成功标准：</b>回答有出处，陪伴方式可定制，形成差异化。</div>
+              <div class="when">长期 · 6–12 个月</div>
+              <h3 style="margin-top: 2px">数字人与情绪价值</h3>
+              <p>人格 × 记忆 × 形象/声音；情绪识别与克制的主动建议。</p>
+              <div class="goal"><b>成功标准：</b>人格一致、可关闭、可解释。</div>
             </div>
           </div>
           <div class="quote" style="margin-top: 2px">
@@ -704,10 +714,96 @@
         </div>
       </section>
 
-      <!-- 06 差异化 -->
+      <!-- 06 规划细化：知识库与数字人 -->
       <section class="slide">
         <div class="inner">
-          <p class="eyebrow">05 / 差异化</p>
+          <p class="eyebrow">05 / 规划细化 · 知识库与数字人</p>
+          <h2>让回答有出处，<br />让陪伴有形象。</h2>
+          <div class="cards two-col" style="margin-top: 2px">
+            <div class="card">
+              <div class="kicker">KNOWLEDGE BASE · P4b</div>
+              <h3 style="margin-top: 4px">知识库：从「查账」到「给方法」</h3>
+              <ol class="mini-steps">
+                <li>语料：理财常识、消费方法、用户自建笔记与目标；不收录医疗诊断内容</li>
+                <li>索引：BGE-M3 dense + sparse，Milvus 0.7 / 0.3 混合检索</li>
+                <li>精排：Reranker 取 Top-N，片段截断 200 字并保留来源</li>
+                <li>接入：Agent tool + MCP knowledge_search，回答附「来源 + 时间」</li>
+              </ol>
+              <div class="goal" style="margin-top: 6px">
+                <b>建议节奏：</b>2 周入库/检索 → 2 周离线评测 → 2 周接入与引用展示。
+              </div>
+              <div class="goal"><b>验收：</b>Top-5 命中率、引用准确率、无出处回答占比。</div>
+            </div>
+            <div class="card">
+              <div class="kicker">DIGITAL HUMAN · 长期</div>
+              <h3 style="margin-top: 4px">数字人：同一人格的四种载体</h3>
+              <ol class="mini-steps">
+                <li>表达：人格 prompt + 策略层（决定是否开口）</li>
+                <li>记忆：偏好 / 目标 / 边界，决定「能说什么」</li>
+                <li>形象：2D avatar + 倾听 / 思考 / 说话状态</li>
+                <li>声音：TTS 音色（先预设，后定制）</li>
+              </ol>
+              <div class="goal" style="margin-top: 6px">
+                <b>路径：</b>先做可见的人格（形象 + 状态），再评估声音定制；不做换皮聊天。
+              </div>
+              <div class="goal"><b>验收：</b>人格一致性、主动消息关闭率、用户授权率。</div>
+            </div>
+          </div>
+          <div class="quote" style="margin-top: 2px">
+            知识库解决「说得对」，数字人解决「愿意听」；两者都建立在可删除的记忆与用户授权上。
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 规划细化：情绪价值与消费建议 -->
+      <section class="slide soft">
+        <div class="inner">
+          <p class="eyebrow">06 / 规划细化 · 情绪价值与消费建议</p>
+          <h2>不只回答「花了多少」，<br />还要回答「然后呢」。</h2>
+          <div class="cards" style="margin-top: 2px">
+            <div class="card">
+              <div class="kicker">L1 · 接住情绪</div>
+              <h3 style="margin-top: 3px">先共情，不诊断</h3>
+              <p>识别「累 / 焦虑 / 开心」等表达，先回应感受；不贴心理标签，不说教。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">L2 · 给出选项</div>
+              <h3 style="margin-top: 3px">2–3 个可执行建议</h3>
+              <p>结合预算与记录，给金额、频率与替代方案，并标注依据；不推荐具体金融产品。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">L3 · 轻量提醒</div>
+              <h3 style="margin-top: 3px">在允许的时间出现</h3>
+              <p>到点一次、可暂停；不制造焦虑，不用「你又超支了」这类指责式表达。</p>
+            </div>
+          </div>
+          <div class="cards" style="margin-top: 2px">
+            <div class="card">
+              <div class="kicker">机制</div>
+              <p>
+                情绪/场景标签 → 记忆边界（不喜欢被问什么）→ 建议模板 → 反馈（有帮助 / 不准确 /
+                别提醒）。
+              </p>
+            </div>
+            <div class="card">
+              <div class="kicker">边界</div>
+              <p>不做医疗/心理诊断，不推荐具体理财/信贷产品，不评价身材；主动建议可随时关闭。</p>
+            </div>
+            <div class="card">
+              <div class="kicker">指标</div>
+              <p>建议有帮助率、主动消息关闭率、D30 留存、预算达成率。</p>
+            </div>
+          </div>
+          <p class="footnote">
+            分阶段：先做消费建议模板与反馈闭环，再接情绪识别；所有建议必须能回到记录。
+          </p>
+        </div>
+      </section>
+
+      <!-- 08 差异化 -->
+      <section class="slide">
+        <div class="inner">
+          <p class="eyebrow">07 / 差异化</p>
           <h2>为什么是 E-diot。</h2>
           <div class="cards" style="margin-top: 4px">
             <div class="card">
@@ -737,7 +833,7 @@
       <!-- 07 结论 -->
       <section class="slide dark">
         <div class="inner">
-          <p class="eyebrow">06 / 结论与下一步</p>
+          <p class="eyebrow">08 / 结论与下一步</p>
           <h2>定位成立，闭环已通，<br />下一仗是「洞察」。</h2>
           <div class="cards" style="margin-top: 4px">
             <div class="card">
@@ -755,7 +851,7 @@
             <div class="card">
               <div class="num">03</div>
               <h3 style="margin-top: 4px">下一步</h3>
-              <p>先做洞察内测，再扩多维记录与通知，最后评估知识库与数字人。</p>
+              <p>先做洞察与建议模板内测，再上知识库与多维记录，最后评估数字人。</p>
             </div>
           </div>
           <div class="quote" style="margin-top: 4px">
