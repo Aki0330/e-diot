@@ -1547,3 +1547,45 @@
     display: inline-flex;
   }
 }
+
+/* ---------- 会话按日期分组 ---------- */
+.session-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.session-group-title {
+  padding: 2px 9px 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.session-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 1px;
+}
+
+.session-main .t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-muted);
+}

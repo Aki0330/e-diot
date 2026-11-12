@@ -22,6 +22,86 @@ interface ChatMessage {
   readonly isProactive?: boolean;
 }
 
+function startOfDay(date: Date): number {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+function dayLabel(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "更早";
+  const diff = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
+  if (diff <= 0) return "今天";
+  if (diff === 1) return "昨天";
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+function timeLabel(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+interface SessionGroup {
+  readonly label: string;
+  readonly items: SessionItem[];
+}
+
+function groupSessions(sessions: readonly SessionItem[]): SessionGroup[] {
+  const groups: SessionGroup[] = [];
+  for (const session of sessions) {
+    const label = dayLabel(session.updated_at);
+    const last = groups[groups.length - 1];
+    if (last !== undefined && last.label === label) {
+      last.items.push(session);
+    } else {
+      groups.push({ label, items: [session] });
+    }
+  }
+  return groups;
+}
+
+interface SessionListProps {
+  readonly sessions: readonly SessionItem[];
+  readonly currentSessionId: string | null;
+  readonly onSelect: (sessionId: string) => void;
+  readonly onDelete: (sessionId: string) => void;
+}
+
+function SessionList({ sessions, currentSessionId, onSelect, onDelete }: SessionListProps) {
+  const groups = groupSessions(sessions);
+  return (
+    <div className="session-groups">
+      {groups.map((group) => (
+        <div className="session-group" key={group.label}>
+          <div className="session-group-title">{group.label}</div>
+          {group.items.map((session) => (
+            <div
+              key={session.session_id}
+              className={`rail-session${session.session_id === currentSessionId ? " active" : ""}`}
+              onClick={() => onSelect(session.session_id)}
+            >
+              <span className="session-main">
+                <span className="t">{session.title || "未命名会话"}</span>
+                <span className="session-time">{timeLabel(session.updated_at)}</span>
+              </span>
+              <button
+                className="del"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(session.session_id);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export interface ChatPageProps {
   readonly active: boolean;
   readonly sidebarCollapsed: boolean;
@@ -316,25 +396,12 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
           <div className="rail-card">
             <div className="rail-title">会话 / SESSIONS</div>
             <div className="rail-sessions">
-              {sessions.map((session) => (
-                <div
-                  key={session.session_id}
-                  className={`rail-session${session.session_id === currentSessionId ? " active" : ""}`}
-                  onClick={() => void switchSession(session.session_id)}
-                >
-                  <span className="t">{session.title}</span>
-                  <button
-                    className="del"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void deleteSession(session.session_id);
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-              {sessions.length === 0 && <p className="profile-hint">还没有会话，发一句话开始。</p>}
+              <SessionList
+                sessions={sessions}
+                currentSessionId={currentSessionId}
+                onSelect={(sessionId) => void switchSession(sessionId)}
+                onDelete={(sessionId) => void deleteSession(sessionId)}
+              />
             </div>
           </div>
 
@@ -391,27 +458,15 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
                 ＋ 新对话
               </button>
               <div className="rail-sessions">
-                {sessions.map((session) => (
-                  <div
-                    key={session.session_id}
-                    className={`rail-session${session.session_id === currentSessionId ? " active" : ""}`}
-                    onClick={() => {
-                      void switchSession(session.session_id);
-                      setSessionsOpen(false);
-                    }}
-                  >
-                    <span className="t">{session.title}</span>
-                    <button
-                      className="del"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void deleteSession(session.session_id);
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                <SessionList
+                  sessions={sessions}
+                  currentSessionId={currentSessionId}
+                  onSelect={(sessionId) => {
+                    void switchSession(sessionId);
+                    setSessionsOpen(false);
+                  }}
+                  onDelete={(sessionId) => void deleteSession(sessionId)}
+                />
                 {sessions.length === 0 && <p className="profile-hint">还没有历史会话。</p>}
               </div>
             </div>
