@@ -339,8 +339,8 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
         userId: user.userId,
         limit,
         ...(category === "" ? {} : { category }),
-        ...(from === undefined ? {} : { from: new Date(`${from}T00:00:00.000Z`) }),
-        ...(to === undefined ? {} : { to: new Date(`${to}T23:59:59.999Z`) }),
+        ...(from === undefined ? {} : { from: new Date(`${from}T00:00:00.000+08:00`) }),
+        ...(to === undefined ? {} : { to: new Date(`${to}T23:59:59.999+08:00`) }),
         ...(min_amount === undefined ? {} : { minAmount: formatCents(parseCents(min_amount)) }),
         ...(max_amount === undefined ? {} : { maxAmount: formatCents(parseCents(max_amount)) }),
       });
