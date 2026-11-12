@@ -17,14 +17,14 @@ export function Sidebar({ tab, user, onNavigate, onLogout }: SidebarProps) {
         <span className="brand-mark">💸</span>
         <div>
           <div className="brand-name">
-            CyberBudget<span className="brand-cn">智账</span>
+            e-diot<span className="brand-cn">智账</span>
           </div>
           <div className="brand-sub">RECORDING YOUR LIVES</div>
         </div>
       </div>
 
       <nav className="side-nav">
-        <div className="side-nav-label">CYBERBUDGET</div>
+        <div className="side-nav-label">E-DIOT</div>
         {TABS.map((item) => (
           <button
             key={item.id}
@@ -60,7 +60,7 @@ export function Sidebar({ tab, user, onNavigate, onLogout }: SidebarProps) {
           </span>
           <span>
             <i className="dot demo" />
-            CyberBudget v1.0
+            e-diot v1.0
           </span>
         </div>
       </div>

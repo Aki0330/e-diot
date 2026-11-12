@@ -28,10 +28,10 @@ export function Topbar({ tab, user, sidebarCollapsed, onToggleSidebar, onLogout 
           </button>
         )}
         <span className="mobile-brand">
-          <span className="logo-text">💸 CyberBudget</span>
+          <span className="logo-text">💸 e-diot</span>
         </span>
         <div className="crumb">
-          <span>CYBERBUDGET</span>
+          <span>E-DIOT</span>
           <span className="crumb-sep">/</span>
           <b>{meta.group}</b>
           <span className="crumb-sep">/</span>

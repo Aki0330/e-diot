@@ -54,7 +54,7 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => Promise<v
     <div id="auth-page" className="auth-page">
       <div className="auth-container">
         <div className="auth-logo">💸</div>
-        <h1 className="auth-title">CyberBudget</h1>
+        <h1 className="auth-title">e-diot</h1>
         <p className="auth-subtitle">智能记账 · 轻松理财</p>
 
         {mode === "login" ? (
