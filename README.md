@@ -306,14 +306,12 @@ pnpm mcp:start          # 或 pnpm --filter @cyberbudget/mcp start
 # 端点：http://127.0.0.1:8001/mcp
 ```
 
-## 产品介绍页（PPT 式）
+## 产品介绍页（单文件，离线可看）
 
-`apps/web/public/showcase.html`，构建后由 API 同源托管：
-
-- 访问：`http://127.0.0.1:8000/showcase.html`（移动端/桌面均可，全屏翻页）
-- 操作：`↑ / ↓` 或 `← / →` 翻页，`Home / End` 跳首尾，右侧圆点直达
+- 直接双击打开：[`docs/e-diot-showcase.html`](docs/e-diot-showcase.html)（截图已转 base64 内嵌，无需服务器）
+- 14 页全屏幻灯片：`↑ / ↓` 或 `← / →` 翻页，`Home / End` 跳首尾，右侧圆点直达
 - 内容：记账核心能力 → 预算/账单/总览 → 已有能力全景 → 知识库与数字人规划 → 差异化与竞品对比 → Roadmap
-- 截图素材：`apps/web/public/showcase/`
+- 可编辑源：`apps/web/public/showcase.html` + `apps/web/public/showcase/`（修改后重新内嵌即可）
 
 ## 下一步：P4b（Milvus + 推理 sidecar）
 
