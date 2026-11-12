@@ -13,6 +13,8 @@ import { fmt } from "../utils/format.js";
 
 export interface ProfilePageProps {
   readonly active: boolean;
+  /** 移动端二级入口：预算 / 记忆 */
+  readonly onNavigateSecondary?: (view: "budget" | "memory") => void;
 }
 
 function fmtDateTime(value: string | null): string {
@@ -35,7 +37,7 @@ const LEVEL_OPTIONS: readonly { id: ProactiveLevel; label: string }[] = [
 ];
 
 /** 个人页：账户信息 + 用户级 LLM 配置（base_url / api_key） */
-export function ProfilePage({ active }: ProfilePageProps) {
+export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
   const toast = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [llm, setLlm] = useState<LlmConfig | null>(null);
@@ -367,6 +369,25 @@ export function ProfilePage({ active }: ProfilePageProps) {
           <p className="profile-hint">主动消息已暂停至 {fmtDateTime(settings.snooze_until)}</p>
         )}
       </section>
+
+      {onNavigateSecondary !== undefined && (
+        <section className="card" style={{ marginTop: 14 }}>
+          <div className="card-head">
+            <div>
+              <div className="card-title">更多功能</div>
+              <div className="card-sub">移动端二级入口</div>
+            </div>
+          </div>
+          <div className="settings-grid">
+            <button className="memory-btn" onClick={() => onNavigateSecondary("budget")}>
+              💰 预算管理
+            </button>
+            <button className="memory-btn" onClick={() => onNavigateSecondary("memory")}>
+              🧠 我的记忆
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

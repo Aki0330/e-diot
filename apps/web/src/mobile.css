@@ -1,0 +1,284 @@
+/* ============================================================
+   移动端专用展示入口（#/m）
+   桌面套手机框预览；真机全屏。内容强制单列，不依赖响应式断点。
+   ============================================================ */
+
+.mobile-demo {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px 16px;
+  background:
+    radial-gradient(900px 500px at 50% 0%, rgba(200, 241, 105, 0.12), transparent 65%), #0b1220;
+}
+
+.mobile-frame {
+  width: 390px;
+  height: 844px;
+  padding: 10px;
+  border-radius: 46px;
+  background: #080d17;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 40px 90px -40px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(200, 241, 105, 0.08);
+}
+
+.mobile-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 36px;
+  overflow: hidden;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.ms-brand {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+.mobile-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.mobile-page.chat {
+  overflow: hidden;
+}
+
+.mobile-page .page {
+  max-width: none;
+  padding: 12px;
+}
+
+.mobile-page.chat .page {
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-screen .chat-page {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) !important;
+  padding: 0 !important;
+}
+
+.mobile-screen .chat-rail {
+  display: none !important;
+}
+
+.mobile-screen .chat-panel {
+  height: 100%;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.mobile-screen .chat-input-area {
+  padding-bottom: 12px !important;
+}
+
+.mobile-screen .chat-sessions-btn {
+  display: inline-flex;
+}
+
+.mobile-subpage {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.mobile-subhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mobile-subhead b {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.mobile-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+
+.mobile-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mobile-tab.active {
+  background: var(--primary-soft);
+  color: var(--ink);
+}
+
+.mobile-tab.active .mt-label {
+  font-weight: 700;
+}
+
+.mt-icon {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.mt-label {
+  font-size: 10px;
+}
+
+.mobile-demo-note {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* 手机框内强制单列，忽略桌面断点 */
+.mobile-screen .page-head {
+  margin-bottom: 12px;
+}
+
+.mobile-screen .page-title {
+  font-size: 22px;
+}
+
+.mobile-screen .page-desc {
+  font-size: 12px;
+}
+
+.mobile-screen .ov-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.mobile-screen .ov-grid > * {
+  grid-column: span 1 !important;
+}
+
+.mobile-screen .profile-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.mobile-screen .profile-grid > * {
+  grid-column: span 1 !important;
+}
+
+.mobile-screen .memory-form {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mobile-screen .budget-top {
+  flex-direction: column;
+}
+
+.mobile-screen .bt-cell {
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-screen .bt-cell:last-of-type {
+  border-bottom: 0;
+}
+
+.mobile-screen .dist-row {
+  grid-template-columns: 26px minmax(58px, 86px) minmax(0, 1fr) 40px;
+}
+
+.mobile-screen .dist-amt {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .mobile-demo {
+    display: block;
+    min-height: 100dvh;
+    padding: 0;
+    background: var(--bg);
+  }
+
+  .mobile-frame {
+    width: 100%;
+    height: 100dvh;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--bg);
+    box-shadow: none;
+  }
+
+  .mobile-screen {
+    border-radius: 0;
+  }
+
+  .mobile-statusbar,
+  .mobile-demo-note {
+    display: none;
+  }
+
+  .mobile-page .page {
+    padding: 12px 12px 10px;
+  }
+}
+
+/* 真机/框内：聊天页顶部安全区与内边距 */
+.mobile-page.chat .page {
+  padding: max(10px, env(safe-area-inset-top)) 12px 0;
+}
+
+/* 移动端预算二级页：三格改为自然高度 */
+.mobile-screen .bt-cell {
+  flex: 0 0 auto;
+}
