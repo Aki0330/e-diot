@@ -589,6 +589,77 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(response.json<{ code: string }>().code).toBe("BAD_REQUEST");
   });
 
+  it("记忆：新建为待确认，确认后生效，可纠正与删除", async () => {
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/v1/memories",
+      headers: auth(),
+      payload: { type: "preference", content: "喜欢奶茶，通常点少糖" },
+    });
+    expect(created.statusCode).toBe(200);
+    const memory = created.json<{ id: string; status: string; content: string }>();
+    expect(memory.status).toBe("pending");
+    expect(memory.content).toBe("喜欢奶茶，通常点少糖");
+
+    const listed = await app.inject({ method: "GET", url: "/api/v1/memories", headers: auth() });
+    expect(listed.json<{ memories: { id: string }[] }>().memories.map((item) => item.id)).toContain(
+      memory.id,
+    );
+
+    const confirmed = await app.inject({
+      method: "POST",
+      url: `/api/v1/memories/${memory.id}/confirm`,
+      headers: auth(),
+    });
+    expect(confirmed.statusCode).toBe(200);
+    expect(confirmed.json<{ status: string }>().status).toBe("active");
+
+    const corrected = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/memories/${memory.id}`,
+      headers: auth(),
+      payload: { content: "喜欢奶茶，通常点半糖" },
+    });
+    expect(corrected.json<{ content: string }>().content).toBe("喜欢奶茶，通常点半糖");
+
+    const basis = await app.inject({
+      method: "GET",
+      url: `/api/v1/memories/${memory.id}/basis`,
+      headers: auth(),
+    });
+    expect(basis.statusCode).toBe(200);
+    expect(basis.json<{ note: string | null }>().note).toBe("由你手动创建");
+
+    const removed = await app.inject({
+      method: "DELETE",
+      url: `/api/v1/memories/${memory.id}`,
+      headers: auth(),
+    });
+    expect(removed.statusCode).toBe(200);
+
+    const after = await app.inject({ method: "GET", url: "/api/v1/memories", headers: auth() });
+    expect(
+      after.json<{ memories: { id: string }[] }>().memories.map((item) => item.id),
+    ).not.toContain(memory.id);
+
+    const missing = await app.inject({
+      method: "POST",
+      url: `/api/v1/memories/${memory.id}/confirm`,
+      headers: auth(),
+    });
+    expect(missing.statusCode).toBe(404);
+  });
+
+  it("记忆：非法类型返回校验错误", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/memories",
+      headers: auth(),
+      payload: { type: "unknown", content: "x" },
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
   it("OpenAPI 文档可访问且包含全部业务路径", async () => {
     const response = await app.inject({ method: "GET", url: "/docs/json" });
 

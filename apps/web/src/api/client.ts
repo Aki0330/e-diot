@@ -3,6 +3,9 @@ import type {
   ChatSessionDetail,
   DashboardData,
   LlmConfig,
+  MemoryBasis,
+  MemoryItem,
+  MemoryType,
   TokenResponse,
   TransactionsResponse,
   UserProfile,
@@ -92,6 +95,15 @@ export const api = {
   saveSettings: (
     body: Partial<Omit<UserSettings, "snooze_until">> & { snooze_until?: string | null },
   ) => request<UserSettings>("/users/settings", { method: "PUT", body }),
+  memories: () => request<{ memories: MemoryItem[] }>("/memories"),
+  createMemory: (body: { type: MemoryType; content: string }) =>
+    request<MemoryItem>("/memories", { method: "POST", body }),
+  confirmMemory: (id: string) => request<MemoryItem>(`/memories/${id}/confirm`, { method: "POST" }),
+  updateMemory: (id: string, body: { type?: MemoryType; content?: string }) =>
+    request<MemoryItem>(`/memories/${id}`, { method: "PATCH", body }),
+  deleteMemory: (id: string) =>
+    request<{ deleted: string }>(`/memories/${id}`, { method: "DELETE" }),
+  memoryBasis: (id: string) => request<MemoryBasis>(`/memories/${id}/basis`),
   dashboard: () => request<DashboardData>("/chat/dashboard"),
   transactions: (category: string) =>
     request<TransactionsResponse>(

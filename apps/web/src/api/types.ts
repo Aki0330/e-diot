@@ -20,6 +20,36 @@ export interface LlmConfig {
 export type PersonaId = "lurker" | "introvert" | "buddy" | "chatterbox";
 export type ProactiveLevel = "low" | "medium" | "high";
 
+export type MemoryType = "preference" | "goal" | "habit" | "boundary";
+export type MemoryStatus = "pending" | "active" | "deleted";
+
+export interface MemoryItem {
+  readonly id: string;
+  readonly type: MemoryType;
+  readonly content: string;
+  readonly source: "conversation" | "transaction" | "manual";
+  readonly source_ref: string | null;
+  readonly status: MemoryStatus;
+  readonly confidence: number;
+  readonly created_at: string;
+  readonly updated_at: string;
+  readonly deleted_at: string | null;
+}
+
+export interface MemoryBasis {
+  readonly memory_id: string;
+  readonly source: "conversation" | "transaction" | "manual";
+  readonly source_ref: string | null;
+  readonly transaction: TransactionDto | null;
+  readonly message: {
+    readonly message_id: number;
+    readonly role: string;
+    readonly content: string;
+    readonly created_at: string;
+  } | null;
+  readonly note: string | null;
+}
+
 /** 相处方式：人格、主动程度、关怀时间与免打扰 */
 export interface UserSettings {
   readonly persona: PersonaId;

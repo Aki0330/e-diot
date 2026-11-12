@@ -7,6 +7,7 @@ import {
   deleteTransaction,
   findSessionById,
   getUserSettings,
+  listActiveMemories,
   listMessages,
   listMonthBudgets,
   listSessions,
@@ -28,6 +29,7 @@ import {
   deleteTransactionResponseSchema,
   formatCents,
   formatYearMonthUtc,
+  MEMORY_TYPE_PRIORITY,
   monthStartUtc,
   parseCents,
   PERSONAS,
@@ -39,6 +41,7 @@ import {
   type ChatResponse,
   type DashboardResponse,
   type DeleteTransactionResponse,
+  type MemoryType,
   type SessionDetailResponse,
   type SessionListResponse,
   type TransactionItemDto,
@@ -119,9 +122,20 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
       const settings = await getUserSettings(app.db, user.userId);
       const persona = PERSONAS.find((item) => item === settings?.persona);
 
+      const activeMemories = await listActiveMemories(app.db, user.userId);
+      const memories = [...activeMemories]
+        .sort((left, right) => {
+          const leftPriority = MEMORY_TYPE_PRIORITY[left.type as MemoryType] ?? 9;
+          const rightPriority = MEMORY_TYPE_PRIORITY[right.type as MemoryType] ?? 9;
+          return leftPriority - rightPriority;
+        })
+        .slice(0, 8)
+        .map((memory) => ({ type: memory.type, content: memory.content }));
+
       const trace = await app.agent.runWithTrace(user.userId, body.message, {
         history,
         ...(persona === undefined ? {} : { persona }),
+        ...(memories.length === 0 ? {} : { memories }),
       });
 
       await appendMessage(app.db, {

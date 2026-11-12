@@ -8,6 +8,7 @@ import { AuthPage } from "./pages/AuthPage.js";
 import { BudgetPage } from "./pages/BudgetPage.js";
 import { ChatPage } from "./pages/ChatPage.js";
 import { DashboardPage } from "./pages/DashboardPage.js";
+import { MemoryPage } from "./pages/MemoryPage.js";
 import { ProfilePage } from "./pages/ProfilePage.js";
 import { TransactionsPage } from "./pages/TransactionsPage.js";
 import { TABS, type Tab } from "./tabs.js";
@@ -118,6 +119,9 @@ export function App() {
           </div>
           <div className="page-wrapper" style={{ display: tab === "profile" ? "block" : "none" }}>
             <ProfilePage active={tab === "profile"} />
+          </div>
+          <div className="page-wrapper" style={{ display: tab === "memory" ? "block" : "none" }}>
+            <MemoryPage active={tab === "memory"} />
           </div>
         </main>
 

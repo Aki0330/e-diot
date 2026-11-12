@@ -21,6 +21,7 @@ import { registerDb } from "./plugins/db.js";
 import { authRoutes } from "./routes/auth.js";
 import { budgetRoutes } from "./routes/budget.js";
 import { chatRoutes } from "./routes/chat.js";
+import { memoryRoutes } from "./routes/memories.js";
 import { userRoutes } from "./routes/users.js";
 
 /**
@@ -105,6 +106,7 @@ export function buildServer(
   app.register(userRoutes, { prefix: "/api/v1" });
   app.register(budgetRoutes, { prefix: "/api/v1" });
   app.register(chatRoutes, { prefix: "/api/v1" });
+  app.register(memoryRoutes, { prefix: "/api/v1" });
 
   // 前端构建产物同源托管（旧 main.py 的 StaticFiles 等价物）；dist 不存在时跳过，
   // 这样只跑 API / 测试时不会因为缺 dist 而报错。

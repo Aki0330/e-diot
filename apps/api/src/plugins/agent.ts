@@ -4,6 +4,7 @@ import {
   runAgentWithTrace,
   type ChatTurn,
   type LlmClient,
+  type MemoryContext,
 } from "@cyberbudget/agent";
 import { findUserById, type Database } from "@cyberbudget/db";
 import type { AppConfig, Persona } from "@cyberbudget/shared";
@@ -26,6 +27,8 @@ export interface AgentRunOptions {
   readonly history?: readonly ChatTurn[];
   /** 用户相处人格 */
   readonly persona?: Persona;
+  /** 用户已确认的长期记忆 */
+  readonly memories?: readonly MemoryContext[];
 }
 
 export interface AgentRunner {

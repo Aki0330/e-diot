@@ -131,24 +131,28 @@ e-diot/
 
 ## P2 已完成的内容（API + 认证）
 
-| 方法       | 路径                                | 说明                                                           |
-| ---------- | ----------------------------------- | -------------------------------------------------------------- |
-| POST       | `/api/v1/auth/register`             | 注册（201；手机号/邮箱/用户名冲突→409，`detail` 用「；」拼接） |
-| POST       | `/api/v1/auth/login`                | account 含 `@` 走邮箱，否则手机号；密码错→401，禁用→403        |
-| POST       | `/api/v1/auth/refresh`              | 只接受 `type=refresh` 的 token                                 |
-| GET        | `/api/v1/users/me`                  | 当前用户资料                                                   |
-| POST       | `/api/v1/users/set_budget`          | 更新月度总预算                                                 |
-| GET/PUT    | `/api/v1/users/llm-config`          | 用户级 LLM 配置（base_url + key；key 只回传是否已配置）        |
-| GET/PUT    | `/api/v1/users/settings`            | 相处方式：人格 / 主动程度 / 关怀时间 / 免打扰 / 暂停           |
-| POST       | `/api/v1/budget/agent`              | Agent 解析 + MERGE（P2 阶段 Agent 是占位实现）                 |
-| POST       | `/api/v1/budget/manual`             | 全量替换；超总额→422，未设总预算→400                           |
-| POST       | `/api/v1/chat`                      | 对话 + 会话/消息持久化 + `graph_path` 追踪                     |
-| GET        | `/api/v1/chat/sessions`             | 会话列表（按 `updated_at` 倒序）                               |
-| GET/DELETE | `/api/v1/chat/sessions/:session_id` | 会话详情 / 删除（级联消息）                                    |
-| GET        | `/api/v1/chat/dashboard`            | 当月总览（UTC 口径、分类百分比、最近 10 条）                   |
-| GET        | `/api/v1/chat/transactions`         | 流水（`limit`、`category`）                                    |
-| PATCH      | `/api/v1/chat/transactions/:id`     | 更新交易（部分字段；归属校验，非本人→404）                     |
-| DELETE     | `/api/v1/chat/transactions/:id`     | 删除交易（归属校验，非本人→404）                               |
+| 方法         | 路径                                | 说明                                                           |
+| ------------ | ----------------------------------- | -------------------------------------------------------------- |
+| POST         | `/api/v1/auth/register`             | 注册（201；手机号/邮箱/用户名冲突→409，`detail` 用「；」拼接） |
+| POST         | `/api/v1/auth/login`                | account 含 `@` 走邮箱，否则手机号；密码错→401，禁用→403        |
+| POST         | `/api/v1/auth/refresh`              | 只接受 `type=refresh` 的 token                                 |
+| GET          | `/api/v1/users/me`                  | 当前用户资料                                                   |
+| POST         | `/api/v1/users/set_budget`          | 更新月度总预算                                                 |
+| GET/PUT      | `/api/v1/users/llm-config`          | 用户级 LLM 配置（base_url + key；key 只回传是否已配置）        |
+| GET/PUT      | `/api/v1/users/settings`            | 相处方式：人格 / 主动程度 / 关怀时间 / 免打扰 / 暂停           |
+| GET/POST     | `/api/v1/memories`                  | 记忆列表 / 新增（待确认）                                      |
+| POST         | `/api/v1/memories/:id/confirm`      | 确认记忆，之后参与回复                                         |
+| PATCH/DELETE | `/api/v1/memories/:id`              | 纠正内容 / 软删除（删除后不再参与任何回复）                    |
+| GET          | `/api/v1/memories/:id/basis`        | 查看依据（交易 / 对话 / 手动）                                 |
+| POST         | `/api/v1/budget/agent`              | Agent 解析 + MERGE（P2 阶段 Agent 是占位实现）                 |
+| POST         | `/api/v1/budget/manual`             | 全量替换；超总额→422，未设总预算→400                           |
+| POST         | `/api/v1/chat`                      | 对话 + 会话/消息持久化 + `graph_path` 追踪                     |
+| GET          | `/api/v1/chat/sessions`             | 会话列表（按 `updated_at` 倒序）                               |
+| GET/DELETE   | `/api/v1/chat/sessions/:session_id` | 会话详情 / 删除（级联消息）                                    |
+| GET          | `/api/v1/chat/dashboard`            | 当月总览（UTC 口径、分类百分比、最近 10 条）                   |
+| GET          | `/api/v1/chat/transactions`         | 流水（`limit`、`category`）                                    |
+| PATCH        | `/api/v1/chat/transactions/:id`     | 更新交易（部分字段；归属校验，非本人→404）                     |
+| DELETE       | `/api/v1/chat/transactions/:id`     | 删除交易（归属校验，非本人→404）                               |
 
 - **JWT**：`jose` HS256，payload 为 `sub/username/phone_num/email/exp/iat`（秒）；refresh token 打 `type=refresh` 标记，
   业务接口收到直接 401（方案 5.2）。
@@ -169,17 +173,17 @@ e-diot/
 ```
 api/        client.ts（fetch 封装、token、401 自动登出）、types.ts（响应 DTO）
 components/ Toast.tsx、Modal.tsx、Sidebar.tsx（桌面侧栏）、Topbar.tsx（面包屑/在线状态）
-pages/      AuthPage / ChatPage / DashboardPage / BudgetPage / TransactionsPage / ProfilePage
+pages/      AuthPage / ChatPage / DashboardPage / BudgetPage / TransactionsPage / MemoryPage / ProfilePage
 utils/      format.ts（金额千分位、日期、分类 emoji、消息格式化）
 tabs.ts     导航元数据（中文标签 + 等宽英文副标签 + 面包屑分组）
 style.css   旧 frontend/css/style.css 原样复用 + 个人页样式
 theme.css   Cyberpunk 主题层：色板 / 桌面侧栏 / 顶栏 / 网格与辉光 / 组件皮肤
-App.tsx     登录态 + 桌面侧栏 / 移动底部导航 + 5 页（页面常驻，切 Tab 不丢对话状态）
+App.tsx     登录态 + 桌面侧栏 / 移动底部导航 + 6 页（页面常驻，切 Tab 不丢对话状态）
 ```
 
 - **视觉主题（Cyberpunk）**：深海军蓝 `#111827` + 青柠绿 `#C8F169`，内容区网格底纹、
   侧栏扫描线与径向辉光、等宽字体小标签；登录页为深色赛博入口。
-- **桌面布局（≥1024px）**：236px 深色侧栏（5 个入口 + 用户/退出/状态）+ 顶栏面包屑与 `ONLINE`
+- **桌面布局（≥1024px）**：236px 深色侧栏（6 个入口 + 用户/退出/状态）+ 顶栏面包屑与 `ONLINE`
   状态 + 内容区最大 1120px 网格卡片；聊天页会话栏常驻。
 - **移动布局（<1024px）**：沿用单列 + 底部 5 Tab（深色底 + 青柠高亮），会话栏可折叠。
 - **页面布局（以参考 HTML 为准）**：所有页面统一 `page-head`（eyebrow/标题/描述/右侧状态）+ 12 栅格卡片：
@@ -202,6 +206,9 @@ App.tsx     登录态 + 桌面侧栏 / 移动底部导航 + 5 页（页面常驻
   主动程度、每日关怀时间、免打扰与暂停持久化到 `user_settings`，对话时注入 persona 提示词。
 - **对话上下文（P0-1）**：`/chat` 会读取同会话最近 12 条消息，Agent 侧按 8 条 / 1800 字符预算截断，
   拼入意图解析与回复 prompt；超出预算时优先保留最新消息。
+- **记忆 Tab（P0-3）**：PostgreSQL `memories` 表（类型/来源/状态/置信度），新增即「待确认」，
+  确认后按 `边界 > 目标 > 偏好 > 习惯` 取前 8 条注入回复 prompt（1200 字符预算）；
+  支持查看依据、纠正、软删除；存储决策见 [docs/memory-storage-decision.md](docs/memory-storage-decision.md)。
 - **数据联动**：对话里出现「花了/赚了/买了/预算/分配」时，其余三个 Tab 的数据失效并在下次切换时刷新。
 - **同源托管**：`apps/api` 注册 `@fastify/static`，`apps/web/dist` 存在时 `GET /` 直接返回前端；缺失时跳过，
   只跑 API 或测试不受影响。

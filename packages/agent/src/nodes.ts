@@ -22,6 +22,7 @@ import {
 } from "@cyberbudget/shared";
 
 import { HISTORY_NOTE, historyMessages, type ChatTurn } from "./history.js";
+import { memoryBlock, type MemoryContext } from "./memory.js";
 import {
   FALLBACK_BUDGET_ERROR,
   FALLBACK_NO_TOTAL_BUDGET,
@@ -60,6 +61,8 @@ export interface NodeOptions {
   readonly history?: readonly ChatTurn[];
   /** 用户的相处人格（只影响回复语气） */
   readonly persona?: Persona;
+  /** 用户已确认的长期记忆（已按优先级排序） */
+  readonly memories?: readonly MemoryContext[];
 }
 
 /** Node 1：LLM 解析意图；失败时保留兜底文案，流程继续（与旧图一致） */
@@ -263,6 +266,9 @@ export async function generateResponseNode(
   try {
     const response = await llm.complete([
       { role: "system", content: withPersona(NORMAL_RESPONSE_SYSTEM_PROMPT, options.persona) },
+      ...(options.memories === undefined || options.memories.length === 0
+        ? []
+        : [{ role: "system" as const, content: memoryBlock(options.memories) }]),
       ...(options.history === undefined || options.history.length === 0
         ? []
         : [
@@ -311,6 +317,9 @@ export async function adviceNode(
   try {
     const response = await llm.complete([
       { role: "system", content: withPersona(OVERSPEND_ADVICE_SYSTEM_PROMPT, options.persona) },
+      ...(options.memories === undefined || options.memories.length === 0
+        ? []
+        : [{ role: "system" as const, content: memoryBlock(options.memories) }]),
       ...(options.history === undefined || options.history.length === 0
         ? []
         : [

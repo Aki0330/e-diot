@@ -41,12 +41,12 @@
   - Agent：4 套 persona 提示词（`withPersona`），只影响语气/长度。
   - 验收：接口默认值/持久化/非法时间用例 + persona 单测；真实库实测通过。
 
-- [ ] **P0-3 记忆系统 v1**（2–3d）
-  - 新表 `memories`（type/content/source/source_ref/status/created_at/updated_at/deleted_at）。
-  - API：列表、新增（待确认）、确认、纠正、删除；「查看依据」返回关联记录。
-  - Agent：注入最近/高优先级记忆（偏好、目标、边界）。
-  - 前端：记忆页（来源、更新时间、查看依据/纠正/删除）+ 待确认卡片。
-  - 验收：新增→确认→注入生效；删除后不再出现在回复与列表。
+- [x] **P0-3 记忆系统 v1**（已完成 2026-11-12）
+  - `memories` 表（迁移 `0003`）：type/content/source/source_ref/status/confidence/时间戳 + 软删除。
+  - API：`GET/POST /memories`、`POST /:id/confirm`、`PATCH/DELETE /:id`、`GET /:id/basis`（交易/对话/手动依据）。
+  - Agent：active 记忆按 `边界 > 目标 > 偏好 > 习惯` 取前 8 条，1200 字符预算注入回复 prompt。
+  - 前端：新增「记忆」Tab（待确认 / 已生效 / 查看依据 / 纠正 / 删除）。
+  - 验收：接口 CRUD + 注入单测通过；真实库写入 5 条记忆后用真实 LLM 验证，回复引用了「少糖奶茶 / 手冲咖啡」。
   - 存储决策：**v1 用 PostgreSQL，不先上 Milvus**，见 [memory-storage-decision.md](memory-storage-decision.md)。
 
 - [ ] **P0-4 主动关怀 v1（站内）**（2–3d）

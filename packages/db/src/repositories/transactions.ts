@@ -127,3 +127,16 @@ export async function sumByCategorySince(
     )
     .groupBy(transactions.category);
 }
+
+/** 「查看依据」用：按 id + 归属查询单笔交易 */
+export async function findTransactionById(
+  db: Executor,
+  userId: string,
+  transactionId: number,
+): Promise<TransactionRow | undefined> {
+  const rows = await db
+    .select()
+    .from(transactions)
+    .where(and(eq(transactions.transactionId, transactionId), eq(transactions.userId, userId)));
+  return rows[0];
+}

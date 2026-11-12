@@ -2,6 +2,7 @@ import type { Executor } from "@cyberbudget/db";
 import type { AgentState, IntentResult, Persona } from "@cyberbudget/shared";
 
 import type { ChatTurn } from "./history.js";
+import type { MemoryContext } from "./memory.js";
 import type { LlmClient } from "./llm/client.js";
 import {
   adviceNode,
@@ -31,6 +32,7 @@ export interface AgentDeps {
 export interface AgentRunOptions {
   readonly history?: readonly ChatTurn[];
   readonly persona?: Persona;
+  readonly memories?: readonly MemoryContext[];
 }
 
 export interface AgentTraceResult {

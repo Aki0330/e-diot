@@ -1,4 +1,4 @@
-export type Tab = "chat" | "dashboard" | "budget" | "transactions" | "profile";
+export type Tab = "chat" | "dashboard" | "budget" | "transactions" | "memory" | "profile";
 
 export interface TabMeta {
   readonly id: Tab;
@@ -16,6 +16,7 @@ export const TABS: readonly TabMeta[] = [
   { id: "dashboard", icon: "📊", label: "总览", mono: "OVERVIEW", group: "生活" },
   { id: "budget", icon: "💰", label: "预算", mono: "BUDGET", group: "生活" },
   { id: "transactions", icon: "📝", label: "账单", mono: "LEDGER", group: "生活" },
+  { id: "memory", icon: "🧠", label: "记忆", mono: "MEMORY", group: "生活" },
   { id: "profile", icon: "👤", label: "我的", mono: "PROFILE", group: "设置" },
 ];
 

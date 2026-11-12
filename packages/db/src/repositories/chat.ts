@@ -80,3 +80,22 @@ export async function deleteSession(
     .returning({ sessionId: chatSessions.sessionId });
   return rows.length > 0;
 }
+
+/** 「查看依据」用：按消息 id 查询，且必须属于该用户的会话 */
+export async function findMessageForUser(
+  db: Executor,
+  userId: string,
+  messageId: number,
+): Promise<{ messageId: number; role: string; content: string; createdAt: Date } | undefined> {
+  const rows = await db
+    .select({
+      messageId: chatMessages.messageId,
+      role: chatMessages.role,
+      content: chatMessages.content,
+      createdAt: chatMessages.createdAt,
+    })
+    .from(chatMessages)
+    .innerJoin(chatSessions, eq(chatMessages.sessionId, chatSessions.sessionId))
+    .where(and(eq(chatMessages.messageId, messageId), eq(chatSessions.userId, userId)));
+  return rows[0];
+}

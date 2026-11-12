@@ -10,6 +10,7 @@
 export * from "./llm/client.js";
 export * from "./llm/intent.js";
 export * from "./history.js";
+export * from "./memory.js";
 export * from "./prompts.js";
 export * from "./nodes.js";
 export * from "./pipeline.js";
