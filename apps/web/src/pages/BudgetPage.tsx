@@ -110,35 +110,35 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
         <div>
           <p className="eyebrow">BUDGET · {data.year_month}</p>
           <h2 className="page-title">预算</h2>
-          <p className="page-desc">每笔记账都会回到这里检查一次额度，进度按统一三态着色。</p>
+          <p className="page-desc">先给每类花钱定个上限，快超了它会提前说一声，不用自己算。</p>
         </div>
         <div className="head-side">
           <button className="btn-secondary" onClick={() => setModal("total")}>
-            ⚙️ 总预算
+            设定总预算
           </button>
           <button className="btn-primary" onClick={() => setModal("ai")}>
-            🤖 AI 分配
+            ✨ 帮我分
           </button>
         </div>
       </div>
 
       <div className="budget-top">
         <div className="bt-cell">
-          <div className="bt-k">月总预算 / TOTAL</div>
+          <div className="bt-k">月总预算</div>
           <div className="bt-v num">¥{fmt(data.total_budget)}</div>
           <div className="bt-note">
-            已分配 ¥{fmt(allocated)} · 未分配 ¥{fmt(Math.max(data.total_budget - allocated, 0))}
+            已分配 ¥{fmt(allocated)} · 还能分 ¥{fmt(Math.max(data.total_budget - allocated, 0))}
           </div>
         </div>
         <div className="bt-cell">
-          <div className="bt-k">已支出 / SPENT</div>
+          <div className="bt-k">已支出</div>
           <div className="bt-v num">¥{fmt(data.total_spent)}</div>
           <div className="bt-note">
-            剩余 ¥{fmt(data.remaining)} · 使用率 {usage}%
+            剩余 ¥{fmt(data.remaining)} · 已用 {usage}%
           </div>
         </div>
         <div className="bt-cell">
-          <div className="bt-k">分类额度 / CATEGORIES</div>
+          <div className="bt-k">分类额度</div>
           <div className="bt-v num">{allocatedRows.length}</div>
           <div className="bt-note">
             {overCount} 项超支 · {nearCount} 项接近上限
@@ -176,7 +176,7 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
             {nearCount > 0 && <span className="badge amber">{nearCount} 项接近上限</span>}
           </div>
           <button className="btn-text" onClick={() => setModal("manual")}>
-            ✏️ 手动编辑
+            手动调整
           </button>
         </div>
 
@@ -220,13 +220,14 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
       </div>
 
       <p className="profile-hint" style={{ marginTop: 10 }}>
-        校验通过：分类合计 ¥{fmt(allocated)}，月总预算 ¥{fmt(data.total_budget)}。
+        分类合计 ¥{fmt(allocated)}，占总预算{" "}
+        {data.total_budget > 0 ? Math.round((allocated / data.total_budget) * 100) : 0}%。
       </p>
 
       {modal === "ai" && (
-        <Modal title="AI 智能分配预算" onClose={closeModal} onConfirm={submitAi}>
+        <Modal title="让它帮你分预算" onClose={closeModal} onConfirm={submitAi}>
           <div className="form-group">
-            <label>用自然语言描述你的预算分配</label>
+            <label>说说你想怎么分</label>
             <textarea
               rows={3}
               placeholder="例如：餐饮2000，交通500，购物1000，娱乐500"
@@ -235,13 +236,13 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
             />
           </div>
           <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-            💡 AI会自动提取分类和金额，与已有分配合并，并确保不超过总预算
+            💡 它会自己认出分类和金额，和已有分配合并，并且不会超过你的总预算
           </p>
         </Modal>
       )}
 
       {modal === "manual" && (
-        <Modal title="手动分配预算" onClose={closeModal} onConfirm={submitManual}>
+        <Modal title="手动调整分类预算" onClose={closeModal} onConfirm={submitManual}>
           <div>
             {manualRows.map((row, index) => (
               <div key={index} className="form-group">

@@ -106,7 +106,12 @@ export function App() {
             />
           </div>
           <div className="page-wrapper" style={{ display: tab === "dashboard" ? "block" : "none" }}>
-            <DashboardPage active={tab === "dashboard"} refreshKey={refreshKey} />
+            <DashboardPage
+              active={tab === "dashboard"}
+              refreshKey={refreshKey}
+              user={user}
+              onNavigate={setTab}
+            />
           </div>
           <div className="page-wrapper" style={{ display: tab === "budget" ? "block" : "none" }}>
             <BudgetPage active={tab === "budget"} refreshKey={refreshKey} />
