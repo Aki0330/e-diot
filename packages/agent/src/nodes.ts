@@ -1,4 +1,4 @@
-import {
+﻿import {
   findUserById,
   insertTransaction,
   isOverBudget,
@@ -24,6 +24,7 @@ import {
 import { HISTORY_NOTE, historyMessages, type ChatTurn } from "./history.js";
 import { budgetCrossings, shouldMentionBudget } from "./budget-reminder.js";
 import { memoryBlock, type MemoryContext } from "./memory.js";
+import { knowledgeBlock, type KnowledgeSnippet } from "./knowledge.js";
 import {
   FALLBACK_BUDGET_ERROR,
   FALLBACK_NO_TOTAL_BUDGET,
@@ -64,6 +65,8 @@ export interface NodeOptions {
   readonly persona?: Persona;
   /** 用户已确认的长期记忆（已按优先级排序） */
   readonly memories?: readonly MemoryContext[];
+  /** 本轮检索到的知识库片段（已按相关度排序，编号即引用序号） */
+  readonly knowledge?: readonly KnowledgeSnippet[];
 }
 
 /** Node 1：LLM 解析意图；失败时保留兜底文案，流程继续（与旧图一致） */
@@ -287,6 +290,9 @@ export async function generateResponseNode(
       ...(options.memories === undefined || options.memories.length === 0
         ? []
         : [{ role: "system" as const, content: memoryBlock(options.memories) }]),
+      ...(options.knowledge === undefined || options.knowledge.length === 0
+        ? []
+        : [{ role: "system" as const, content: knowledgeBlock(options.knowledge) }]),
       ...(options.history === undefined || options.history.length === 0
         ? []
         : [
@@ -338,6 +344,9 @@ export async function adviceNode(
       ...(options.memories === undefined || options.memories.length === 0
         ? []
         : [{ role: "system" as const, content: memoryBlock(options.memories) }]),
+      ...(options.knowledge === undefined || options.knowledge.length === 0
+        ? []
+        : [{ role: "system" as const, content: knowledgeBlock(options.knowledge) }]),
       ...(options.history === undefined || options.history.length === 0
         ? []
         : [
