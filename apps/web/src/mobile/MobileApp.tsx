@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { setToken } from "../api/client.js";
 import { BudgetPage } from "../pages/BudgetPage.js";
 import { ChatPage } from "../pages/ChatPage.js";
 import { DashboardPage } from "../pages/DashboardPage.js";
@@ -28,6 +29,11 @@ export function MobileApp() {
   const [secondary, setSecondary] = useState<SecondaryView | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const chatActive = tab === "chat" && secondary === null;
+
+  const logout = (): void => {
+    setToken(null);
+    window.location.href = "/";
+  };
 
   return (
     <div className="mobile-demo">
@@ -66,6 +72,7 @@ export function MobileApp() {
               <ProfilePage
                 active={tab === "profile" && secondary === null}
                 onNavigateSecondary={(view) => setSecondary(view)}
+                onLogout={logout}
               />
             </div>
 
