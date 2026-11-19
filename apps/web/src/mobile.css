@@ -65,6 +65,47 @@
   overflow: hidden;
 }
 
+.mobile-body-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-login {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background: var(--bg);
+}
+
+.mobile-login .ml-emoji {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.mobile-login .ml-title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.mobile-login .ml-desc {
+  margin: 0;
+  max-width: 240px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.mobile-login .btn-primary {
+  margin-top: 6px;
+  padding: 10px 22px;
+}
+
 .mobile-page {
   flex: 1;
   min-height: 0;
