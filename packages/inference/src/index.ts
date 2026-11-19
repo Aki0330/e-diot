@@ -7,9 +7,11 @@
  *   POST /embed   { texts: string[] } → { dense: number[][], sparse: SparseVector[] }
  *   POST /rerank  { query, documents, top_n? } → { scores: number[] }
  *
- * 本文件先固定 HTTP 契约与客户端接口，P4 再实现 `fetch` 调用（含超时与重试）。
+ * 本文件固定 HTTP 契约与客户端接口；`client.ts` 是 `fetch` 实现（含超时、重试、响应校验）。
  * sidecar 以外的一切（Milvus 读写、混合检索编排、结果格式化）都在 TS 里。
  */
+
+export * from "./client.js";
 
 /** 稀疏向量：token_id（字符串化）→ 权重。旧 FlagEmbedding 的 lexical_weights 即此结构 */
 export type SparseVector = Record<string, number>;

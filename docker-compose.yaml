@@ -6,7 +6,6 @@ volumes:
   pgsql_data:
   pgadmin_data:
   etcd_data:
-  minio_data:
   milvus_data:
   redis_data:
 
@@ -80,30 +79,8 @@ services:
       - cyber-budget-network
 
   # ============================================================================
-  # 4. Milvus 依赖项：MinIO (向量索引持久化存储)
-  # ============================================================================
-  minio:
-    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
-    container_name: cyber-budget-minio
-    environment:
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
-    ports:
-      - "9001:9001"
-      - "9000:9000"
-    volumes:
-      - minio_data:/minio_data
-    command: minio server /minio_data --console-address ":9001"
-    networks:
-      - cyber-budget-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  # ============================================================================
-  # 5. 向量数据库：Milvus Standalone (存储吃土/回血/平替文本向量)
+  # 4. 向量数据库：Milvus Standalone (存储吃土/回血/平替文本向量)
+  #    MinIO 社区镜像已下架，这里用 Milvus 自带的本地存储（COMMON_STORAGETYPE=local）
   # ============================================================================
   milvus:
     image: milvusdb/milvus:v2.4.0
@@ -112,8 +89,9 @@ services:
     security_opt:
       - seccomp:unconfined
     environment:
+      # MinIO 社区镜像已下架，改用 Milvus 的本地存储模式（数据落在 milvus_data 卷）
+      COMMON_STORAGETYPE: local
       ETCD_ENDPOINTS: etcd:2379
-      MINIO_ADDRESS: minio:9000
     volumes:
       - milvus_data:/var/lib/milvus
     ports:
@@ -123,7 +101,6 @@ services:
       - cyber-budget-network
     depends_on:
       - etcd
-      - minio
 
   # ============================================================================
   # 6. Milvus GUI 界面：Attu (浏览器访问 http://localhost:3100)

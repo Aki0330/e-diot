@@ -180,6 +180,7 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
         intent_type: trace.intentType,
         graph_path: trace.graphPath,
         execution_data: trace.executionData,
+        citations: [...(trace.citations ?? [])],
       };
     },
   );

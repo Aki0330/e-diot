@@ -3,11 +3,14 @@ import {
   runAgent,
   runAgentWithTrace,
   type ChatTurn,
+  type KnowledgePort,
+  type KnowledgeSnippet,
   type LlmClient,
   type MemoryContext,
 } from "@cyberbudget/agent";
 import { findUserById, type Database } from "@cyberbudget/db";
-import type { AppConfig, Persona } from "@cyberbudget/shared";
+import { createKnowledgeRuntime, searchKnowledge } from "@cyberbudget/knowledge";
+import type { AppConfig, KnowledgeCitation, Persona } from "@cyberbudget/shared";
 import type { FastifyInstance } from "fastify";
 
 /**
@@ -20,6 +23,8 @@ export interface AgentTrace {
   readonly intentType: string | null;
   readonly graphPath: string;
   readonly executionData: Record<string, unknown> | null;
+  /** 本轮回答引用的知识库片段（P4b） */
+  readonly citations?: readonly KnowledgeCitation[];
 }
 
 export interface AgentRunOptions {
@@ -90,8 +95,42 @@ export function pickLlmSettings(config: AppConfig, user: UserLlmOverride | null)
   return { baseUrl: config.llm.baseUrl, apiKey: config.llm.apiKey, model: config.llm.model };
 }
 
+function tagsOf(metadata: Record<string, unknown> | undefined): readonly string[] {
+  const tags = metadata?.["tags"];
+  return Array.isArray(tags) ? tags.filter((tag): tag is string => typeof tag === "string") : [];
+}
+
+/**
+ * 知识库端口（P4b）：惰性创建运行时，首次检索才连接 Milvus 与推理 sidecar。
+ * 检索失败由 Agent 内部兜底为空片段，这里不吞错——保留给 Agent 的 best-effort 逻辑统一处理。
+ */
+export function createAgentKnowledgePort(): KnowledgePort {
+  let runtime: ReturnType<typeof createKnowledgeRuntime> | undefined;
+
+  return {
+    async search(query, options): Promise<readonly KnowledgeSnippet[]> {
+      runtime ??= createKnowledgeRuntime();
+      const hits = await searchKnowledge(runtime, {
+        query,
+        topK: options?.topK ?? 3,
+        ...(options?.categoryFilter === undefined
+          ? {}
+          : { categoryFilter: options.categoryFilter }),
+        ...(options?.candidatePool === undefined ? {} : { candidatePool: options.candidatePool }),
+      });
+      return hits.map((hit) => ({
+        content: hit.content,
+        category: hit.category,
+        score: hit.rerankScore,
+        tags: tagsOf(hit.metadata),
+      }));
+    },
+  };
+}
+
 /** P3 真实实现：6 节点流水线 + OpenAI 兼容 LLM（按用户配置动态选择）。 */
 export function createAgentRunner({ db, config }: AgentRunnerOptions): AgentRunner {
+  const knowledge = createAgentKnowledgePort();
   const llmForUser = async (userId: string): Promise<LlmClient> => {
     const user = await findUserById(db, userId);
     return createOpenAiCompatibleClient(pickLlmSettings(config, user ?? null));
@@ -99,19 +138,28 @@ export function createAgentRunner({ db, config }: AgentRunnerOptions): AgentRunn
 
   return {
     run: async (userId, message, options) =>
-      runAgent({ db, llm: await llmForUser(userId) }, userId, message, options),
+      runAgent({ db, llm: await llmForUser(userId) }, userId, message, {
+        ...options,
+        knowledge,
+      }),
     runWithTrace: async (userId, message, options) => {
       const trace = await runAgentWithTrace(
         { db, llm: await llmForUser(userId) },
         userId,
         message,
-        options,
+        { ...options, knowledge },
       );
       return {
         response: trace.response,
         intentType: trace.intentType,
         graphPath: trace.graphPath,
         executionData: trace.executionData,
+        citations: trace.citations.map((snippet) => ({
+          content: snippet.content,
+          category: snippet.category,
+          score: Math.round(snippet.score * 10_000) / 10_000,
+          tags: [...snippet.tags],
+        })),
       };
     },
   };

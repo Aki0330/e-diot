@@ -25,12 +25,17 @@
     "db:generate": "pnpm --filter @cyberbudget/db db:generate",
     "db:migrate": "pnpm --filter @cyberbudget/db db:migrate",
     "db:baseline": "pnpm --filter @cyberbudget/db db:baseline",
+    "kb:init": "pnpm --filter @cyberbudget/knowledge kb:init",
+    "kb:search": "pnpm --filter @cyberbudget/knowledge kb:search",
+    "kb:eval": "pnpm --filter @cyberbudget/knowledge kb:eval",
+    "dev:inference": "node scripts/start-inference.mjs",
     "start": "pnpm --filter @cyberbudget/api start"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/node": "^24.19.2",
     "@vitest/coverage-v8": "^3.2.7",
+    "ajv": "^6.14.0",
     "eslint": "^9.39.5",
     "globals": "^16.0.0",
     "prettier": "^3.9.10",
