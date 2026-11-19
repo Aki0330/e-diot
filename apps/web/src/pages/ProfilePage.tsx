@@ -195,9 +195,16 @@ export function ProfilePage({ active, onNavigateSecondary, onLogout }: ProfilePa
             第 {daysSince(profile.created_at)} 天 · {personaName} · 月预算 ¥{fmt(profile.budget)}
           </div>
         </div>
-        <button className="btn-ghost btn-sm" onClick={() => setPicking((value) => !value)}>
-          {picking ? "收起" : "换形象"}
-        </button>
+        <div className="me-hero-actions">
+          <button className="btn-ghost btn-sm" onClick={() => setPicking((value) => !value)}>
+            {picking ? "收起" : "换形象"}
+          </button>
+          {onLogout !== undefined && (
+            <button className="btn-logout btn-sm" type="button" onClick={onLogout}>
+              退出登录
+            </button>
+          )}
+        </div>
       </section>
 
       <div className="profile-grid">
@@ -265,15 +272,6 @@ export function ProfilePage({ active, onNavigateSecondary, onLogout }: ProfilePa
               <span className="profile-value">{fmtDate(profile.created_at)}</span>
             </div>
           </div>
-
-          {onLogout !== undefined && (
-            <div className="card-foot">
-              <span className="profile-hint">退出后需要重新登录才能继续记账</span>
-              <button className="btn-ghost btn-sm" type="button" onClick={onLogout}>
-                退出登录
-              </button>
-            </div>
-          )}
 
           {picking && (
             <div className="card-extra">
