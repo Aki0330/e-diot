@@ -182,6 +182,15 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
     (applied.from !== "" || applied.to !== "" ? 1 : 0) +
     (applied.min !== "" || applied.max !== "" ? 1 : 0);
 
+  const hasFilter =
+    keyword !== "" ||
+    category !== "全部" ||
+    preset !== "all" ||
+    applied.from !== "" ||
+    applied.to !== "" ||
+    applied.min !== "" ||
+    applied.max !== "";
+
   const choosePreset = (next: Preset): void => {
     setPreset(next);
     if (next === "all") {
@@ -245,7 +254,13 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
       const todayKey = isoDate(new Date());
       const todayCount =
         transactions.filter((txn) => keyOf(txn.transaction_time) === todayKey).length + 1;
-      toast(`记好了 · 今天第 ${todayCount} 笔`, "success");
+      const feedback =
+        todayCount === 1
+          ? "记好了 ✅ 今天的第一笔，好开始"
+          : todayCount % 10 === 0
+            ? `记好了 ✅ 今天第 ${todayCount} 笔，真勤快`
+            : `记好了 ✅ 今天第 ${todayCount} 笔`;
+      toast(feedback, "success");
     } else {
       await api.updateTransaction(editing.transaction_id, payload);
       toast("已经改好了", "success");
@@ -428,6 +443,18 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             </button>
           ))}
         </div>
+
+        {hasFilter && (
+          <div className="filter-active-bar">
+            <span className="fab-ico">🎯</span>
+            <span className="fab-text">
+              已按条件筛选 · 命中 <b className="num">{filtered.length}</b> 条
+            </span>
+            <button className="btn-text" type="button" onClick={resetAll}>
+              清除筛选
+            </button>
+          </div>
+        )}
       </div>
 
       {error !== null && <p className="profile-hint error">{error}</p>}

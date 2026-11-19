@@ -17,6 +17,8 @@ export interface ProfilePageProps {
   readonly active: boolean;
   /** 移动端二级入口：预算 / 记忆 */
   readonly onNavigateSecondary?: (view: "budget" | "memory") => void;
+  /** 退出登录回调（桌面端接入，移动端顶栏已有退出） */
+  readonly onLogout?: () => void;
 }
 
 function fmtDate(value: string | null): string {
@@ -48,7 +50,7 @@ const LEVEL_OPTIONS: readonly { id: ProactiveLevel; label: string }[] = [
 ];
 
 /** 个人页：形象 + 相处方式 + 提醒节奏 + 账户信息（模型配置收进「高级」） */
-export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
+export function ProfilePage({ active, onNavigateSecondary, onLogout }: ProfilePageProps) {
   const toast = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [llm, setLlm] = useState<LlmConfig | null>(null);
@@ -264,6 +266,15 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
             </div>
           </div>
 
+          {onLogout !== undefined && (
+            <div className="card-foot">
+              <span className="profile-hint">退出后需要重新登录才能继续记账</span>
+              <button className="btn-ghost btn-sm" type="button" onClick={onLogout}>
+                退出登录
+              </button>
+            </div>
+          )}
+
           {picking && (
             <div className="card-extra">
               <AvatarPicker
@@ -417,8 +428,8 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
             </div>
 
             <p className="profile-hint">
-              密钥只保存在你的账户下，接口不会返回明文。Base URL 和 Key
-              都填好才会生效，保存后下一次对话即生效。
+              密钥只存在你自己的账户里，这里只显示「是否已配置」，不会回显明文。Base URL
+              和 Key 都填好才会生效，保存后下一次对话即生效。
             </p>
 
             <div className="card-foot">

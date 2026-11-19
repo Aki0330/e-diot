@@ -123,7 +123,7 @@ export function App() {
             <TransactionsPage active={tab === "transactions"} refreshKey={refreshKey} />
           </div>
           <div className="page-wrapper" style={{ display: tab === "profile" ? "block" : "none" }}>
-            <ProfilePage active={tab === "profile"} />
+            <ProfilePage active={tab === "profile"} onLogout={logout} />
           </div>
           <div className="page-wrapper" style={{ display: tab === "memory" ? "block" : "none" }}>
             <MemoryPage active={tab === "memory"} />

@@ -274,7 +274,9 @@ export function DashboardPage({ active, refreshKey, user, onNavigate }: Dashboar
               <div className="card-title">记账状态</div>
               <div className="card-sub">坚持比精确更重要</div>
             </div>
-            {streak >= 3 && <span className="badge lime">连续 {streak} 天</span>}
+            {streak >= 3 && (
+              <span className="badge lime">🔥 连续 {streak} 天</span>
+            )}
           </div>
 
           <div className="streak-body">
@@ -308,11 +310,15 @@ export function DashboardPage({ active, refreshKey, user, onNavigate }: Dashboar
           </div>
 
           <p className="streak-note">
-            {streak >= 7
-              ? "一整周没断过，这个月的账已经很完整了。"
-              : streak >= 3
-                ? `已经连着记了 ${streak} 天，再记一笔就是 ${streak + 1} 天。`
-                : "今天记一笔，连续记录就从现在开始。"}
+            {streak >= 30
+              ? "整整一个月没断过，你已经把记账变成了习惯。"
+              : streak >= 14
+                ? `连续 ${streak} 天，半个月的账一笔不落。`
+                : streak >= 7
+                  ? "连续一整周没断过，这个月的账已经很完整了。"
+                  : streak >= 3
+                    ? `已经连着记了 ${streak} 天，再记一笔就是 ${streak + 1} 天。`
+                    : "今天记一笔，连续记录就从现在开始。"}
           </p>
         </section>
 
