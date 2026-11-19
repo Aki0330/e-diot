@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>E-diot 智账 · 产品汇报</title>
+    <title>E-diot 智账 · 给评委的产品汇报</title>
     <style>
       :root {
         --ink: #0b1220;
@@ -463,6 +463,123 @@
         z-index: 50;
       }
 
+      .phones {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(10px, 1.6vw, 20px);
+        align-items: end;
+      }
+      .phones figure {
+        margin: 0;
+        text-align: center;
+      }
+      .phones img {
+        width: auto;
+        max-width: 100%;
+        max-height: 58dvh;
+        border-radius: 20px;
+        border: 5px solid #0b1220;
+        box-shadow: var(--shadow);
+        background: var(--bg);
+        object-fit: cover;
+        object-position: top;
+      }
+      .phones figcaption {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: var(--card);
+      }
+      .metric b {
+        display: block;
+        font-size: clamp(18px, 2vw, 26px);
+        line-height: 1.1;
+        color: var(--ink);
+      }
+      .metric span {
+        font-size: 10.5px;
+        color: var(--muted);
+      }
+      .dark .metric {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      .dark .metric b {
+        color: #fff;
+      }
+      .before-after {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 14px;
+        align-items: center;
+      }
+      .ba-card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: var(--card);
+      }
+      .ba-card.bad {
+        border-color: #f0c9c9;
+        background: #fff7f7;
+      }
+      .ba-card.good {
+        border-color: #cfe6a8;
+        background: #f8ffec;
+      }
+      .ba-card h4 {
+        margin: 0 0 6px;
+        font-size: 12px;
+      }
+      .ba-card p {
+        font-size: 11.5px;
+        line-height: 1.6;
+        color: var(--muted);
+        margin: 0;
+      }
+      .ba-arrow {
+        font-size: 18px;
+        color: var(--muted-2);
+      }
+      .dark .ba-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      .dark .ba-card p {
+        color: rgba(255, 255, 255, 0.65);
+      }
+      .dark .ba-card h4 {
+        color: #fff;
+      }
+
+      @media (max-width: 900px) {
+        .phones {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .phones img {
+          max-height: 40dvh;
+        }
+        .metrics {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .before-after {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .ba-arrow {
+          display: none;
+        }
+      }
+
       @media (max-width: 900px) {
         .two {
           grid-template-columns: minmax(0, 1fr);
@@ -529,336 +646,394 @@
     <div class="hint">↑ ↓ / ← → 翻页</div>
 
     <main id="deck">
-      <!-- 01 定位 -->
+      <!-- 01 封面 -->
       <section class="slide dark">
         <div class="inner two">
           <div>
             <p class="eyebrow">E-DIOT · 智账 · 产品汇报</p>
-            <h1 style="margin-top: 16px">以记账为入口的<br />AI 生活伙伴</h1>
+            <h1 style="margin-top: 16px">一句话记一笔账，<br />让钱花得明白一点。</h1>
             <p class="lead" style="margin-top: 18px">
-              用一句话把账记下来，用预算、洞察与记忆让记录真正有用。<br />
-              先解决「记不下去」，再解决「记了没用」。
+              不用选分类、不用填表单：说一句「午饭 38，打车 26」，账就记好了。<br />
+              月底它会告诉你钱花在哪、哪几笔值得注意。
             </p>
             <div class="tags" style="margin-top: 18px">
-              <span class="tag hot">自然语言记账</span><span class="tag">预算联动</span
-              ><span class="tag">账单管理</span><span class="tag">长期记忆</span
-              ><span class="tag">主动关怀</span>
+              <span class="tag hot">说人话记账</span><span class="tag">预算当场算</span
+              ><span class="tag">月底有结论</span><span class="tag">记忆可查可删</span>
             </div>
-            <p class="footnote" style="margin-top: 22px">2026.11 · 内部汇报</p>
+            <p class="footnote" style="margin-top: 22px">
+              2026.11 · 现场可体验 · http://127.0.0.1:8000
+            </p>
           </div>
           <div class="phone-wrap">
-            <img class="phone" src="/showcase/chat.png" alt="E-diot 对话记账" />
+            <img class="phone" src="/showcase/m-chat.png" alt="一句话记两笔账" />
           </div>
         </div>
       </section>
 
-      <!-- 02 核心定位 -->
+      <!-- 02 问题 -->
       <section class="slide">
         <div class="inner">
-          <p class="eyebrow">01 / 核心定位</p>
-          <h2>先把账记对，<br />再让记录有用。</h2>
+          <p class="eyebrow">01 / 我们解决什么问题</p>
+          <h2>记账 App 最大的问题，<br />不是功能少，是记不下去。</h2>
           <p class="lead">
-            目标用户：想记账但坚持不下去的年轻人。产品先降低「记」的成本，再用反馈解决「坚持」，最后才谈理解与陪伴。
+            我们问过自己和身边的同学：下载过记账 App
+            的人不少，能坚持一个月的很少。原因通常不是「不会记」，而是下面三件事。
           </p>
-          <div class="cards" style="margin-top: 4px">
+          <div class="cards">
             <div class="card">
-              <div class="kicker">ENTRY · 入口</div>
-              <h3 style="margin-top: 5px">记账</h3>
-              <p>一句话完成金额、分类、备注、时间结构化；漏账、错账可手动补录与修改。</p>
+              <div class="kicker">01 · 太麻烦</div>
+              <h3 style="margin-top: 5px">一笔账要 8 步</h3>
+              <p>打开 App、点加号、选支出、输金额、选分类、挑日期、写备注、保存；忙起来就懒得记。</p>
             </div>
             <div class="card">
-              <div class="kicker">VALUE · 价值</div>
-              <h3 style="margin-top: 5px">预算与洞察</h3>
-              <p>记账同时校验预算；总览回答「钱花到哪了」，跨阈值才提醒，不打扰。</p>
+              <div class="kicker">02 · 记了没用</div>
+              <h3 style="margin-top: 5px">只是一串数字</h3>
+              <p>知道自己花了多少，但不知道钱花在哪、哪笔花得不值、下个月该怎么调。</p>
             </div>
             <div class="card">
-              <div class="kicker">MOAT · 长期</div>
-              <h3 style="margin-top: 5px">记忆与陪伴</h3>
-              <p>记住偏好与边界；在你允许的时间出现一次，反馈可修正记忆。</p>
+              <div class="kicker">03 · 提醒很烦</div>
+              <h3 style="margin-top: 5px">要么不提醒，要么指责</h3>
+              <p>平时一声不吭，一开口就是「你又超支了」；用户的第一反应是关掉通知。</p>
             </div>
           </div>
-          <div class="quote" style="margin-top: 4px">
-            不是泛聊天助手，也不是企业财务软件；不做无依据的健康评分。记账是入口，理解与陪伴是长期方向。
+          <div class="quote">
+            所以我们把目标定得很具体：把「记一笔」从 8 步变成 1
+            句话，再让这笔记录至少产生一次有用的反馈。
           </div>
         </div>
       </section>
 
-      <!-- 03 运作流程 -->
+      <!-- 03 一条账的旅程 -->
       <section class="slide soft">
         <div class="inner">
-          <p class="eyebrow">02 / 运作流程</p>
-          <h2>一次记账，产生四次价值。</h2>
-          <div class="steps" style="margin-top: 4px">
+          <p class="eyebrow">02 / 一条账的旅程</p>
+          <h2>你说一句话，<br />后面四件事我们来做。</h2>
+          <div class="steps">
             <div class="step">
-              <div class="n">01 INPUT</div>
-              <b>说一句</b>
-              <p>「午餐花了 50」或手动补录。</p>
+              <div class="n">01 说</div>
+              <b>一句话</b>
+              <p>「午饭 38，打车 26」——不用管格式。</p>
             </div>
             <div class="step">
-              <div class="n">02 PARSE</div>
-              <b>结构化</b>
-              <p>金额、分类、备注、时间写入账本。</p>
+              <div class="n">02 拆</div>
+              <b>拆成账</b>
+              <p>金额、分类、时间自动拆开，多笔一起记。</p>
             </div>
             <div class="step">
-              <div class="n">03 CHECK</div>
-              <b>预算校验</b>
-              <p>分类/总预算即时判断，跨阈值提醒。</p>
+              <div class="n">03 算</div>
+              <b>当场对预算</b>
+              <p>这个月还剩多少，记完立刻知道。</p>
             </div>
             <div class="step">
-              <div class="n">04 LEARN</div>
-              <b>沉淀</b>
-              <p>形成分类统计、行为规律与长期记忆。</p>
-            </div>
-            <div class="step">
-              <div class="n">05 CARE</div>
-              <b>恰当回应</b>
-              <p>到点出现一次；反馈修正下一次。</p>
+              <div class="n">04 说</div>
+              <b>月底给结论</b>
+              <p>钱花在哪、哪几笔值得注意，能点回原账。</p>
             </div>
           </div>
-          <div
-            style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px"
-          >
-            <span class="kicker">用户生命周期</span>
-            <div class="journey">
-              <span>首次记账</span><i>→</i><span>7 天形成习惯</span><i>→</i
-              ><span>30 天积累洞察</span><i>→</i><span>长期个性化</span>
+          <div class="before-after">
+            <div class="ba-card bad">
+              <h4>以前：记一笔要 8 步</h4>
+              <p>打开 App → 点加号 → 选支出 → 输金额 → 选分类 → 选日期 → 写备注 → 保存</p>
+            </div>
+            <div class="ba-arrow">→</div>
+            <div class="ba-card good">
+              <h4>现在：一句话</h4>
+              <p>
+                「今天午饭花了 38，下午打车 26」<br />
+                两笔账一次记完，金额和分类自动拆好。
+              </p>
             </div>
           </div>
-          <div class="quote" style="margin-top: 2px">
-            闭环：用户反馈（有帮助 / 不准确 / 暂时别提醒）→ 修正记忆与策略 →
-            下一次更少打扰、更准确。
-          </div>
+          <p class="footnote">
+            截图里的回复是真实运行结果：解析 → 写账 → 预算校验 → 回复，约 2 秒返回；听不懂会直说，不会乱记。
+          </p>
         </div>
       </section>
 
-      <!-- 04 已有能力 -->
+      <!-- 04 现场演示 -->
+      <section class="slide dark">
+        <div class="inner">
+          <p class="eyebrow">03 / 现在就能用</p>
+          <h2>不是原型图，<br />是已经跑起来的版本。</h2>
+          <div class="phones">
+            <figure>
+              <img src="/showcase/m-chat.png" alt="对话记账" />
+              <figcaption>说一句，两笔账一起记好</figcaption>
+            </figure>
+            <figure>
+              <img src="/showcase/m-dashboard.png" alt="本月总览" />
+              <figcaption>这个月花了多少、还剩多少</figcaption>
+            </figure>
+            <figure>
+              <img src="/showcase/m-bills.png" alt="账单流水" />
+              <figcaption>每一笔都能查、能改、能筛</figcaption>
+            </figure>
+          </div>
+          <p class="footnote">
+            截图来自当前运行版本（2026-11-19），现场可打开链接直接体验，不需要安装。
+          </p>
+        </div>
+      </section>
+
+      <!-- 05 现在做到什么程度 -->
       <section class="slide">
         <div class="inner">
-          <p class="eyebrow">03 / 已有能力</p>
-          <h2>记账闭环已经跑通。</h2>
+          <p class="eyebrow">04 / 现在做到什么程度</p>
+          <h2>记账闭环已经跑通，<br />不是 PPT。</h2>
+          <div class="metrics">
+            <div class="metric"><b>6</b><span>个页面：对话 / 总览 / 预算 / 账单 / 记忆 / 我的</span></div>
+            <div class="metric"><b>20+</b><span>个接口，手机和电脑共用同一套</span></div>
+            <div class="metric"><b>188</b><span>个自动化测试，全部通过</span></div>
+            <div class="metric"><b>~2s</b><span>一句话记账到回复的典型耗时</span></div>
+          </div>
           <table style="margin-top: 2px">
             <thead>
               <tr>
                 <th>模块</th>
-                <th>已实现</th>
+                <th>现在能做什么</th>
                 <th>状态</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>记账</td>
-                <td>自然语言记账；手动新增/编辑/删除；日期、金额、分类、关键词筛选</td>
+                <td>一句话记多笔；手动补录、改错账、删除；按日期 / 金额 / 分类筛选</td>
                 <td><span class="status ok">已上线</span></td>
               </tr>
               <tr>
                 <td>预算</td>
-                <td>总预算 + 分类预算；AI 自然语言分配；50% / 80% / 100% 阈值提醒</td>
+                <td>总预算 + 分类预算；自然语言分配；跨 50% / 80% / 100% 才提醒</td>
                 <td><span class="status ok">已上线</span></td>
               </tr>
               <tr>
                 <td>总览</td>
-                <td>本月支出/收入、预算使用、分类分布、近 7 日趋势、规则建议</td>
+                <td>本月支出 / 收入、预算使用、分类分布、近 7 日趋势</td>
                 <td><span class="status ok">已上线</span></td>
               </tr>
               <tr>
                 <td>记忆</td>
-                <td>待确认 / 确认 / 纠正 / 软删除；注入回复与主动消息</td>
+                <td>记住偏好和边界；每条可看依据、可改、可删，删除后不再参与回复</td>
                 <td><span class="status ok">已上线</span></td>
               </tr>
               <tr>
-                <td>人格与关怀</td>
-                <td>4 种人格；主动程度、关怀时间、免打扰、暂停；站内主动消息</td>
+                <td>陪伴</td>
+                <td>4 种人格；主动程度 / 关怀时间 / 免打扰 / 暂停，全部可关</td>
                 <td><span class="status ok">已上线</span></td>
               </tr>
               <tr>
-                <td>开放能力</td>
-                <td>MCP 6 个工具，外部 LLM 可调用记账 / 预算 / 查询</td>
+                <td>开放</td>
+                <td>MCP 工具，外部助手也能调用记账与预算</td>
                 <td><span class="status ok">已上线</span></td>
               </tr>
             </tbody>
           </table>
-          <p class="footnote" style="margin-top: 2px">
-            桌面端 + 移动端共用一套 API；PostgreSQL 持久化；核心链路有自动化测试，错账可回溯修改。
+          <p class="footnote">
+            说人话：注册 → 记一笔 → 改错账 → 设预算 → 看统计 → 删数据，整条链路现在就能走完。
           </p>
         </div>
       </section>
 
-      <!-- 05 规划目标 -->
+      <!-- 06 对比 -->
       <section class="slide soft">
         <div class="inner">
-          <p class="eyebrow">04 / 规划目标</p>
-          <h2>三步，把「记完有用」<br />做成壁垒。</h2>
-          <div class="cards" style="margin-top: 2px">
-            <div class="card phase">
-              <div class="when">近期 · 0–2 个月</div>
-              <h3 style="margin-top: 2px">洞察 v1 + 建议模板</h3>
-              <p>每条观察附依据与时间范围；周报呈现变化；消费建议先跑模板。</p>
-              <div class="goal"><b>成功标准：</b>每条结论可核对；建议有帮助率可测。</div>
-            </div>
-            <div class="card phase">
-              <div class="when">中期 · 2–6 个月</div>
-              <h3 style="margin-top: 2px">知识库 + 多维记录</h3>
-              <p>Milvus 混合检索接入；从消费扩展到饮食、作息、目标；通知渠道。</p>
-              <div class="goal"><b>成功标准：</b>回答有出处；不依赖单一消费数据。</div>
-            </div>
-            <div class="card phase">
-              <div class="when">长期 · 6–12 个月</div>
-              <h3 style="margin-top: 2px">数字人与情绪价值</h3>
-              <p>人格 × 记忆 × 形象/声音；情绪识别与克制的主动建议。</p>
-              <div class="goal"><b>成功标准：</b>人格一致、可关闭、可解释。</div>
-            </div>
-          </div>
-          <div class="quote" style="margin-top: 2px">
-            明确不做：泛陪聊、健康评分、无依据的结论。先把「记账 → 洞察」做可信，再扩展陪伴。
+          <p class="eyebrow">05 / 和别的东西比</p>
+          <h2>同样叫「记账」，<br />差别在记完之后。</h2>
+          <table style="margin-top: 2px">
+            <thead>
+              <tr>
+                <th>能力</th>
+                <th>传统记账 App</th>
+                <th>通用 AI 助手</th>
+                <th>银行账单</th>
+                <th>E-diot</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>记一笔的成本</td>
+                <td>8 步表单</td>
+                <td>能聊，但要自己整理</td>
+                <td>自动，但只覆盖银行卡</td>
+                <td>一句话，多笔一起记</td>
+              </tr>
+              <tr>
+                <td>有没有你的账本</td>
+                <td>有</td>
+                <td>没有</td>
+                <td>只有流水</td>
+                <td>有</td>
+              </tr>
+              <tr>
+                <td>预算与提醒</td>
+                <td>有，通常只提醒总超支</td>
+                <td>没有预算概念</td>
+                <td>没有</td>
+                <td>分类预算 + 跨阈值才提醒</td>
+              </tr>
+              <tr>
+                <td>长期记忆</td>
+                <td>基本没有</td>
+                <td>有，但不可查不可删</td>
+                <td>没有</td>
+                <td>每条可查、可改、可删</td>
+              </tr>
+              <tr>
+                <td>开放性</td>
+                <td>封闭</td>
+                <td>封闭</td>
+                <td>封闭</td>
+                <td>MCP 开放，不被单一助手绑定</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="quote" style="margin-top: 4px">
+            一句话：传统 App 只负责「记下来」，通用 AI
+            没有账本；E-diot 把「记 → 算 → 说」连成一条闭环。
           </div>
         </div>
       </section>
 
-      <!-- 06 规划细化：知识库与数字人 -->
+      <!-- 07 为什么是我们 -->
       <section class="slide">
         <div class="inner">
-          <p class="eyebrow">05 / 规划细化 · 知识库与数字人</p>
-          <h2>让回答有出处，<br />让陪伴有形象。</h2>
-          <div class="cards two-col" style="margin-top: 2px">
+          <p class="eyebrow">06 / 为什么是我们</p>
+          <h2>三件小事，<br />决定了体验差别。</h2>
+          <div class="cards">
             <div class="card">
-              <div class="kicker">KNOWLEDGE BASE · P4b</div>
-              <h3 style="margin-top: 4px">知识库：从「查账」到「给方法」</h3>
-              <ol class="mini-steps">
-                <li>语料：理财常识、消费方法、用户自建笔记与目标；不收录医疗诊断内容</li>
-                <li>索引：BGE-M3 dense + sparse，Milvus 0.7 / 0.3 混合检索</li>
-                <li>精排：Reranker 取 Top-N，片段截断 200 字并保留来源</li>
-                <li>接入：Agent tool + MCP knowledge_search，回答附「来源 + 时间」</li>
-              </ol>
-              <div class="goal" style="margin-top: 6px">
-                <b>建议节奏：</b>2 周入库/检索 → 2 周离线评测 → 2 周接入与引用展示。
-              </div>
-              <div class="goal"><b>验收：</b>Top-5 命中率、引用准确率、无出处回答占比。</div>
-            </div>
-            <div class="card">
-              <div class="kicker">DIGITAL HUMAN · 长期</div>
-              <h3 style="margin-top: 4px">数字人：同一人格的四种载体</h3>
-              <ol class="mini-steps">
-                <li>表达：人格 prompt + 策略层（决定是否开口）</li>
-                <li>记忆：偏好 / 目标 / 边界，决定「能说什么」</li>
-                <li>形象：2D avatar + 倾听 / 思考 / 说话状态</li>
-                <li>声音：TTS 音色（先预设，后定制）</li>
-              </ol>
-              <div class="goal" style="margin-top: 6px">
-                <b>路径：</b>先做可见的人格（形象 + 状态），再评估声音定制；不做换皮聊天。
-              </div>
-              <div class="goal"><b>验收：</b>人格一致性、主动消息关闭率、用户授权率。</div>
-            </div>
-          </div>
-          <div class="quote" style="margin-top: 2px">
-            知识库解决「说得对」，数字人解决「愿意听」；两者都建立在可删除的记忆与用户授权上。
-          </div>
-        </div>
-      </section>
-
-      <!-- 07 规划细化：情绪价值与消费建议 -->
-      <section class="slide soft">
-        <div class="inner">
-          <p class="eyebrow">06 / 规划细化 · 情绪价值与消费建议</p>
-          <h2>不只回答「花了多少」，<br />还要回答「然后呢」。</h2>
-          <div class="cards" style="margin-top: 2px">
-            <div class="card">
-              <div class="kicker">L1 · 接住情绪</div>
-              <h3 style="margin-top: 3px">先共情，不诊断</h3>
-              <p>识别「累 / 焦虑 / 开心」等表达，先回应感受；不贴心理标签，不说教。</p>
-            </div>
-            <div class="card">
-              <div class="kicker">L2 · 给出选项</div>
-              <h3 style="margin-top: 3px">2–3 个可执行建议</h3>
-              <p>结合预算与记录，给金额、频率与替代方案，并标注依据；不推荐具体金融产品。</p>
-            </div>
-            <div class="card">
-              <div class="kicker">L3 · 轻量提醒</div>
-              <h3 style="margin-top: 3px">在允许的时间出现</h3>
-              <p>到点一次、可暂停；不制造焦虑，不用「你又超支了」这类指责式表达。</p>
-            </div>
-          </div>
-          <div class="cards" style="margin-top: 2px">
-            <div class="card">
-              <div class="kicker">机制</div>
+              <div class="kicker">01 · 听得懂，但不乱记</div>
+              <h3 style="margin-top: 5px">模型负责理解，规则负责对错</h3>
               <p>
-                情绪/场景标签 → 记忆边界（不喜欢被问什么）→ 建议模板 → 反馈（有帮助 / 不准确 /
-                别提醒）。
+                金额、分类、时间会按规则再校验一遍；听不懂就明确说，不会把「大概 50」记成 500。
               </p>
             </div>
             <div class="card">
-              <div class="kicker">边界</div>
-              <p>不做医疗/心理诊断，不推荐具体理财/信贷产品，不评价身材；主动建议可随时关闭。</p>
+              <div class="kicker">02 · 预算当场算</div>
+              <h3 style="margin-top: 5px">记完就知道还剩多少</h3>
+              <p>只有跨过 50% / 80% / 100% 才提醒；不制造焦虑，也不用天天看数字。</p>
             </div>
             <div class="card">
-              <div class="kicker">指标</div>
-              <p>建议有帮助率、主动消息关闭率、D30 留存、预算达成率。</p>
-            </div>
-          </div>
-          <p class="footnote">
-            分阶段：先做消费建议模板与反馈闭环，再接情绪识别；所有建议必须能回到记录。
-          </p>
-        </div>
-      </section>
-
-      <!-- 08 差异化 -->
-      <section class="slide">
-        <div class="inner">
-          <p class="eyebrow">07 / 差异化</p>
-          <h2>为什么是 E-diot。</h2>
-          <div class="cards" style="margin-top: 4px">
-            <div class="card">
-              <div class="kicker">01 · 成本</div>
-              <h3 style="margin-top: 5px">最低的记账成本</h3>
-              <p>自然语言 + 手动补录双通道，把一笔账从 8 步降到一句话；这是持续使用的前提。</p>
-            </div>
-            <div class="card">
-              <div class="kicker">02 · 闭环</div>
-              <h3 style="margin-top: 5px">记录会反过来产生价值</h3>
-              <p>预算校验、分类统计、行为洞察、长期记忆相互咬合，而不是记完就躺在列表里。</p>
-            </div>
-            <div class="card">
-              <div class="kicker">03 · 信任</div>
-              <h3 style="margin-top: 5px">可控、克制、开放</h3>
-              <p>记忆可查可改可删；到点一次、随时暂停；MCP 开放，不被单一助手绑定。</p>
+              <div class="kicker">03 · 记忆可查可删</div>
+              <h3 style="margin-top: 5px">像对待自己的笔记本</h3>
+              <p>每条记忆都能看到依据、能改、能删；删除后不再参与任何回复。</p>
             </div>
           </div>
           <p class="lead" style="margin-top: 4px">
-            传统记账 App 只记录；通用 AI 没有账本；银行账单没有预算与建议。E-diot 的差异在「记账 →
-            理解 → 克制陪伴」的闭环。
+            技术上是 TypeScript 全栈 + PostgreSQL，模型接口可替换；这些是细节，不影响上面的三条承诺。
           </p>
-          <p class="footnote">壁垒不在模型本身，而在持续积累的个人数据、可控的记忆与用户信任。</p>
+          <p class="footnote">不做的：医疗 / 心理诊断、具体理财推荐、无依据的结论、换皮陪聊。</p>
         </div>
       </section>
 
-      <!-- 07 结论 -->
+      <!-- 08 下一步 -->
+      <section class="slide soft">
+        <div class="inner">
+          <p class="eyebrow">07 / 接下来 90 天</p>
+          <h2>只做三件事，<br />顺序不能反。</h2>
+          <div class="cards">
+            <div class="card phase">
+              <div class="when">0–2 周 · 洞察 v1</div>
+              <h3 style="margin-top: 2px">把数字变成 3 条结论</h3>
+              <p>这个月钱花在哪、哪类在涨、哪几笔偏离平常；每条都能点回原始账单。</p>
+              <div class="goal"><b>验收：</b>每条结论可核对，不出现「凭感觉」的观察。</div>
+            </div>
+            <div class="card phase">
+              <div class="when">2–6 周 · 知识库</div>
+              <h3 style="margin-top: 2px">回答「怎么省」时有出处</h3>
+              <p>把理财常识与消费方法做成可检索的知识库，回答附来源和时间。</p>
+              <div class="goal"><b>验收：</b>Top-5 命中率、引用准确率、无出处回答占比。</div>
+            </div>
+            <div class="card phase">
+              <div class="when">6–12 周 · 虚拟人 MVP</div>
+              <h3 style="margin-top: 2px">先做「看得见的陪伴」</h3>
+              <p>2D 形象 + 中文语音 + 口型同步，三种状态：倾听 / 思考 / 说话。</p>
+              <div class="goal"><b>验收：</b>人格一致、可一键关闭、不干扰记账主流程。</div>
+            </div>
+          </div>
+          <div class="quote" style="margin-top: 2px">
+            先让记录可信，再让陪伴有趣；洞察没做扎实之前，不上虚拟人。
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 虚拟人可行性 -->
+      <section class="slide">
+        <div class="inner">
+          <p class="eyebrow">08 / 虚拟人：可行性</p>
+          <h2>先做「看得见的陪伴」，<br />不急着做「像真人」。</h2>
+          <p class="lead">
+            我们对比了三条常见路线。结论：用 2D 形象 + 语音 + 口型做 MVP，成本最低、两周能看到东西，
+            也最符合「记账工具里的陪伴」而不是「数字人主播」。
+          </p>
+          <table style="margin-top: 2px">
+            <thead>
+              <tr>
+                <th>路线</th>
+                <th>成本</th>
+                <th>看到效果</th>
+                <th>主要风险</th>
+                <th>适合</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2D 形象 + TTS + 口型</td>
+                <td>低（现有电脑即可）</td>
+                <td>2–4 周</td>
+                <td>表情动作有限</td>
+                <td><b>日常陪伴 · 推荐</b></td>
+              </tr>
+              <tr>
+                <td>预渲染视频（HeyGen / D-ID）</td>
+                <td>中（按分钟计费）</td>
+                <td>1–2 周</td>
+                <td>不能实时互动</td>
+                <td>开场介绍 / 宣传片</td>
+              </tr>
+              <tr>
+                <td>实时 3D 数字人</td>
+                <td>高（建模 + 云渲染）</td>
+                <td>2–3 个月</td>
+                <td>延迟、算力、维护</td>
+                <td>发布会 / 大屏</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="quote" style="margin-top: 2px">
+            MVP 范围：一个形象 + 三种状态 + 中文语音 + 口型同步 + 一键关闭；先不做定制形象、情感识别和实时视频。
+          </div>
+          <p class="footnote">
+            详细对比、开源选型与实施清单见 docs/virtual-human-feasibility.md。
+          </p>
+        </div>
+      </section>
+
+      <!-- 10 结论 -->
       <section class="slide dark">
         <div class="inner">
-          <p class="eyebrow">08 / 结论与下一步</p>
-          <h2>定位成立，闭环已通，<br />下一仗是「洞察」。</h2>
+          <p class="eyebrow">09 / 结论</p>
+          <h2>我们想证明一件事：<br />记账可以不是负担。</h2>
+          <p class="lead">
+            如果你只记住一句话：E-diot 把「记一笔」变成一句话，再把这句话变成月底看得懂的答案。
+          </p>
           <div class="cards" style="margin-top: 4px">
             <div class="card">
               <div class="num">01</div>
-              <h3 style="margin-top: 4px">定位</h3>
-              <p>以记账为入口，解决「记不下去」；预算与反馈解决「记了没用」。</p>
+              <h3 style="margin-top: 4px">现在</h3>
+              <p>记账、预算、账单、记忆、人格、主动关怀、MCP 都已经能用。</p>
             </div>
             <div class="card">
               <div class="num">02</div>
-              <h3 style="margin-top: 4px">现状</h3>
-              <p>
-                记账、预算、账单、记忆、人格、站内关怀、MCP 已上线；短板是洞察仍以规则统计为主。
-              </p>
+              <h3 style="margin-top: 4px">接下来</h3>
+              <p>先补洞察，再上知识库，最后评估虚拟人；每一步都有可验收的标准。</p>
             </div>
             <div class="card">
               <div class="num">03</div>
-              <h3 style="margin-top: 4px">下一步</h3>
-              <p>先做洞察与建议模板内测，再上知识库与多维记录，最后评估数字人。</p>
+              <h3 style="margin-top: 4px">想请评委帮我们判断</h3>
+              <p>① 洞察和虚拟人，哪个更值得先投入？② 首批内测用户从哪里找？</p>
             </div>
           </div>
-          <div class="quote" style="margin-top: 4px">
-            需要确认：① 优先级是否按「洞察 → 多维记录 → 知识库/数字人」推进；② 首批内测用户范围。
-          </div>
           <div class="cta-row" style="margin-top: 6px">
-            <a class="cta" href="http://127.0.0.1:8000/m">查看 Demo</a>
+            <a class="cta" href="http://127.0.0.1:8000/m">现场体验 Demo</a>
             <a class="cta ghost" href="https://github.com/Aki0330/e-diot">代码仓库</a>
           </div>
         </div>
