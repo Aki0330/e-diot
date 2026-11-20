@@ -7,16 +7,19 @@
     <style>
       /* === TOKENS === */
       :root {
-        --paper: #f4f1e9;
-        --paper-2: #ece8dd;
-        --ink: #141518;
-        --ink-2: #2b2d32;
-        --muted: #6f7177;
-        --line: rgba(20, 21, 24, 0.14);
-        --lime: #c6f16b;
-        --lime-deep: #9ccf3b;
-        --dark: #101115;
-        --white: #f7f5ef;
+        --paper: #f2eee4;
+        --paper-2: #e7e0d1;
+        --sand: #e9e2d2;
+        --ink: #202325;
+        --ink-2: #34383a;
+        --muted: #6c6f6a;
+        --line: rgba(32, 35, 37, 0.13);
+        --lime: #c9f26b;
+        --lime-deep: #96c53c;
+        --stamp: #bd4b32;
+        --dark: #232823;
+        --dark-2: #1c211e;
+        --white: #f6f3ea;
         --sans: "Noto Sans SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
         --num: "Bahnschrift", "DIN Alternate", "Noto Sans SC", sans-serif;
       }
@@ -54,7 +57,10 @@
         position: absolute;
         inset: 0;
         padding: 76px 120px 64px;
-        background: var(--paper);
+        background:
+          radial-gradient(120% 90% at 88% -10%, rgba(201, 242, 107, 0.1), transparent 55%),
+          radial-gradient(100% 80% at 0% 110%, rgba(189, 75, 50, 0.045), transparent 50%),
+          linear-gradient(180deg, #f6f2e8 0%, #efe9dc 100%);
         color: var(--ink);
         display: flex;
         flex-direction: column;
@@ -73,28 +79,51 @@
         content: "";
         position: absolute;
         inset: 0;
-        background-image: linear-gradient(rgba(20, 21, 24, 0.04) 1px, transparent 1px);
-        background-size: 100% 56px;
-        opacity: 0.55;
         pointer-events: none;
+        opacity: 0.055;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
       }
       .slide > * {
         position: relative;
       }
       .body {
+        position: relative;
+        z-index: 1;
         flex: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
+      .ghost {
+        position: absolute;
+        right: 46px;
+        top: 96px;
+        font-family: var(--num);
+        font-size: 400px;
+        font-weight: 700;
+        line-height: 0.8;
+        letter-spacing: -0.05em;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(32, 35, 37, 0.07);
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+      }
+      .dark .ghost {
+        -webkit-text-stroke-color: rgba(246, 243, 234, 0.09);
+      }
       .slide.dark {
-        background: var(--dark);
+        background:
+          radial-gradient(70% 60% at 82% 12%, rgba(201, 242, 107, 0.14), transparent 60%),
+          radial-gradient(60% 50% at 8% 96%, rgba(189, 75, 50, 0.08), transparent 55%),
+          linear-gradient(155deg, #2b3029 0%, #232823 48%, #1e231f 100%);
         color: var(--white);
       }
       .slide.dark::before {
-        background-image: radial-gradient(circle at 78% 18%, rgba(198, 241, 107, 0.16), transparent 42%),
-          radial-gradient(circle at 12% 92%, rgba(198, 241, 107, 0.07), transparent 40%);
+        opacity: 0.07;
+        mix-blend-mode: screen;
       }
 
       /* === CHROME === */
@@ -232,7 +261,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        filter: saturate(0.92) contrast(1.02);
+        filter: saturate(0.8) brightness(0.86) contrast(1.02);
       }
       .cover-art::after {
         content: "";
@@ -428,12 +457,27 @@
 
       /* === DEMO PHONES === */
       .phones {
+        position: relative;
         flex: 1;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 54px;
         align-items: center;
         margin-top: 10px;
+      }
+      .phones::before {
+        content: "";
+        position: absolute;
+        inset: 6% 4% 10%;
+        background: radial-gradient(60% 60% at 50% 40%, rgba(201, 242, 107, 0.18), transparent 70%),
+          radial-gradient(50% 50% at 80% 70%, rgba(189, 75, 50, 0.06), transparent 70%);
+        filter: blur(52px);
+        z-index: 0;
+      }
+      .phones figure,
+      .phones figcaption {
+        position: relative;
+        z-index: 1;
       }
       .phones figure {
         margin: 0;
@@ -451,7 +495,7 @@
       }
       .phones figcaption {
         font-size: 21px;
-        color: rgba(247, 245, 239, 0.72);
+        color: var(--muted);
       }
 
       /* === COMPARE TABLE === */
@@ -564,8 +608,12 @@
         padding: 90px 120px 64px;
       }
       .ending h2 {
-        margin-top: 60px;
-        font-size: 84px;
+        margin-top: 54px;
+        font-size: 82px;
+        font-family: "SimSun", "Noto Serif SC", serif;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1.28;
       }
       .ending .lead {
         max-width: 980px;
@@ -794,7 +842,7 @@
       </section>
 
       <!-- 04 现场演示 -->
-      <section class="slide dark">
+      <section class="slide">
         <div class="top">
           <span><b>03</b> · 现在能用</span>
           <span>截图来自当前版本</span>
@@ -1002,6 +1050,16 @@
           if (child !== top && child !== foot) body.appendChild(child);
         });
         slide.insertBefore(body, foot);
+      });
+
+      // Oversized outline numbers as a quiet backdrop on text-only pages.
+      slides.forEach((slide, i) => {
+        if (![2, 4, 5, 6].includes(i)) return;
+        const ghost = document.createElement("div");
+        ghost.className = "ghost";
+        ghost.setAttribute("aria-hidden", "true");
+        ghost.textContent = String(i + 1).padStart(2, "0");
+        slide.appendChild(ghost);
       });
 
       // page dots
