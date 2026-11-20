@@ -7,21 +7,21 @@
     <style>
       /* === TOKENS === */
       :root {
-        --paper: #f2eee4;
-        --paper-2: #e7e0d1;
-        --sand: #e9e2d2;
-        --ink: #202325;
-        --ink-2: #34383a;
-        --muted: #6c6f6a;
-        --line: rgba(32, 35, 37, 0.13);
+        --paper: #f4f0e6;
+        --paper-2: #ece6d8;
+        --sand: #e6dfcf;
+        --ink: #1e2223;
+        --ink-2: #3a3e3d;
+        --muted: #6c6f69;
+        --line: rgba(30, 34, 35, 0.14);
         --lime: #c9f26b;
         --lime-deep: #96c53c;
-        --stamp: #bd4b32;
-        --dark: #232823;
-        --dark-2: #1c211e;
-        --white: #f6f3ea;
+        --clay: #b6503a;
+        --deep: #2a302a;
+        --white: #f7f4ea;
         --sans: "Noto Sans SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
         --num: "Bahnschrift", "DIN Alternate", "Noto Sans SC", sans-serif;
+        --serif: "SimSun", "Noto Serif SC", serif;
       }
 
       * {
@@ -31,7 +31,7 @@
       body {
         margin: 0;
         height: 100%;
-        background: #0b0c0e;
+        background: #141716;
         overflow: hidden;
       }
 
@@ -49,18 +49,17 @@
         transform-origin: center center;
         background: var(--paper);
         overflow: hidden;
-        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55);
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.5);
       }
 
-      /* === SLIDES === */
+      /* === SLIDE BASE === */
       .slide {
         position: absolute;
         inset: 0;
-        padding: 76px 120px 64px;
+        padding: 60px 120px 48px;
         background:
-          radial-gradient(120% 90% at 88% -10%, rgba(201, 242, 107, 0.1), transparent 55%),
-          radial-gradient(100% 80% at 0% 110%, rgba(189, 75, 50, 0.045), transparent 50%),
-          linear-gradient(180deg, #f6f2e8 0%, #efe9dc 100%);
+          radial-gradient(90% 70% at 92% -10%, rgba(201, 242, 107, 0.1), transparent 60%),
+          linear-gradient(180deg, #f7f3e9 0%, #efe9db 100%);
         color: var(--ink);
         display: flex;
         flex-direction: column;
@@ -75,18 +74,53 @@
         pointer-events: auto;
         z-index: 2;
       }
-      .slide::before {
+      .slide::after {
         content: "";
         position: absolute;
         inset: 0;
         pointer-events: none;
-        opacity: 0.055;
+        opacity: 0.045;
         mix-blend-mode: multiply;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
       }
-      .slide > * {
+
+      /* === CHROME === */
+      .top {
         position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        font-family: var(--num);
+        font-size: 20px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 14px;
       }
+      .top b {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .foot {
+        position: relative;
+        z-index: 2;
+        margin-top: auto;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        font-family: var(--num);
+        font-size: 20px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .foot .pageno {
+        color: var(--ink);
+      }
+
       .body {
         position: relative;
         z-index: 1;
@@ -96,94 +130,6 @@
         flex-direction: column;
         justify-content: center;
       }
-      .ghost {
-        position: absolute;
-        right: 46px;
-        top: 96px;
-        font-family: var(--num);
-        font-size: 400px;
-        font-weight: 700;
-        line-height: 0.8;
-        letter-spacing: -0.05em;
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(32, 35, 37, 0.07);
-        pointer-events: none;
-        user-select: none;
-        z-index: 0;
-      }
-      .dark .ghost {
-        -webkit-text-stroke-color: rgba(246, 243, 234, 0.09);
-      }
-      .slide.dark {
-        background:
-          radial-gradient(70% 60% at 82% 12%, rgba(201, 242, 107, 0.14), transparent 60%),
-          radial-gradient(60% 50% at 8% 96%, rgba(189, 75, 50, 0.08), transparent 55%),
-          linear-gradient(155deg, #2b3029 0%, #232823 48%, #1e231f 100%);
-        color: var(--white);
-      }
-      .slide.dark::before {
-        opacity: 0.07;
-        mix-blend-mode: screen;
-      }
-
-      /* === CHROME === */
-      .top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-family: var(--num);
-        font-size: 18px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--muted);
-        border-bottom: 1px solid var(--line);
-        padding-bottom: 18px;
-      }
-      .dark .top {
-        color: rgba(247, 245, 239, 0.55);
-        border-color: rgba(247, 245, 239, 0.16);
-      }
-      .top b {
-        font-weight: 600;
-        color: var(--ink);
-      }
-      .dark .top b {
-        color: var(--white);
-      }
-      .foot {
-        margin-top: auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        font-family: var(--num);
-        font-size: 17px;
-        letter-spacing: 0.12em;
-        color: var(--muted);
-        border-top: 1px solid var(--line);
-        padding-top: 16px;
-      }
-      .dark .foot {
-        color: rgba(247, 245, 239, 0.5);
-        border-color: rgba(247, 245, 239, 0.16);
-      }
-      .foot .dots {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-      }
-      .foot .dots i {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: currentColor;
-        opacity: 0.25;
-        transition: opacity 0.2s, transform 0.2s;
-      }
-      .foot .dots i.on {
-        opacity: 1;
-        transform: scale(1.35);
-        background: var(--lime-deep);
-      }
 
       h1,
       h2,
@@ -192,330 +138,256 @@
         margin: 0;
       }
       h1 {
-        font-size: 104px;
-        line-height: 1.04;
+        font-size: 88px;
+        line-height: 1.06;
         letter-spacing: -0.035em;
         font-weight: 900;
       }
-      h1 em {
-        font-style: normal;
-        color: var(--lime);
-        border-bottom: 12px solid var(--lime);
-        padding-bottom: 2px;
-      }
       h2 {
-        font-size: 66px;
+        font-size: 72px;
         line-height: 1.12;
         letter-spacing: -0.03em;
         font-weight: 900;
-        margin-top: 42px;
       }
       .lead {
-        margin-top: 26px;
-        font-size: 29px;
-        line-height: 1.62;
+        font-size: 32px;
+        line-height: 1.55;
         color: var(--ink-2);
-        max-width: 1180px;
       }
-      .dark .lead {
-        color: rgba(247, 245, 239, 0.72);
-      }
-      .small {
-        font-size: 20px;
-        line-height: 1.6;
+      .note {
+        font-size: 22px;
+        line-height: 1.55;
         color: var(--muted);
       }
-      .dark .small {
-        color: rgba(247, 245, 239, 0.55);
+      .accent {
+        color: var(--lime-deep);
       }
 
       /* === COVER === */
       .cover {
-        padding: 90px 120px 64px;
+        padding: 0;
+        display: block;
+        background: var(--paper);
       }
-      .cover-body {
-        flex: 1;
-        position: relative;
-        display: flex;
-        align-items: center;
-      }
-      .cover-copy {
-        position: relative;
-        z-index: 2;
-        max-width: 980px;
-      }
-      .cover-art {
+      .cover .photo {
         position: absolute;
-        right: -120px;
-        top: 34px;
-        bottom: 34px;
+        top: 0;
+        right: 0;
         width: 44%;
-        border-radius: 28px 0 0 28px;
-        border-left: 1px solid rgba(198, 241, 107, 0.35);
-        overflow: hidden;
-        background: #1b2118;
-      }
-      .cover-art > img.bg {
-        position: absolute;
-        inset: 0;
-        width: 100%;
         height: 100%;
         object-fit: cover;
-        filter: saturate(0.8) brightness(0.86) contrast(1.02);
       }
-      .cover-art::after {
-        content: "";
+      .cover .photo-caption {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, rgba(16, 17, 21, 0.82), transparent 42%),
-          linear-gradient(0deg, rgba(16, 17, 21, 0.4), transparent 42%);
+        right: 28px;
+        bottom: 24px;
+        z-index: 3;
+        font-size: 20px;
+        letter-spacing: 0.04em;
+        color: rgba(255, 255, 255, 0.82);
       }
-      .cover-art .phone-shot {
-        position: absolute;
-        right: 66px;
-        bottom: 34px;
-        height: 615px;
-        width: auto;
-        border-radius: 26px;
-        border: 6px solid #2a2c31;
-        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+      .cover .copy {
+        position: relative;
         z-index: 2;
-      }
-      .brandrow {
-        font-family: var(--num);
-        font-size: 19px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: rgba(247, 245, 239, 0.55);
+        width: 52%;
+        height: 100%;
+        padding: 60px 0 48px 120px;
         display: flex;
-        gap: 18px;
-        align-items: center;
+        flex-direction: column;
       }
-      .brandrow b {
-        color: var(--lime);
-        font-weight: 600;
+      .cover .copy .top {
+        border-bottom-color: var(--line);
       }
       .cover h1 {
         margin-top: 34px;
-        font-size: 112px;
+        max-width: 760px;
+      }
+      .cover h1 .lime {
+        color: var(--lime-deep);
       }
       .cover .lead {
-        color: rgba(247, 245, 239, 0.72);
-        max-width: 840px;
+        margin-top: 26px;
+        max-width: 700px;
       }
-      .cover-meta {
-        margin-top: 44px;
-        display: flex;
-        gap: 14px;
-        flex-wrap: wrap;
+      .cover .meta {
+        margin-top: 34px;
         font-family: var(--num);
-        font-size: 17px;
-        letter-spacing: 0.08em;
-        color: rgba(247, 245, 239, 0.68);
+        font-size: 22px;
+        letter-spacing: 0.05em;
+        color: var(--muted);
       }
-      .cover-meta span {
-        border: 1px solid rgba(247, 245, 239, 0.22);
-        border-radius: 999px;
-        padding: 9px 16px;
-      }
-      .cover-meta span.hot {
-        background: var(--lime);
-        border-color: var(--lime);
+      .cover .meta b {
         color: var(--ink);
         font-weight: 600;
       }
-      .cover-phone {
-        display: flex;
-        justify-content: center;
+
+      /* === SPLIT (text + full-bleed photo) === */
+      .split {
+        display: grid;
+        grid-template-columns: 1.12fr 0.88fr;
+        flex: 1;
+        min-height: 0;
       }
-      .cover-phone img {
-        height: 740px;
-        width: auto;
-        border-radius: 30px;
-        border: 7px solid #2a2c31;
-        box-shadow: 0 50px 110px rgba(0, 0, 0, 0.55);
+      .split .text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-right: 68px;
+      }
+      .split .media {
+        position: relative;
+        margin-right: -120px;
+        overflow: hidden;
+      }
+      .split .media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .split .media img.crop-pay {
+        object-position: 50% 82%;
+      }
+      .split .media figcaption {
+        position: absolute;
+        left: 24px;
+        bottom: 22px;
+        right: 24px;
+        font-size: 20px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.85);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+      }
+      .split.reverse {
+        grid-template-columns: 0.88fr 1.12fr;
+      }
+      .split.reverse .media {
+        margin-right: 0;
+        margin-left: -120px;
+      }
+      .split.reverse .text {
+        padding-right: 0;
+        padding-left: 68px;
       }
 
-      /* === PROBLEM SCENES === */
+      /* === SCENES === */
       .scenes {
-        margin-top: 38px;
+        margin-top: 30px;
         border-top: 1px solid var(--line);
       }
       .scene {
         display: grid;
-        grid-template-columns: 190px 1fr;
-        gap: 34px;
+        grid-template-columns: 132px 1fr;
+        gap: 28px;
         align-items: baseline;
-        padding: 30px 0;
+        padding: 26px 0;
         border-bottom: 1px solid var(--line);
       }
       .scene .time {
         font-family: var(--num);
-        font-size: 21px;
+        font-size: 22px;
         letter-spacing: 0.08em;
         color: var(--muted);
       }
       .scene p {
-        font-size: 29px;
+        font-size: 28px;
         line-height: 1.5;
       }
       .scene p b {
         font-weight: 700;
-      }
-      .afterline {
-        margin-top: 34px;
-        font-size: 26px;
-        color: var(--ink-2);
-      }
-      .afterline b {
-        background: linear-gradient(transparent 62%, var(--lime) 62%);
-      }
-      .problem-grid {
-        display: grid;
-        grid-template-columns: 1.2fr 0.8fr;
-        gap: 52px;
-        align-items: center;
-        margin-top: 30px;
-      }
-      .problem-grid .scenes {
-        margin-top: 0;
-      }
-      .photo-card {
-        margin: 0;
-      }
-      .photo-card img {
-        width: 100%;
-        height: 520px;
-        object-fit: cover;
-        border-radius: 20px;
-        filter: saturate(0.72) sepia(0.12) contrast(1.02);
-      }
-      .photo-card figcaption {
-        margin-top: 12px;
-        font-family: var(--num);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        color: var(--muted);
       }
 
       /* === FLOW === */
       .flow {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 18px;
-        margin-top: 40px;
-      }
-      .step {
-        border-top: 3px solid var(--ink);
-        padding-top: 22px;
-        position: relative;
+        gap: 32px;
+        margin-top: 34px;
+        border-top: 1px solid var(--ink);
+        padding-top: 24px;
       }
       .step .n {
         font-family: var(--num);
-        font-size: 20px;
-        color: var(--muted);
-        letter-spacing: 0.1em;
+        font-size: 64px;
+        line-height: 1;
+        color: var(--lime-deep);
       }
       .step h3 {
-        margin-top: 12px;
-        font-size: 30px;
+        margin-top: 16px;
+        font-size: 32px;
         font-weight: 800;
       }
       .step p {
-        margin-top: 12px;
-        font-size: 21px;
-        line-height: 1.6;
+        margin-top: 10px;
+        font-size: 24px;
+        line-height: 1.55;
         color: var(--muted);
       }
       .example {
-        margin-top: 44px;
+        margin-top: 36px;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.42);
-      }
-      .example > div {
-        padding: 26px 30px;
-      }
-      .example > div + div {
-        border-left: 1px solid var(--line);
+        gap: 48px;
+        border-top: 1px solid var(--line);
+        padding-top: 24px;
       }
       .example .label {
         font-family: var(--num);
-        font-size: 17px;
+        font-size: 20px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--muted);
       }
       .example p {
-        margin-top: 12px;
-        font-size: 27px;
-        line-height: 1.5;
+        margin-top: 10px;
+        font-size: 34px;
+        line-height: 1.45;
       }
 
-      /* === DEMO PHONES === */
+      /* === DEMO === */
       .phones {
-        position: relative;
-        flex: 1;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 54px;
-        align-items: center;
-        margin-top: 10px;
-      }
-      .phones::before {
-        content: "";
-        position: absolute;
-        inset: 6% 4% 10%;
-        background: radial-gradient(60% 60% at 50% 40%, rgba(201, 242, 107, 0.18), transparent 70%),
-          radial-gradient(50% 50% at 80% 70%, rgba(189, 75, 50, 0.06), transparent 70%);
-        filter: blur(52px);
-        z-index: 0;
-      }
-      .phones figure,
-      .phones figcaption {
-        position: relative;
-        z-index: 1;
+        gap: 48px;
+        align-items: end;
+        margin-top: 26px;
       }
       .phones figure {
         margin: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
       }
       .phones img {
-        height: 620px;
-        width: auto;
-        border-radius: 26px;
-        border: 6px solid #2a2c31;
-        box-shadow: 0 34px 80px rgba(0, 0, 0, 0.45);
+        display: block;
+        width: 100%;
+        height: 590px;
+        object-fit: contain;
+        object-position: bottom;
+        filter: drop-shadow(0 28px 40px rgba(30, 34, 35, 0.18));
       }
       .phones figcaption {
-        font-size: 21px;
+        margin-top: 14px;
+        font-size: 22px;
         color: var(--muted);
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
       }
 
-      /* === COMPARE TABLE === */
+      /* === TABLE === */
       table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 34px;
-        font-size: 22px;
-        line-height: 1.45;
+        margin-top: 30px;
+        font-size: 24px;
+        line-height: 1.4;
       }
       th,
       td {
         text-align: left;
-        padding: 18px 16px;
+        padding: 20px 18px;
         border-bottom: 1px solid var(--line);
         vertical-align: middle;
       }
       th {
         font-family: var(--num);
-        font-size: 17px;
+        font-size: 20px;
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--muted);
@@ -523,9 +395,9 @@
         border-bottom: 1px solid var(--ink);
       }
       td:first-child {
-        font-weight: 700;
         color: var(--ink);
-        width: 210px;
+        font-weight: 700;
+        width: 200px;
       }
       td {
         color: var(--ink-2);
@@ -533,100 +405,142 @@
       td.us {
         color: var(--ink);
         font-weight: 700;
-        background: rgba(198, 241, 107, 0.22);
+        border-left: 3px solid var(--lime-deep);
       }
 
-      /* === TRUST POINTS === */
+      /* === POINTS === */
       .points {
-        margin-top: 34px;
-        border-top: 1px solid var(--line);
+        margin-top: 28px;
+        border-top: 1px solid var(--ink);
       }
       .point {
         display: grid;
-        grid-template-columns: 110px 1fr;
-        gap: 30px;
-        padding: 30px 0;
-        border-bottom: 1px solid var(--line);
+        grid-template-columns: 120px 1fr;
+        gap: 28px;
         align-items: baseline;
+        padding: 34px 0;
+        border-bottom: 1px solid var(--line);
       }
       .point .n {
         font-family: var(--num);
-        font-size: 44px;
-        color: var(--lime-deep);
+        font-size: 60px;
         line-height: 1;
+        color: var(--lime-deep);
       }
       .point h3 {
-        font-size: 30px;
+        font-size: 36px;
         font-weight: 800;
       }
       .point p {
-        margin-top: 8px;
-        font-size: 22px;
-        color: var(--muted);
+        margin-top: 10px;
+        font-size: 26px;
         line-height: 1.55;
+        color: var(--muted);
       }
 
-      /* === TIMELINE === */
-      .timeline {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 26px;
-        margin-top: 40px;
+      /* === PLAN === */
+      .plan {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       .phase {
-        border-top: 3px solid var(--ink);
-        padding-top: 22px;
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        gap: 24px;
+        padding: 26px 0;
+        border-top: 1px solid var(--line);
+      }
+      .phase:last-child {
+        border-bottom: 1px solid var(--line);
       }
       .phase .when {
         font-family: var(--num);
-        font-size: 18px;
-        letter-spacing: 0.12em;
+        font-size: 22px;
+        letter-spacing: 0.08em;
         color: var(--muted);
-        text-transform: uppercase;
+        padding-top: 6px;
       }
       .phase h3 {
-        margin-top: 14px;
-        font-size: 30px;
+        font-size: 34px;
         font-weight: 800;
       }
       .phase p {
-        margin-top: 12px;
-        font-size: 21px;
-        line-height: 1.6;
+        margin-top: 8px;
+        font-size: 24px;
+        line-height: 1.55;
         color: var(--ink-2);
       }
       .phase .ok {
-        margin-top: 16px;
-        font-size: 18px;
+        margin-top: 10px;
+        font-size: 20px;
         color: var(--muted);
-        border-left: 3px solid var(--lime-deep);
-        padding-left: 10px;
       }
 
-      /* === ENDING === */
-      .ending {
-        padding: 90px 120px 64px;
+      /* === CLOSING === */
+      .closing {
+        padding: 0;
+        display: block;
+        background: var(--deep);
       }
-      .ending h2 {
-        margin-top: 54px;
-        font-size: 82px;
-        font-family: "SimSun", "Noto Serif SC", serif;
-        font-weight: 400;
-        letter-spacing: 0.01em;
-        line-height: 1.28;
+      .closing .bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
-      .ending .lead {
-        max-width: 980px;
+      .closing .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(20, 24, 20, 0.9) 0%, rgba(20, 24, 20, 0.62) 46%, rgba(20, 24, 20, 0.15) 100%),
+          linear-gradient(0deg, rgba(20, 24, 20, 0.55), transparent 45%);
       }
-      .cta-row {
-        margin-top: 46px;
+      .closing .copy {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        padding: 60px 120px 48px;
         display: flex;
-        gap: 14px;
+        flex-direction: column;
+        color: var(--white);
+      }
+      .closing .top {
+        color: rgba(247, 244, 234, 0.6);
+        border-bottom-color: rgba(247, 244, 234, 0.18);
+      }
+      .closing .top b {
+        color: var(--white);
+      }
+      .closing .foot {
+        color: rgba(247, 244, 234, 0.55);
+        border-top-color: rgba(247, 244, 234, 0.18);
+      }
+      .closing .foot .pageno {
+        color: var(--white);
+      }
+      .closing h2 {
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: 78px;
+        line-height: 1.3;
+        margin-top: 100px;
+        max-width: 920px;
+        letter-spacing: 0.01em;
+      }
+      .closing .lead {
+        margin-top: 24px;
+        max-width: 820px;
+        color: rgba(247, 244, 234, 0.78);
+      }
+      .closing .cta-row {
+        margin-top: 42px;
+        display: flex;
+        gap: 16px;
       }
       .cta {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
         padding: 16px 30px;
         border-radius: 999px;
         background: var(--lime);
@@ -637,49 +551,35 @@
       }
       .cta.ghost {
         background: transparent;
-        border: 1px solid rgba(247, 245, 239, 0.28);
+        border: 1px solid rgba(247, 244, 234, 0.3);
         color: var(--white);
         font-weight: 500;
       }
-      .team {
+      .closing .team {
         margin-top: 40px;
         font-family: var(--num);
-        font-size: 18px;
-        letter-spacing: 0.06em;
-        color: rgba(247, 245, 239, 0.55);
-      }
-      .mark {
-        position: absolute;
-        right: -30px;
-        bottom: 110px;
-        font-family: var(--num);
-        font-size: 300px;
-        font-weight: 700;
-        line-height: 0.8;
-        letter-spacing: -0.05em;
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(198, 241, 107, 0.2);
-        pointer-events: none;
-        user-select: none;
+        font-size: 20px;
+        letter-spacing: 0.05em;
+        color: rgba(247, 244, 234, 0.55);
       }
 
       /* === MOTION === */
       .slide.active .anim {
-        animation: rise 0.6s cubic-bezier(0.22, 0.9, 0.24, 1) both;
+        animation: rise 0.55s cubic-bezier(0.22, 0.9, 0.24, 1) both;
       }
       .slide.active .anim:nth-child(2) {
-        animation-delay: 0.06s;
+        animation-delay: 0.05s;
       }
       .slide.active .anim:nth-child(3) {
-        animation-delay: 0.12s;
+        animation-delay: 0.1s;
       }
       .slide.active .anim:nth-child(4) {
-        animation-delay: 0.18s;
+        animation-delay: 0.15s;
       }
       @keyframes rise {
         from {
           opacity: 0;
-          transform: translateY(18px);
+          transform: translateY(14px);
         }
         to {
           opacity: 1;
@@ -695,26 +595,11 @@
         }
       }
 
-      /* === HUD (outside stage) === */
-      .hud {
-        position: fixed;
-        right: 20px;
-        bottom: 16px;
-        font-family: var(--num);
-        font-size: 13px;
-        letter-spacing: 0.12em;
-        color: rgba(255, 255, 255, 0.5);
-        z-index: 10;
-        user-select: none;
-      }
-      .hud b {
-        color: var(--lime);
-      }
       .progress {
         position: fixed;
         top: 0;
         left: 0;
-        height: 3px;
+        height: 2px;
         background: var(--lime);
         width: 0;
         z-index: 10;
@@ -728,33 +613,27 @@
 
     <template id="deck">
       <!-- 01 封面 -->
-      <section class="slide dark cover">
-        <div class="top">
-          <span><b>E-DIOT</b> · 智账</span>
-          <span>2026.11 · 产品汇报</span>
-        </div>
-        <div class="cover-body">
-          <div class="cover-copy">
-            <div class="brandrow anim">记录你的日常 <b>/</b> 说人话记账</div>
-            <h1 class="anim">记一笔账，<br /><em>一句话</em>就够了。</h1>
+      <section class="slide cover">
+        <img class="photo" src="/showcase/p-6612717.jpg" alt="在咖啡馆用手机付款" />
+        <div class="photo-caption">一杯咖啡，一笔账</div>
+        <div class="copy">
+          <div class="top">
+            <span><b>E-DIOT</b> · 智账</span>
+            <span>2026.11</span>
+          </div>
+          <div class="body">
+            <h1 class="anim">记一笔账，<br /><span class="lime">一句话</span>就够了。</h1>
             <p class="lead anim">
               说「午饭 38，打车 26」，两笔账一起记好。月底它会告诉你，钱花在哪。
             </p>
-            <div class="cover-meta anim">
-              <span class="hot">现场体验 127.0.0.1:8000</span>
-              <span>6 个页面</span>
-              <span>188 个测试</span>
-            </div>
+            <p class="meta anim">
+              现场体验 <b>127.0.0.1:8000</b>　·　6 个页面　·　188 个测试
+            </p>
           </div>
-          <div class="cover-art anim">
-            <img class="bg" src="/showcase/photo-calc.jpg" alt="" />
-            <img class="phone-shot" src="/showcase/m-chat.png" alt="一句话记两笔账" />
+          <div class="foot">
+            <span>E-DIOT 智账</span>
+            <span class="pageno">01 / 08</span>
           </div>
-        </div>
-        <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>01</span>
         </div>
       </section>
 
@@ -764,9 +643,9 @@
           <span><b>01</b> · 问题</span>
           <span>为什么记不下去</span>
         </div>
-        <h2 class="anim">我们问了一圈，<br />坚持记账的人比想象中少。</h2>
-        <div class="problem-grid">
-          <div>
+        <div class="split">
+          <div class="text">
+            <h2 class="anim">记账这件事，<br />难在坚持。</h2>
             <div class="scenes">
               <div class="scene anim">
                 <span class="time">22:41</span>
@@ -781,17 +660,15 @@
                 <p>唯一一次提醒，是弹窗说<b>「我又超了」</b>。</p>
               </div>
             </div>
-            <p class="afterline anim">太麻烦、没用、烦。三件事，我们一次解决一个。</p>
           </div>
-          <figure class="photo-card anim">
-            <img src="/showcase/photo-life.jpg" alt="桌面上摊开的账单、计算器和电脑" />
-            <figcaption>整理账单，通常发生在晚上</figcaption>
+          <figure class="media">
+            <img class="crop-pay" src="/showcase/p-5239870.jpg" alt="收银台前递出的小票" />
+            <figcaption>每一笔都付过，但很少被记下来。</figcaption>
           </figure>
         </div>
         <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>02</span>
+          <span>E-DIOT 智账</span>
+          <span class="pageno">02 / 08</span>
         </div>
       </section>
 
@@ -801,43 +678,44 @@
           <span><b>02</b> · 怎么做</span>
           <span>一条账的旅程</span>
         </div>
-        <h2 class="anim">一句话进来，<br />四步之后变成月底能看的东西。</h2>
-        <div class="flow">
-          <div class="step anim">
-            <div class="n">01 听懂</div>
-            <h3>拆成两笔</h3>
-            <p>「午饭 38，打车 26」一次拆成两笔。</p>
+        <div class="body">
+          <h2 class="anim">一句话进来，<br />四步之后变成账。</h2>
+          <div class="flow">
+            <div class="step anim">
+              <div class="n">01</div>
+              <h3>听懂</h3>
+              <p>「午饭 38，打车 26」拆成两笔。</p>
+            </div>
+            <div class="step anim">
+              <div class="n">02</div>
+              <h3>拆账</h3>
+              <p>说不清的地方，会再问一句。</p>
+            </div>
+            <div class="step anim">
+              <div class="n">03</div>
+              <h3>对预算</h3>
+              <p>这个月还剩多少，记完就知道。</p>
+            </div>
+            <div class="step anim">
+              <div class="n">04</div>
+              <h3>给结论</h3>
+              <p>三条结论，每条都能点回账单。</p>
+            </div>
           </div>
-          <div class="step anim">
-            <div class="n">02 拆账</div>
-            <h3>记进账本</h3>
-            <p>该记的记下；说不清的地方，会再问一句。</p>
-          </div>
-          <div class="step anim">
-            <div class="n">03 对预算</div>
-            <h3>当场算</h3>
-            <p>这个月还剩多少，记完就知道。</p>
-          </div>
-          <div class="step anim">
-            <div class="n">04 给结论</div>
-            <h3>月底说人话</h3>
-            <p>给三条结论，每条都能点回账单。</p>
-          </div>
-        </div>
-        <div class="example anim">
-          <div>
-            <div class="label">你说</div>
-            <p>今天午饭花了 38，下午打车 26</p>
-          </div>
-          <div>
-            <div class="label">系统记</div>
-            <p>餐饮 38 · 交通 26，两笔一次记好</p>
+          <div class="example anim">
+            <div>
+              <div class="label">你说</div>
+              <p>今天午饭花了 38，下午打车 26</p>
+            </div>
+            <div>
+              <div class="label">系统记</div>
+              <p>餐饮 38 · 交通 26，两笔一次记好</p>
+            </div>
           </div>
         </div>
         <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>03</span>
+          <span>E-DIOT 智账</span>
+          <span class="pageno">03 / 08</span>
         </div>
       </section>
 
@@ -847,25 +725,26 @@
           <span><b>03</b> · 现在能用</span>
           <span>截图来自当前版本</span>
         </div>
-        <h2 class="anim">这些不是设计稿，<br />是今天打开的版本。</h2>
-        <div class="phones">
-          <figure class="anim">
-            <img src="/showcase/m-chat.png" alt="对话记账" />
-            <figcaption>说一句，两笔一起记好</figcaption>
-          </figure>
-          <figure class="anim">
-            <img src="/showcase/m-dashboard.png" alt="本月总览" />
-            <figcaption>这个月花了多少，还剩多少</figcaption>
-          </figure>
-          <figure class="anim">
-            <img src="/showcase/m-bills.png" alt="账单流水" />
-            <figcaption>每一笔都能查、能改</figcaption>
-          </figure>
+        <div class="body">
+          <h2 class="anim">不是设计稿，<br />是今天打开的版本。</h2>
+          <div class="phones">
+            <figure class="anim">
+              <img src="/showcase/m-chat.png" alt="对话记账" />
+              <figcaption>说一句，两笔一起记好</figcaption>
+            </figure>
+            <figure class="anim">
+              <img src="/showcase/m-dashboard.png" alt="本月总览" />
+              <figcaption>这个月花了多少，还剩多少</figcaption>
+            </figure>
+            <figure class="anim">
+              <img src="/showcase/m-bills.png" alt="账单流水" />
+              <figcaption>每一笔都能查、能改</figcaption>
+            </figure>
+          </div>
         </div>
         <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>04</span>
+          <span>E-DIOT 智账</span>
+          <span class="pageno">04 / 08</span>
         </div>
       </section>
 
@@ -875,59 +754,63 @@
           <span><b>04</b> · 和谁比</span>
           <span>记完之后</span>
         </div>
-        <h2 class="anim">都是记账，<br />差别在记完之后。</h2>
-        <table class="anim">
-          <thead>
-            <tr>
-              <th></th>
-              <th>传统记账 App</th>
-              <th>通用 AI 助手</th>
-              <th>银行账单</th>
-              <th>E-diot</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>记一笔</td>
-              <td>8 步表单</td>
-              <td>要自己整理</td>
-              <td>自动，但只有银行卡</td>
-              <td class="us">一句话，多笔一起记</td>
-            </tr>
-            <tr>
-              <td>预算</td>
-              <td>通常只管总数</td>
-              <td>没有</td>
-              <td>没有</td>
-              <td class="us">分类预算，超了才提醒</td>
-            </tr>
-            <tr>
-              <td>改错账</td>
-              <td>能</td>
-              <td>在聊天记录里翻</td>
-              <td>不能</td>
-              <td class="us">每笔都能改、能删</td>
-            </tr>
-            <tr>
-              <td>数据在哪</td>
-              <td>各家 App 里</td>
-              <td>对话里</td>
-              <td>银行</td>
-              <td class="us">自己的库，能导出</td>
-            </tr>
-            <tr>
-              <td>换工具</td>
-              <td>迁移麻烦</td>
-              <td>没有账本</td>
-              <td>绑卡</td>
-              <td class="us">开放接口</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="body">
+          <h2 class="anim">都是记账，<br />差别在记完之后。</h2>
+          <table class="anim">
+            <thead>
+              <tr>
+                <th></th>
+                <th>传统记账 App</th>
+                <th>通用 AI 助手</th>
+                <th>银行账单</th>
+                <th>E-diot</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>记一笔</td>
+                <td>8 步表单</td>
+                <td>要自己整理</td>
+                <td>自动，但只有银行卡</td>
+                <td class="us">一句话，多笔一起记</td>
+              </tr>
+              <tr>
+                <td>预算</td>
+                <td>通常只管总数</td>
+                <td>没有</td>
+                <td>没有</td>
+                <td class="us">分类预算，超了才提醒</td>
+              </tr>
+              <tr>
+                <td>改错账</td>
+                <td>能</td>
+                <td>在聊天记录里翻</td>
+                <td>不能</td>
+                <td class="us">每笔都能改、能删</td>
+              </tr>
+              <tr>
+                <td>数据在哪</td>
+                <td>各家 App 里</td>
+                <td>对话里</td>
+                <td>银行</td>
+                <td class="us">自己的库，能导出</td>
+              </tr>
+              <tr>
+                <td>换工具</td>
+                <td>迁移麻烦</td>
+                <td>没有账本</td>
+                <td>绑卡</td>
+                <td class="us">开放接口</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="note anim" style="margin-top: 28px">
+            别人记完就结束了；E-diot 记完才开始算。
+          </p>
+        </div>
         <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>05</span>
+          <span>E-DIOT 智账</span>
+          <span class="pageno">05 / 08</span>
         </div>
       </section>
 
@@ -937,37 +820,38 @@
           <span><b>05</b> · 怎么保证不乱记</span>
           <span>信任</span>
         </div>
-        <h2 class="anim">让 AI 记账，<br />最怕它记错。</h2>
-        <div class="points">
-          <div class="point anim">
-            <div class="n">01</div>
-            <div>
-              <h3>金额和分类有规则校验</h3>
-              <p>听不懂会直接问，不会猜一个数记进去。</p>
+        <div class="body">
+          <h2 class="anim">让 AI 记账，<br />最怕它记错。</h2>
+          <div class="points">
+            <div class="point anim">
+              <div class="n">01</div>
+              <div>
+                <h3>金额和分类有规则校验</h3>
+                <p>听不懂会直接问，不会猜一个数记进去。</p>
+              </div>
+            </div>
+            <div class="point anim">
+              <div class="n">02</div>
+              <div>
+                <h3>每一笔都能改、能删</h3>
+                <p>改完统计跟着变，不用找客服。</p>
+              </div>
+            </div>
+            <div class="point anim">
+              <div class="n">03</div>
+              <div>
+                <h3>记住的偏好能查、能删</h3>
+                <p>每条都标了依据，删了就不再提。</p>
+              </div>
             </div>
           </div>
-          <div class="point anim">
-            <div class="n">02</div>
-            <div>
-              <h3>每一笔都能改、能删</h3>
-              <p>改完统计跟着变，不用找客服。</p>
-            </div>
-          </div>
-          <div class="point anim">
-            <div class="n">03</div>
-            <div>
-              <h3>记住的偏好能查、能删</h3>
-              <p>每条都标了依据，删了就不再提。</p>
-            </div>
-          </div>
+          <p class="note anim" style="margin-top: 24px">
+            技术上是 TypeScript + PostgreSQL，模型可以换。这三件事不跟着模型变。
+          </p>
         </div>
-        <p class="small anim">
-          技术上是 TypeScript + PostgreSQL，模型可以换。这三件事不跟着模型变。
-        </p>
         <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>06</span>
+          <span>E-DIOT 智账</span>
+          <span class="pageno">06 / 08</span>
         </div>
       </section>
 
@@ -977,55 +861,69 @@
           <span><b>06</b> · 接下来</span>
           <span>90 天</span>
         </div>
-        <h2 class="anim">三个月，只做三件事。</h2>
-        <div class="timeline">
-          <div class="phase anim">
-            <div class="when">第 1–2 周</div>
-            <h3>钱花哪了</h3>
-            <p>月底给三条结论：哪类在涨、哪笔不正常、下个月能省多少。</p>
-            <div class="ok">完成标准：每条都能点回原账单</div>
-          </div>
-          <div class="phase anim">
-            <div class="when">第 3–6 周</div>
-            <h3>怎么省</h3>
-            <p>回答「怎么省」时给出处，能查到是哪条知识。</p>
-            <div class="ok">完成标准：Top-5 命中率、引用准确率</div>
-          </div>
-          <div class="phase anim">
-            <div class="when">第 7–12 周</div>
-            <h3>真实用户</h3>
-            <p>找 10 个同学用一个月，看还记不记。</p>
-            <div class="ok">完成标准：第二周还在记的人有多少</div>
+        <div class="split reverse">
+          <figure class="media">
+            <img src="/showcase/p-28353121.jpg" alt="摊开的日程本" />
+            <figcaption>90 天，按周推进。</figcaption>
+          </figure>
+          <div class="text plan">
+            <h2 class="anim">三个月，<br />只做三件事。</h2>
+            <div class="phase anim">
+              <div class="when">第 1–2 周</div>
+              <div>
+                <h3>钱花哪了</h3>
+                <p>月底给三条结论：哪类在涨、哪笔不正常、下个月能省多少。</p>
+                <div class="ok">完成标准：每条都能点回原账单</div>
+              </div>
+            </div>
+            <div class="phase anim">
+              <div class="when">第 3–6 周</div>
+              <div>
+                <h3>怎么省</h3>
+                <p>回答「怎么省」时给出处，能查到是哪条知识。</p>
+                <div class="ok">完成标准：Top-5 命中率、引用准确率</div>
+              </div>
+            </div>
+            <div class="phase anim">
+              <div class="when">第 7–12 周</div>
+              <div>
+                <h3>真实用户</h3>
+                <p>找 10 个同学用一个月，看还记不记。</p>
+                <div class="ok">完成标准：第二周还在记的人有多少</div>
+              </div>
+            </div>
           </div>
         </div>
-        <p class="afterline anim">顺序不换：先让记录可信，再谈别的。</p>
         <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>07</span>
+          <span>E-DIOT 智账</span>
+          <span class="pageno">07 / 08</span>
         </div>
       </section>
 
       <!-- 08 结尾 -->
-      <section class="slide dark ending">
-        <div class="top">
-          <span><b>07</b> · 结尾</span>
-          <span>E-DIOT 智账</span>
-        </div>
-        <h2 class="anim">如果只记住一句话：<br />记账可以不用学。</h2>
-        <p class="lead anim">说一句话，账记好了；月底，它告诉你怎么花的。</p>
-        <div class="cta-row anim">
-          <a class="cta" href="http://127.0.0.1:8000/m">现场体验</a>
-          <a class="cta ghost" href="https://github.com/Aki0330/e-diot">代码仓库</a>
-        </div>
-        <div class="team anim">
-          团队：王恒（前端）· ozy（知识库）· zhl（技能库）· 绫波 無夢（Agent / 汇报）
-        </div>
-        <div class="mark" aria-hidden="true">e-diot</div>
-        <div class="foot">
-          <span>E-DIOT · 智账</span>
-          <span class="dots"></span>
-          <span>08</span>
+      <section class="slide closing">
+        <img class="bg" src="/showcase/p-29446768.jpg" alt="夜晚的咖啡馆" />
+        <div class="shade"></div>
+        <div class="copy">
+          <div class="top">
+            <span><b>07</b> · 结尾</span>
+            <span>E-DIOT 智账</span>
+          </div>
+          <div class="body">
+            <h2 class="anim">记账，<br />可以不用学。</h2>
+            <p class="lead anim">说一句话，账记好了；月底，它告诉你怎么花的。</p>
+            <div class="cta-row anim">
+              <a class="cta" href="http://127.0.0.1:8000/m">现场体验</a>
+              <a class="cta ghost" href="https://github.com/Aki0330/e-diot">代码仓库</a>
+            </div>
+            <p class="team anim">
+              团队：王恒（前端）· ozy（知识库）· zhl（技能库）· 绫波 無夢（Agent / 汇报）
+            </p>
+          </div>
+          <div class="foot">
+            <span>E-DIOT 智账</span>
+            <span class="pageno">08 / 08</span>
+          </div>
         </div>
       </section>
     </template>
@@ -1036,56 +934,17 @@
       const slides = [...document.getElementById("deck").content.querySelectorAll(".slide")];
       slides.forEach((slide) => stage.appendChild(slide));
 
-      const total = slides.length;
-
-      // Center each slide's content between the header and footer.
-      slides.forEach((slide) => {
-        if (slide.classList.contains("cover")) return;
-        const top = slide.querySelector(".top");
-        const foot = slide.querySelector(".foot");
-        if (!foot) return;
-        const body = document.createElement("div");
-        body.className = "body";
-        [...slide.children].forEach((child) => {
-          if (child !== top && child !== foot) body.appendChild(child);
-        });
-        slide.insertBefore(body, foot);
-      });
-
-      // Oversized outline numbers as a quiet backdrop on text-only pages.
-      slides.forEach((slide, i) => {
-        if (![2, 4, 5, 6].includes(i)) return;
-        const ghost = document.createElement("div");
-        ghost.className = "ghost";
-        ghost.setAttribute("aria-hidden", "true");
-        ghost.textContent = String(i + 1).padStart(2, "0");
-        slide.appendChild(ghost);
-      });
-
-      // page dots
-      slides.forEach((slide, i) => {
-        const dots = slide.querySelector(".dots");
-        if (dots) {
-          for (let d = 0; d < total; d++) dots.appendChild(document.createElement("i"));
-        }
-      });
-
       let index = 0;
       function render() {
-        slides.forEach((slide, i) => {
-          slide.classList.toggle("active", i === index);
-          slide.querySelectorAll(".dots i").forEach((dot, d) => {
-            dot.classList.toggle("on", d === index);
-          });
-        });
-        document.getElementById("bar").style.width = ((index + 1) / total) * 100 + "%";
+        slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+        document.getElementById("bar").style.width = ((index + 1) / slides.length) * 100 + "%";
       }
       function go(next) {
-        index = Math.max(0, Math.min(total - 1, next));
+        index = Math.max(0, Math.min(slides.length - 1, next));
         render();
       }
 
-      // fit stage into viewport, keep 16:9
+      // fit the 16:9 stage into any window without reflowing content
       function fit() {
         const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
         stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
@@ -1103,10 +962,9 @@
           go(index - 1);
         }
         if (e.key === "Home") go(0);
-        if (e.key === "End") go(total - 1);
+        if (e.key === "End") go(slides.length - 1);
       });
 
-      // click right/left half to navigate (outside interactive elements)
       stage.addEventListener("click", (e) => {
         if (e.target.closest("a,button")) return;
         const rect = stage.getBoundingClientRect();
