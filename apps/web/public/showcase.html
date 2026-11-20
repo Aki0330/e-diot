@@ -170,11 +170,9 @@
       }
       h1 em {
         font-style: normal;
-        color: var(--ink);
-        background: var(--lime);
-        padding: 0 0.06em;
-        box-decoration-break: clone;
-        -webkit-box-decoration-break: clone;
+        color: var(--lime);
+        border-bottom: 12px solid var(--lime);
+        padding-bottom: 2px;
       }
       h2 {
         font-size: 66px;
@@ -206,12 +204,53 @@
       .cover {
         padding: 90px 120px 64px;
       }
-      .cover-grid {
+      .cover-body {
         flex: 1;
-        display: grid;
-        grid-template-columns: 1.12fr 0.88fr;
-        gap: 70px;
+        position: relative;
+        display: flex;
         align-items: center;
+      }
+      .cover-copy {
+        position: relative;
+        z-index: 2;
+        max-width: 980px;
+      }
+      .cover-art {
+        position: absolute;
+        right: -120px;
+        top: 34px;
+        bottom: 34px;
+        width: 44%;
+        border-radius: 28px 0 0 28px;
+        border-left: 1px solid rgba(198, 241, 107, 0.35);
+        overflow: hidden;
+        background: #1b2118;
+      }
+      .cover-art > img.bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.92) contrast(1.02);
+      }
+      .cover-art::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(16, 17, 21, 0.82), transparent 42%),
+          linear-gradient(0deg, rgba(16, 17, 21, 0.4), transparent 42%);
+      }
+      .cover-art .phone-shot {
+        position: absolute;
+        right: 66px;
+        bottom: 34px;
+        height: 615px;
+        width: auto;
+        border-radius: 26px;
+        border: 6px solid #2a2c31;
+        box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+        z-index: 2;
       }
       .brandrow {
         font-family: var(--num);
@@ -288,7 +327,7 @@
         color: var(--muted);
       }
       .scene p {
-        font-size: 31px;
+        font-size: 29px;
         line-height: 1.5;
       }
       .scene p b {
@@ -301,6 +340,33 @@
       }
       .afterline b {
         background: linear-gradient(transparent 62%, var(--lime) 62%);
+      }
+      .problem-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 52px;
+        align-items: center;
+        margin-top: 30px;
+      }
+      .problem-grid .scenes {
+        margin-top: 0;
+      }
+      .photo-card {
+        margin: 0;
+      }
+      .photo-card img {
+        width: 100%;
+        height: 520px;
+        object-fit: cover;
+        border-radius: 20px;
+        filter: saturate(0.72) sepia(0.12) contrast(1.02);
+      }
+      .photo-card figcaption {
+        margin-top: 12px;
+        font-family: var(--num);
+        font-size: 16px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
       }
 
       /* === FLOW === */
@@ -619,8 +685,8 @@
           <span><b>E-DIOT</b> · 智账</span>
           <span>2026.11 · 产品汇报</span>
         </div>
-        <div class="cover-grid">
-          <div>
+        <div class="cover-body">
+          <div class="cover-copy">
             <div class="brandrow anim">记录你的日常 <b>/</b> 说人话记账</div>
             <h1 class="anim">记一笔账，<br /><em>一句话</em>就够了。</h1>
             <p class="lead anim">
@@ -632,8 +698,9 @@
               <span>188 个测试</span>
             </div>
           </div>
-          <div class="cover-phone anim">
-            <img src="/showcase/m-chat.png" alt="一句话记两笔账" />
+          <div class="cover-art anim">
+            <img class="bg" src="/showcase/photo-calc.jpg" alt="" />
+            <img class="phone-shot" src="/showcase/m-chat.png" alt="一句话记两笔账" />
           </div>
         </div>
         <div class="foot">
@@ -650,21 +717,29 @@
           <span>为什么记不下去</span>
         </div>
         <h2 class="anim">我们问了一圈，<br />坚持记账的人比想象中少。</h2>
-        <div class="scenes">
-          <div class="scene anim">
-            <span class="time">22:41</span>
-            <p>想记一笔，打开 App 要选分类、填金额、挑日期。<b>到家就忘了。</b></p>
+        <div class="problem-grid">
+          <div>
+            <div class="scenes">
+              <div class="scene anim">
+                <span class="time">22:41</span>
+                <p>想记一笔，要选分类、填金额、挑日期。<b>到家就忘了。</b></p>
+              </div>
+              <div class="scene anim">
+                <span class="time">月底</span>
+                <p>记了一个月，只记得一个总数，<b>说不出钱花在哪。</b></p>
+              </div>
+              <div class="scene anim">
+                <span class="time">超支后</span>
+                <p>唯一一次提醒，是弹窗说<b>「我又超了」</b>。</p>
+              </div>
+            </div>
+            <p class="afterline anim">太麻烦、没用、烦。三件事，我们一次解决一个。</p>
           </div>
-          <div class="scene anim">
-            <span class="time">月底</span>
-            <p>记了一个月，只记得一个总数，<b>说不出钱花在哪。</b></p>
-          </div>
-          <div class="scene anim">
-            <span class="time">超支后</span>
-            <p>唯一一次提醒，是弹窗说<b>「我又超了」</b>。</p>
-          </div>
+          <figure class="photo-card anim">
+            <img src="/showcase/photo-life.jpg" alt="桌面上摊开的账单、计算器和电脑" />
+            <figcaption>整理账单，通常发生在晚上</figcaption>
+          </figure>
         </div>
-        <p class="afterline anim">太麻烦、没用、烦。三件事，我们一次解决一个。</p>
         <div class="foot">
           <span>E-DIOT · 智账</span>
           <span class="dots"></span>
