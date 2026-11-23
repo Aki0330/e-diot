@@ -14,7 +14,7 @@ import { fmt } from "../utils/format.js";
 export interface ProfilePageProps {
   readonly active: boolean;
   /** 移动端二级入口：预算 / 记忆 */
-  readonly onNavigateSecondary?: (view: "budget" | "memory") => void;
+  readonly onNavigateSecondary?: (view: "budget" | "memory" | "avatar") => void;
 }
 
 function fmtDateTime(value: string | null): string {
@@ -384,6 +384,9 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
             </button>
             <button className="memory-btn" onClick={() => onNavigateSecondary("memory")}>
               🧠 我的记忆
+            </button>
+            <button className="memory-btn" onClick={() => onNavigateSecondary("avatar")}>
+              🤖 数字人（实验）
             </button>
           </div>
         </section>

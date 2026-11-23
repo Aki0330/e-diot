@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { AvatarPage } from "../pages/AvatarPage.js";
 import { BudgetPage } from "../pages/BudgetPage.js";
 import { ChatPage } from "../pages/ChatPage.js";
 import { DashboardPage } from "../pages/DashboardPage.js";
@@ -7,7 +8,7 @@ import { MemoryPage } from "../pages/MemoryPage.js";
 import { ProfilePage } from "../pages/ProfilePage.js";
 import { TransactionsPage } from "../pages/TransactionsPage.js";
 
-export type SecondaryView = "budget" | "memory";
+export type SecondaryView = "budget" | "memory" | "avatar";
 
 type MobileTab = "chat" | "dashboard" | "transactions" | "profile";
 
@@ -75,11 +76,19 @@ export function MobileApp() {
                   <button className="memory-btn" onClick={() => setSecondary(null)}>
                     ← 返回
                   </button>
-                  <b>{secondary === "budget" ? "预算管理" : "我的记忆"}</b>
+                  <b>
+                    {secondary === "budget"
+                      ? "预算管理"
+                      : secondary === "avatar"
+                        ? "数字人"
+                        : "我的记忆"}
+                  </b>
                 </div>
                 <div className="mobile-page">
                   {secondary === "budget" ? (
                     <BudgetPage active refreshKey={refreshKey} />
+                  ) : secondary === "avatar" ? (
+                    <AvatarPage active />
                   ) : (
                     <MemoryPage active />
                   )}

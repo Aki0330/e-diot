@@ -5,6 +5,7 @@ import type { UserProfile } from "./api/types.js";
 import { Sidebar } from "./components/Sidebar.js";
 import { Topbar } from "./components/Topbar.js";
 import { AuthPage } from "./pages/AuthPage.js";
+import { AvatarPage } from "./pages/AvatarPage.js";
 import { BudgetPage } from "./pages/BudgetPage.js";
 import { ChatPage } from "./pages/ChatPage.js";
 import { DashboardPage } from "./pages/DashboardPage.js";
@@ -104,6 +105,9 @@ export function App() {
               sidebarCollapsed={sidebarCollapsed}
               onDataChanged={() => setRefreshKey((value) => value + 1)}
             />
+          </div>
+          <div className="page-wrapper" style={{ display: tab === "avatar" ? "block" : "none" }}>
+            <AvatarPage active={tab === "avatar"} />
           </div>
           <div className="page-wrapper" style={{ display: tab === "dashboard" ? "block" : "none" }}>
             <DashboardPage active={tab === "dashboard"} refreshKey={refreshKey} />
