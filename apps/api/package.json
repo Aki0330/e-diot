@@ -13,6 +13,8 @@
   "dependencies": {
     "@cyberbudget/agent": "workspace:*",
     "@cyberbudget/db": "workspace:*",
+    "@cyberbudget/inference": "workspace:*",
+    "@cyberbudget/knowledge": "workspace:*",
     "@cyberbudget/shared": "workspace:*",
     "@fastify/cors": "^11.3.1",
     "@fastify/static": "^10.1.7",

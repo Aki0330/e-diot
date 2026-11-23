@@ -18,6 +18,18 @@ export type ChatRequest = z.infer<typeof chatRequestSchema>;
 /** JSONB 执行数据：对象或 null（旧库该列可空） */
 export const executionDataSchema = z.record(z.string(), z.unknown()).nullable();
 
+/**
+ * 知识库引用（P4b 新增）：本轮回答参考的片段，分数已保留四位小数，前端可直接展示。
+ */
+export const knowledgeCitationSchema = z.object({
+  content: z.string(),
+  category: z.string(),
+  score: z.number(),
+  tags: z.array(z.string()).default([]),
+});
+
+export type KnowledgeCitation = z.infer<typeof knowledgeCitationSchema>;
+
 export const chatResponseSchema = z.object({
   session_id: z.string(),
   user_id: z.string(),
@@ -26,6 +38,8 @@ export const chatResponseSchema = z.object({
   intent_type: z.string().nullable(),
   graph_path: z.string().nullable(),
   execution_data: executionDataSchema,
+  /** 本轮回答引用的知识库片段；未检索到或未启用时为空数组 */
+  citations: z.array(knowledgeCitationSchema).default([]),
 });
 
 export type ChatResponse = z.infer<typeof chatResponseSchema>;

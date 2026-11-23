@@ -103,6 +103,48 @@ describe.skipIf(!enabled)("Agent 流水线（集成测试）", () => {
     expect(trace.response).toBe("好的，已记录 ✅");
   });
 
+  it("记账：知识库命中时注入提示词并回传 citations", async () => {
+    const userId = await createTestUser("5000.00");
+    const captured: string[] = [];
+    const llm: LlmClient = {
+      complete: (messages) => {
+        const system = messages.find((message) => message.role === "system")?.content ?? "";
+        if (system.includes(INTENT_MARKER)) {
+          return Promise.resolve(
+            JSON.stringify({
+              intent_type: "add_transaction",
+              transaction: { transaction_type: "expense", amount: 35, category: "餐饮" },
+            }),
+          );
+        }
+        captured.push(messages.map((message) => message.content).join("\n"));
+        return Promise.resolve("外卖点太多了，先歇一天 🍜");
+      },
+    };
+    const queries: string[] = [];
+    const knowledge = {
+      search: (query: string) => {
+        queries.push(query);
+        return Promise.resolve([
+          {
+            content: "【餐饮预算超标建议】餐饮超过 80% 时控制外卖频次。",
+            category: "saving_advice",
+            score: 0.8123,
+            tags: ["吃土预警", "餐饮"],
+          },
+        ]);
+      },
+    };
+
+    const trace = await runAgentWithTrace({ db, llm }, userId, "又点了外卖35元", { knowledge });
+
+    expect(queries).toHaveLength(1);
+    expect(queries[0]).toContain("餐饮");
+    expect(trace.citations).toHaveLength(1);
+    expect(trace.citations[0]).toMatchObject({ category: "saving_advice", score: 0.8123 });
+    expect(captured.join("\n")).toContain("餐饮超过 80% 时控制外卖频次");
+  });
+
   it("记账：超支走 advice 分支", async () => {
     const userId = await createTestUser("100.00");
     await insertTransaction(db, {

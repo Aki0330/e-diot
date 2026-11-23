@@ -25,8 +25,11 @@ function urlOf(input: Parameters<typeof fetch>[0]): string {
 
 const cleanup: (() => Promise<void>)[] = [];
 
-async function connect(apiKey = ""): Promise<Client> {
-  const server = createMcpServer({ apiKey, sleep: () => Promise.resolve() });
+async function connect(
+  apiKey = "",
+  knowledgeSearch?: Parameters<typeof createMcpServer>[0]["knowledgeSearch"],
+): Promise<Client> {
+  const server = createMcpServer({ apiKey, sleep: () => Promise.resolve(), ...(knowledgeSearch === undefined ? {} : { knowledgeSearch }) });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
 
@@ -88,16 +91,49 @@ describe("MCP tools", () => {
     expect(textOf(result)).toBe("成功完成全部 3 个步骤！");
   });
 
-  it("knowledge_search 在 P4a 返回明确的占位提示", async () => {
-    const client = await connect();
+  it("knowledge_search 把检索结果格式化成旧版样式", async () => {
+    const search = vi.fn(() =>
+      Promise.resolve([
+        {
+          content: "【餐饮预算超标建议】当餐饮使用超过 80% 时提醒用户控制外卖。",
+          category: "saving_advice",
+          metadata: { tags: ["吃土预警", "餐饮"] },
+          score: 0.88,
+          rerankScore: 0.8321,
+        },
+      ]),
+    );
+    const client = await connect("", search);
+
     const result = await client.callTool({
       name: "knowledge_search",
-      arguments: { query: "外卖吃土怎么办" },
+      arguments: { query: "外卖吃土怎么办", top_k: 2 },
+    });
+
+    expect(search).toHaveBeenCalledWith({
+      query: "外卖吃土怎么办",
+      topK: 2,
+      categoryFilter: "",
+      candidatePool: 10,
+    });
+    const text = textOf(result);
+    expect(text).toContain('🔍 查询: "外卖吃土怎么办"');
+    expect(text).toContain("📚 知识库检索结果 (1 条)");
+    expect(text).toContain("[1] 💡 [saving_advice] 相关度: 0.8321");
+    expect(text).toContain("🏷️ 标签: 吃土预警 / 餐饮");
+  });
+
+  it("knowledge_search 检索失败时返回错误文本", async () => {
+    const search = vi.fn(() => Promise.reject(new Error("milvus 连接失败")));
+    const client = await connect("", search);
+    const result = await client.callTool({
+      name: "knowledge_search",
+      arguments: { query: "外卖" },
     });
 
     const text = textOf(result);
-    expect(text).toContain("知识库检索尚未接入");
-    expect(text).toContain("外卖吃土怎么办");
+    expect(text).toContain("❌ 知识库检索失败");
+    expect(text).toContain("milvus 连接失败");
   });
 
   it("web_search 未配置 key 时给出提示", async () => {

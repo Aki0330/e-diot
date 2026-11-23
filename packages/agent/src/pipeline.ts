@@ -3,6 +3,7 @@ import type { AgentState, IntentResult, Persona } from "@cyberbudget/shared";
 
 import type { ChatTurn } from "./history.js";
 import type { MemoryContext } from "./memory.js";
+import type { KnowledgePort, KnowledgeSnippet } from "./knowledge.js";
 import type { LlmClient } from "./llm/client.js";
 import {
   adviceNode,
@@ -33,6 +34,8 @@ export interface AgentRunOptions {
   readonly history?: readonly ChatTurn[];
   readonly persona?: Persona;
   readonly memories?: readonly MemoryContext[];
+  /** 知识库端口（可选）：传入即在本轮检索 top3 片段并注入提示词 */
+  readonly knowledge?: KnowledgePort;
 }
 
 export interface AgentTraceResult {
@@ -40,6 +43,8 @@ export interface AgentTraceResult {
   readonly intentType: string | null;
   readonly graphPath: string;
   readonly executionData: Record<string, unknown>;
+  /** 本轮实际注入的知识片段（顺序即引用编号）；未检索或检索失败时为空 */
+  readonly citations: readonly KnowledgeSnippet[];
   readonly state: AgentState;
 }
 
@@ -133,6 +138,25 @@ export function buildExecutionData(state: AgentState): Record<string, unknown> {
   return data;
 }
 
+/**
+ * 检索知识库（best-effort）：知识库不可用时不阻塞记账主流程，只返回空片段。
+ * 「记账」场景会把分类拼进查询串，提升分类规则 / 省钱建议的召回。
+ */
+async function retrieveKnowledge(
+  port: KnowledgePort | undefined,
+  userInput: string,
+  intent: IntentResult | null,
+): Promise<readonly KnowledgeSnippet[]> {
+  if (port === undefined) return [];
+  const category = intent?.transaction?.category;
+  const query = category === undefined ? userInput : `${userInput} ${category}`;
+  try {
+    return await port.search(query, { topK: 3 });
+  } catch {
+    return [];
+  }
+}
+
 export async function runAgentWithTrace(
   deps: AgentDeps,
   userId: string,
@@ -141,28 +165,39 @@ export async function runAgentWithTrace(
 ): Promise<AgentTraceResult> {
   let state = createInitialState(userId, userInput);
 
-  state = await parseIntentNode(state, deps.llm, options);
+  // 知识库端口不进入 NodeOptions（那里放的是检索结果本身）
+  const { knowledge: knowledgePort, ...nodeOptions } = options;
+
+  state = await parseIntentNode(state, deps.llm, nodeOptions);
 
   const intent: IntentResult | null = state.intent ?? null;
   const intentType = intent?.intent_type ?? null;
+
+  // 纯预算分配不需要知识库；其余场景注入 top3
+  const citations =
+    intentType === "set_category_budget"
+      ? []
+      : await retrieveKnowledge(knowledgePort, userInput, intent);
+  const callOptions =
+    citations.length === 0 ? nodeOptions : { ...nodeOptions, knowledge: citations };
 
   if (intentType === "add_transaction" && intent?.transaction) {
     state = await writeTransactionNode(state, deps.db);
     state = await checkBudgetNode(state, deps.db);
     state = state.is_over_budget
-      ? await adviceNode(state, deps.llm, options)
-      : await generateResponseNode(state, deps.llm, options);
+      ? await adviceNode(state, deps.llm, callOptions)
+      : await generateResponseNode(state, deps.llm, callOptions);
   } else if (intentType === "set_category_budget" && intent?.budget_allocations) {
     state = await writeBudgetNode(state, deps.db);
-    state = await generateResponseNode(state, deps.llm, options);
+    state = await generateResponseNode(state, deps.llm, callOptions);
   } else if (intentType === "query_budget") {
     state = await checkBudgetNode(state, deps.db);
     state = state.is_over_budget
-      ? await adviceNode(state, deps.llm, options)
-      : await generateResponseNode(state, deps.llm, options);
+      ? await adviceNode(state, deps.llm, callOptions)
+      : await generateResponseNode(state, deps.llm, callOptions);
   } else {
     state = await checkBudgetNode(state, deps.db);
-    state = await generateResponseNode(state, deps.llm, options);
+    state = await generateResponseNode(state, deps.llm, callOptions);
   }
 
   return {
@@ -171,6 +206,7 @@ export async function runAgentWithTrace(
     intentType,
     graphPath: deriveGraphPath(state),
     executionData: buildExecutionData(state),
+    citations,
     state,
   };
 }

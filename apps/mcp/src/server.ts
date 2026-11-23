@@ -9,6 +9,13 @@ import {
   upsertMonthBudgets,
   type Database,
 } from "@cyberbudget/db";
+import {
+  createKnowledgeRuntime,
+  formatKnowledgeResults,
+  searchKnowledge,
+  KnowledgeError,
+  type KnowledgeHit,
+} from "@cyberbudget/knowledge";
 import { formatCents, formatYearMonthUtc, parseCents } from "@cyberbudget/shared";
 
 import { performWebSearch, type WebSearchOptions } from "./tavily.js";
@@ -16,13 +23,23 @@ import { performWebSearch, type WebSearchOptions } from "./tavily.js";
 /**
  * MCP Server 组装（对应旧 `backend/mcp/server.py`）。
  *
- * P4a 范围：BMI、长任务（进度通知）、Tavily 联网搜索、两个资源、一个 prompt。
- * `knowledge_search`（Milvus + BGE-M3 + Reranker）留到 P4b，先返回明确的占位提示，
- * 工具签名与旧实现保持一致，客户端不需要改。
+ * 工具集：BMI、长任务（进度通知）、Tavily 联网搜索、知识库混合检索，另有两个资源、一个 prompt。
+ * `knowledge_search` 与旧版 Python 实现同签名（query / top_k / category_filter / candidate_pool），
+ * 内部走 `@cyberbudget/knowledge`：BGE-M3 双向量 → Milvus 混合检索(0.7/0.3) → Reranker 精排。
  */
 
 export const MCP_SERVER_NAME = "My Advanced MCP Server";
 export const MCP_SERVER_VERSION = "1.0.0";
+
+export interface KnowledgeSearchInput {
+  readonly query: string;
+  readonly topK?: number;
+  readonly categoryFilter?: string;
+  readonly candidatePool?: number;
+}
+
+/** 知识库检索函数（测试可注入，默认走 Milvus + 推理 sidecar） */
+export type KnowledgeSearchFn = (input: KnowledgeSearchInput) => Promise<readonly KnowledgeHit[]>;
 
 export interface McpServerDeps extends WebSearchOptions {
   /** 长任务每步等待时间，测试可注入 0 */
@@ -31,6 +48,17 @@ export interface McpServerDeps extends WebSearchOptions {
   readonly db?: Database;
   /** 未在工具参数中传 user_id 时使用的默认用户 */
   readonly defaultUserId?: string;
+  /** 知识库检索实现，默认用 `@cyberbudget/knowledge` 的运行时 */
+  readonly knowledgeSearch?: KnowledgeSearchFn;
+}
+
+let defaultKnowledgeSearch: KnowledgeSearchFn | undefined;
+
+function resolveKnowledgeSearch(deps: McpServerDeps): KnowledgeSearchFn {
+  if (deps.knowledgeSearch) return deps.knowledgeSearch;
+  // 惰性装配：只有真正调用工具时才连接 Milvus / 推理 sidecar
+  defaultKnowledgeSearch ??= (input) => searchKnowledge(createKnowledgeRuntime(), input);
+  return defaultKnowledgeSearch;
 }
 
 const defaultSleep = (ms: number): Promise<void> =>
@@ -250,14 +278,14 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
       ),
   );
 
-  // ── Tool: 知识库检索（P4b 接入 Milvus） ──
+  // ── Tool: 知识库混合检索（BGE-M3 双向量 + Milvus + Reranker） ──
   server.registerTool(
     "knowledge_search",
     {
-      title: "知识库混合检索（暂未接入）",
+      title: "知识库混合检索",
       description:
-        "基于 BGE-M3 双向量 + Milvus 混合检索 + Reranker 的知识库查询。" +
-        "当前为 P4a 占位实现，Milvus 检索将在 P4b 接入。",
+        "基于 BGE-M3 双向量 + Milvus 混合检索(0.7/0.3) + Reranker 精排的理财知识库查询。" +
+        "返回每条知识的分类、相关度、正文（前 200 字）与标签。",
       inputSchema: {
         query: z.string().min(1),
         top_k: z.number().int().min(1).max(10).default(3),
@@ -265,8 +293,20 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
         candidate_pool: z.number().int().min(1).max(50).default(10),
       },
     },
-    ({ query }) =>
-      text(`⚠️ 知识库检索尚未接入（P4b 将接入 Milvus + 推理 sidecar）。\n` + `🔍 查询: "${query}"`),
+    async ({ query, top_k, category_filter, candidate_pool }) => {
+      try {
+        const hits = await resolveKnowledgeSearch(deps)({
+          query,
+          topK: top_k,
+          categoryFilter: category_filter,
+          candidatePool: candidate_pool,
+        });
+        return text(formatKnowledgeResults(query, hits));
+      } catch (error) {
+        const detail = error instanceof KnowledgeError ? error.message : String(error);
+        return text(`❌ 知识库检索失败: ${detail}\n🔍 查询: "${query}"`);
+      }
+    },
   );
 
   // ── Resource: 系统状态 ──

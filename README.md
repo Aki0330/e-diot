@@ -95,6 +95,10 @@ e-diot/
 | `pnpm db:baseline`   | 给已有旧表的库打迁移基线（幂等）                               |
 | `pnpm dev:api`       | tsx watch 启动 API                                             |
 | `pnpm dev:mcp`       | tsx watch 启动 MCP Server（:8001/mcp）                         |
+| `pnpm dev:inference` | 启动 Python 推理 sidecar（:8100，需先装 venv 与模型）           |
+| `pnpm kb:init`       | 重建 Milvus collection 并写入内置语料（`--append` 只追加）      |
+| `pnpm kb:search`     | 命令行检索知识库（`--top-k`、`--category`）                     |
+| `pnpm kb:eval`       | 离线评测固定问题集（Top-5 命中率 / Top-1 分类准确率）           |
 | `pnpm mcp:start`     | 运行已构建的 MCP Server                                        |
 | `pnpm start`         | 运行已构建的 API（`node dist/main.js`）                        |
 
@@ -313,14 +317,33 @@ pnpm mcp:start          # 或 pnpm --filter @cyberbudget/mcp start
 - 每页只讲一个结论；能力按「已上线 / 规划」标注，避免把 roadmap 写成已交付
 - 可编辑源：`apps/web/public/showcase.html` + `apps/web/public/showcase/`（修改后重新内嵌即可）
 
-## 下一步：P4b（Milvus + 推理 sidecar）
+## P4b 已完成的内容（知识库：Milvus + 推理 sidecar）
 
-Milvus 相关事项按约定后置：
+对齐旧 Python 版（`for_performance`）的知识库能力，模型推理留在 Python，检索编排回到 TS：
 
-- `services/inference`：Python sidecar（`POST /embed` 返回 dense+sparse、`POST /rerank` 返回分数），复用旧 `models/`；
-- `packages/inference`：sidecar 客户端（契约已在 P0 定好）；
-- Milvus 混合检索（`WeightedRanker(0.7, 0.3)`）+ rerank，替换 `knowledge_search` 占位；
-- `knowledge_search` 输出保持旧版人类可读格式（emoji 标题、`─` 分隔线、`[n] score`、内容截断 200 字）。
+- **`services/inference`**：FastAPI sidecar，`POST /embed` 返回 BGE-M3 dense（1024 维）+ sparse（tokenId→weight），
+  `POST /rerank` 返回 BGE-Reranker 分数；模型惰性加载 + 线程锁，异常统一 503。
+- **`packages/inference`**：sidecar 客户端（超时、5xx/网络重试、4xx 立即失败、响应结构校验）。
+- **`packages/knowledge`**：`MilvusVectorStore`（collection `financial_knowledge_base`，字段/索引与旧版一致：
+  HNSW COSINE M=16 efConstruction=200、SPARSE_INVERTED_INDEX IP）、`searchKnowledge`（双路召回 →
+  `WeightedRanker(0.7/0.3)` → rerank → top_k）、`ingestCorpus`（内置 6 条语料，逐字沿用旧版）、
+  `formatKnowledgeResults`（旧版 emoji 排版：`🔍 查询` / `📚 知识库检索结果 (N 条)` / `[n] 分类 相关度` / `🏷️ 标签`）。
+- **MCP**：`knowledge_search` 不再是占位，四入参与旧版一致（`query` / `top_k` / `category_filter` / `candidate_pool`）。
+- **Agent**：记账场景在 `parse_intent` 后检索 top3，作为 system 提示注入 `generate_response` / `advice`
+  （要求用「（来源[n]）」标注），`/api/v1/chat` 额外返回 `citations`；知识库不可用时静默降级，不影响记账。
+- **前端**：聊天页助手消息下方展示「📚 知识库来源」卡片（分类 / 相关度 / 标签，正文截断）。
+- **验证**：`pnpm kb:init` 重建语料并自测旧 query「我点外卖花了太多钱怎么办」；
+  `pnpm kb:search` 可直接命令行检索；`pnpm kb:eval` 跑 10 条固定问题集（Top-5 命中率 / Top-1 分类准确率）；
+  全仓 `pnpm typecheck` / `pnpm lint` / `pnpm test`（25 文件 / 218 用例）全绿。
+
+```bash
+# 一次性：Milvus 栈（compose 用本地存储，不需要 MinIO）
+docker compose up -d etcd milvus
+# 一次性：Python venv + 模型（见 tools/install-inference-deps.ps1，模型放 tools/models/）
+pnpm dev:inference                       # :8100
+pnpm kb:init                             # 建库 + 写语料 + 自测
+pnpm kb:search "我点外卖花了太多钱怎么办"  # 命令行验证
+```
 
 ## P6 已完成的内容（回归与收尾）
 

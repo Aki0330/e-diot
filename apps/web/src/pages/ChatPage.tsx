@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { api } from "../api/client.js";
-import type { ChatResponse, ChatSessionDetail, SessionItem } from "../api/types.js";
+import type { ChatResponse, CitationItem, ChatSessionDetail, SessionItem } from "../api/types.js";
 import { useToast } from "../components/Toast.js";
 import { INTENT_LABELS, formatContent } from "../utils/format.js";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  category_rule: "分类规则",
+  saving_advice: "省钱建议",
+};
+
+function citationCategoryLabel(category: string): string {
+  return CATEGORY_LABELS[category] ?? category;
+}
 
 const SUGGESTIONS = [
   "午餐花了50元",
@@ -20,6 +29,7 @@ interface ChatMessage {
   readonly graphPath?: string | null;
   readonly messageId?: number;
   readonly isProactive?: boolean;
+  readonly citations?: readonly CitationItem[];
 }
 
 function startOfDay(date: Date): number {
@@ -159,6 +169,7 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
           content: data.response,
           intentType: data.intent_type,
           graphPath: data.graph_path,
+          citations: data.citations ?? [],
         },
       ]);
       await loadSessions();
@@ -322,6 +333,31 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
                       {message.graphPath}
                     </div>
                   )}
+                  {message.role === "assistant" &&
+                    message.citations !== undefined &&
+                    message.citations.length > 0 && (
+                      <div className="msg-sources">
+                        <div className="msg-sources-title">📚 知识库来源</div>
+                        {message.citations.map((citation, citationIndex) => (
+                          <div className="msg-source" key={citationIndex}>
+                            <span className="msg-source-head">
+                              来源[{citationIndex + 1}] · {citationCategoryLabel(citation.category)} · 相关度{" "}
+                              {citation.score.toFixed(4)}
+                            </span>
+                            <div className="msg-source-body">
+                              {citation.content.length > 120
+                                ? `${citation.content.slice(0, 120)}…`
+                                : citation.content}
+                            </div>
+                            {citation.tags.length > 0 && (
+                              <div className="msg-source-tags">
+                                🏷️ {citation.tags.join(" / ")}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   {message.isProactive === true && message.messageId !== undefined && (
                     <div className="proactive-feedback">
                       {feedbackDone[message.messageId] !== undefined ? (

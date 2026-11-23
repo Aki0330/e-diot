@@ -117,6 +117,13 @@ export interface ChatSessionDetail {
   readonly messages: readonly ChatMessageItem[];
 }
 
+export interface CitationItem {
+  readonly content: string;
+  readonly category: string;
+  readonly score: number;
+  readonly tags: readonly string[];
+}
+
 export interface ChatResponse {
   readonly session_id: string;
   readonly user_id: string;
@@ -124,6 +131,7 @@ export interface ChatResponse {
   readonly response: string;
   readonly intent_type: string | null;
   readonly graph_path: string | null;
+  readonly citations?: readonly CitationItem[];
 }
 
 export interface BudgetResponse {
