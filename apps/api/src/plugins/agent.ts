@@ -105,25 +105,34 @@ function tagsOf(metadata: Record<string, unknown> | undefined): readonly string[
  * 检索失败由 Agent 内部兜底为空片段，这里不吞错——保留给 Agent 的 best-effort 逻辑统一处理。
  */
 export function createAgentKnowledgePort(): KnowledgePort {
+  if (process.env["KNOWLEDGE_ENABLED"]?.trim().toLowerCase() === "false") {
+    // 本地没有 Milvus / 推理 sidecar 时显式关闭，chat 仍可正常记账。
+    return { search: async () => [] };
+  }
   let runtime: ReturnType<typeof createKnowledgeRuntime> | undefined;
 
   return {
     async search(query, options): Promise<readonly KnowledgeSnippet[]> {
-      runtime ??= createKnowledgeRuntime();
-      const hits = await searchKnowledge(runtime, {
-        query,
-        topK: options?.topK ?? 3,
-        ...(options?.categoryFilter === undefined
-          ? {}
-          : { categoryFilter: options.categoryFilter }),
-        ...(options?.candidatePool === undefined ? {} : { candidatePool: options.candidatePool }),
-      });
-      return hits.map((hit) => ({
-        content: hit.content,
-        category: hit.category,
-        score: hit.rerankScore,
-        tags: tagsOf(hit.metadata),
-      }));
+      try {
+        runtime ??= createKnowledgeRuntime();
+        const hits = await searchKnowledge(runtime, {
+          query,
+          topK: options?.topK ?? 3,
+          ...(options?.categoryFilter === undefined
+            ? {}
+            : { categoryFilter: options.categoryFilter }),
+          ...(options?.candidatePool === undefined ? {} : { candidatePool: options.candidatePool }),
+        });
+        return hits.map((hit) => ({
+          content: hit.content,
+          category: hit.category,
+          score: hit.rerankScore,
+          tags: tagsOf(hit.metadata),
+        }));
+      } catch {
+        // 知识库是增强项：Milvus / 推理 sidecar 没起来时降级为无引用，不阻塞记账对话。
+        return [];
+      }
     },
   };
 }
