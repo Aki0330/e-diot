@@ -20,10 +20,15 @@ import { TABS, type Tab } from "./tabs.js";
  * 与旧实现一致：页面组件始终挂载（用 display 切换），切 Tab 不会丢失对话历史与已加载的数据。
  * 桌面（≥1024px）显示左侧栏，移动端沿用底部 Tab。
  */
+function tabFromHash(): Tab {
+  if (typeof window !== "undefined" && window.location.hash === "#avatar") return "avatar";
+  return "chat";
+}
+
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>(tabFromHash);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -50,7 +55,12 @@ export function App() {
   useEffect(() => {
     const onUnauthorized = (): void => setUser(null);
     window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
-    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    const onHash = (): void => setTab(tabFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+      window.removeEventListener("hashchange", onHash);
+    };
   }, []);
 
   const logout = (): void => {
@@ -79,7 +89,7 @@ export function App() {
       <AuthPage
         onAuthenticated={async () => {
           await loadUser();
-          setTab("chat");
+          setTab(tabFromHash());
         }}
       />
     );
