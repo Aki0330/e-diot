@@ -31,7 +31,7 @@
 - `fix/<name>`：缺陷修复
 - `chore/<name>`：工程/依赖/流程
 - `docs/<name>`：文档
-- `hotfix/<name>`：线上紧急修复（仍需 owner 事后补 PR 记录）
+- `hotfix/<name>`：线上紧急修复（同样必须走 PR；owner 可加急 review，但禁止直接 push `main`）
 
 ## PR 要求
 
@@ -59,7 +59,22 @@ TEST_DATABASE_URL=postgresql://postgres:postgrespassword@localhost:5432/cyber_bu
 - 合并前必须：CI 全绿、至少 1 个 approval、所有对话 resolved、无冲突
 - 合并后自动删除源分支；本地同步 `main`
 - 禁止 force push `main`、禁止删除 `main`
-- 紧急情况下 owner 可临时绕过，但必须在 24 小时内补 PR 记录与复盘
+- **任何角色（包括 owner）都不得直接 push `main`；hotfix 也必须走 PR，可加急 review，但不可跳过 CI 与审核**
+
+## 强制生效条件
+
+仓库里的 PR 模板、CODEOWNERS、CI 只能“提出要求”，**不能阻止有人直接 push `main`**。要做到“所有分支合并都必须走 PR/MR 审核”，必须在 GitHub 开启 `main` 分支保护：
+
+- Require a pull request before merging
+- Required approvals ≥ 1，并开启 Require review from Code Owners
+- Require status checks：`CI / verify`
+- Block force pushes、Restrict deletions
+- Include administrators（owner 也不例外）
+- 合并方式只保留 Squash
+
+完整配置见 [docs/merge-process.md](docs/merge-process.md)。开启保护后，任何分支（feature/fix/docs/chore/hotfix）都无法绕过 PR 直接进入 `main`。
+
+> 单 owner 仓库注意：开启“至少 1 个 approval”后，owner 无法批准自己的 PR。需要新增一位 maintainer，或在 ruleset 中给 owner 配置 bypass；否则只能临时关闭保护，反而破坏流程。
 
 ## 现有分支
 
