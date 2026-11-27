@@ -1,5 +1,6 @@
 import {
   createOpenAiCompatibleClient,
+  parseBudgetAllocations,
   runAgent,
   runAgentWithTrace,
   type ChatTurn,
@@ -7,7 +8,12 @@ import {
   type MemoryContext,
 } from "@cyberbudget/agent";
 import { findUserById, type Database } from "@cyberbudget/db";
-import type { AppConfig, Persona } from "@cyberbudget/shared";
+import {
+  AppError,
+  type AppConfig,
+  type CategoryBudgetItem,
+  type Persona,
+} from "@cyberbudget/shared";
 import type { FastifyInstance } from "fastify";
 
 /**
@@ -32,8 +38,9 @@ export interface AgentRunOptions {
 }
 
 export interface AgentRunner {
-  /** 只取回复文本（对应旧 `run_agent`），预算 Agent 端点用 */
+  /** 只取回复文本（对应旧 `run_agent`） */
   run(userId: string, message: string, options?: AgentRunOptions): Promise<string>;
+  parseBudget(userId: string, message: string): Promise<readonly CategoryBudgetItem[]>;
   /** 带执行追踪（对应旧 `run_agent_with_trace`），对话端点用 */
   runWithTrace(userId: string, message: string, options?: AgentRunOptions): Promise<AgentTrace>;
 }
@@ -57,6 +64,7 @@ export function createPlaceholderAgent(): AgentRunner {
   return {
     run: async (userId, message, options) =>
       (await runWithTrace(userId, message, options)).response,
+    parseBudget: () => Promise.reject(new AppError("UPSTREAM_LLM_ERROR", "预算解析服务未配置。")),
     runWithTrace,
   };
 }
@@ -100,6 +108,8 @@ export function createAgentRunner({ db, config }: AgentRunnerOptions): AgentRunn
   return {
     run: async (userId, message, options) =>
       runAgent({ db, llm: await llmForUser(userId) }, userId, message, options),
+    parseBudget: async (userId, message) =>
+      parseBudgetAllocations(await llmForUser(userId), message),
     runWithTrace: async (userId, message, options) => {
       const trace = await runAgentWithTrace(
         { db, llm: await llmForUser(userId) },

@@ -1,4 +1,9 @@
-import { intentResultSchema, type IntentResult } from "@cyberbudget/shared";
+import {
+  AppError,
+  intentResultSchema,
+  type CategoryBudgetItem,
+  type IntentResult,
+} from "@cyberbudget/shared";
 
 import { HISTORY_NOTE, historyMessages, type ChatTurn } from "../history.js";
 import { INTENT_JSON_FORMAT_HINT, INTENT_SYSTEM_PROMPT } from "../prompts.js";
@@ -55,4 +60,22 @@ export async function parseIntent(
   }
 
   return intentResultSchema.parse(data);
+}
+
+/** AI 分配入口只提取分类预算，不执行通用对话流水线里的记账等操作。 */
+export async function parseBudgetAllocations(
+  llm: LlmClient,
+  userInput: string,
+): Promise<readonly CategoryBudgetItem[]> {
+  let intent: IntentResult;
+  try {
+    intent = await parseIntent(llm, userInput);
+  } catch (cause) {
+    throw new AppError("UPSTREAM_LLM_ERROR", "未能解析分类预算，请稍后重试。", { cause });
+  }
+  const categories = intent.budget_allocations?.categories;
+  if (intent.intent_type !== "set_category_budget" || !categories?.length) {
+    throw AppError.unprocessable("请输入要分配预算的分类及额度。");
+  }
+  return categories;
 }

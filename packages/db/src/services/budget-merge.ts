@@ -5,6 +5,16 @@ import {
   type Cents,
   type MoneyInput,
 } from "@cyberbudget/shared";
+import { eq } from "drizzle-orm";
+
+import type { Executor } from "../client.js";
+import {
+  listMonthBudgets,
+  replaceMonthBudgets,
+  upsertMonthBudgets,
+} from "../repositories/budgets.js";
+import { updateMonthlyBudget } from "../repositories/users.js";
+import { users } from "../schema/users.js";
 
 /**
  * 预算 MERGE + 校验（对应旧 `backend/models/budget.py` 的 `merge_and_validate_budgets`）。
@@ -115,4 +125,58 @@ export async function persistMergedBudgets(
     });
   }
   await write(result.merged);
+}
+
+/** 锁定用户行，使分类预算与同一用户的总预算 UPDATE 使用同一把锁。 */
+export async function saveCategoryBudgets(
+  db: Executor,
+  input: {
+    readonly userId: string;
+    readonly yearMonth: string;
+    readonly categories: readonly CategoryLimit[];
+    readonly mode: "merge" | "replace";
+    readonly totalBudget?: string;
+  },
+): Promise<MergeBudgetsResult & { readonly username: string }> {
+  const { userId, yearMonth, categories, mode } = input;
+  return db.transaction(async (tx) => {
+    const [user] = await tx
+      .select({
+        username: users.username,
+        monthlyBudget: users.monthlyBudget,
+        isActive: users.isActive,
+      })
+      .from(users)
+      .where(eq(users.userId, userId))
+      .for("update");
+    if (user === undefined) throw new AppError("AUTH_USER_NOT_FOUND", "用户不存在");
+    if (user.isActive === false) throw new AppError("AUTH_USER_DISABLED", "账户已被禁用");
+    const totalBudget = input.totalBudget ?? user.monthlyBudget ?? "0";
+    if (parseCents(totalBudget) <= 0n) {
+      throw new AppError(
+        "BUDGET_TOTAL_NOT_SET",
+        "尚未设置月度总预算，请先在 /users/set_budget 中设定",
+      );
+    }
+
+    const existing = mode === "merge" ? await listMonthBudgets(tx, userId, yearMonth) : [];
+    const result = mergeAndValidateBudgets({ existing, incoming: categories, totalBudget });
+    if (!result.isValid) {
+      const detail =
+        mode === "replace"
+          ? `子类预算合计 ${result.mergedTotal} 超出总预算 ${result.totalBudget}，请调整后重试`
+          : result.message;
+      throw new AppError("BUDGET_OVER_ALLOCATED", detail);
+    }
+
+    if (mode === "replace") {
+      await replaceMonthBudgets(tx, userId, yearMonth, result.merged);
+    } else if (categories.length > 0) {
+      await upsertMonthBudgets(tx, userId, yearMonth, result.merged);
+    }
+    if (input.totalBudget !== undefined) {
+      await updateMonthlyBudget(tx, userId, result.totalBudget);
+    }
+    return { ...result, username: user.username };
+  });
 }

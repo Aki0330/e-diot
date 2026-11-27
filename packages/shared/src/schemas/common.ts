@@ -18,15 +18,20 @@ export const moneySchema = z.coerce
   .number()
   .refine((value) => Number.isFinite(value), "金额必须是有限数字");
 
-export const positiveMoneySchema = moneySchema.refine((value) => value > 0, "金额必须大于 0");
+// numeric(12,2) 最多容纳 9,999,999,999.99 元，按分舍入后仍须满足列约束。
+export const positiveMoneyNumberSchema = z
+  .number()
+  .min(0.005, "金额按分舍入后必须大于 0")
+  .lt(9_999_999_999.995, "金额超过数据库允许的最大额度");
+export const positiveMoneySchema = z.coerce.number().pipe(positiveMoneyNumberSchema);
 
 export const nonNegativeMoneySchema = moneySchema.refine((value) => value >= 0, "金额不能为负");
 
-/** 分类名，与旧 `min_length=1, max_length=100` 一致（不 trim，避免改变重复判定语义） */
+/** budgets.category 为 varchar(50)，不 trim 以保留重复判定语义。 */
 export const categorySchema = z
   .string()
   .min(1, "分类名称不能为空")
-  .max(100, "分类名称最长 100 个字符");
+  .refine((value) => [...value].length <= 50, "分类名称最长 50 个字符");
 
 /** UTC 口径的 `YYYY-MM`（方案 5.8：当日/当月一律 UTC） */
 export function formatYearMonthUtc(date: Date = new Date()): string {

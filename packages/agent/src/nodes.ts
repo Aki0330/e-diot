@@ -3,13 +3,14 @@ import {
   insertTransaction,
   isOverBudget,
   listMonthBudgets,
-  mergeAndValidateBudgets,
+  saveCategoryBudgets,
   sumAmountSince,
-  upsertMonthBudgets,
+  type MergeBudgetsResult,
   type Executor,
 } from "@cyberbudget/db";
 import {
   ALL_CATEGORY,
+  AppError,
   centsToNumber,
   formatCents,
   formatYearMonthUtc,
@@ -66,7 +67,7 @@ export interface NodeOptions {
   readonly memories?: readonly MemoryContext[];
 }
 
-/** Node 1：LLM 解析意图；失败时保留兜底文案，流程继续（与旧图一致） */
+/** Node 1：LLM 解析意图；解析失败时返回原有兜底文案。 */
 export async function parseIntentNode(
   state: AgentState,
   llm: LlmClient,
@@ -180,35 +181,30 @@ export async function writeBudgetNode(state: AgentState, db: Executor): Promise<
   }
 
   const userId = state.user_id ?? "";
-  const now = new Date();
-  const yearMonth = formatYearMonthUtc(now);
-
-  const user = await findUserById(db, userId);
-  const totalBudget = user?.monthlyBudget ?? "0";
-  if (parseCents(totalBudget) <= 0n) {
-    return {
-      ...state,
-      budget_allocation_written: false,
-      budget_validation_error: FALLBACK_NO_TOTAL_BUDGET,
-      response: FALLBACK_NO_TOTAL_BUDGET,
-    };
+  let result: MergeBudgetsResult;
+  try {
+    result = await saveCategoryBudgets(db, {
+      userId,
+      yearMonth: formatYearMonthUtc(),
+      mode: "merge",
+      categories: allocations.categories.map((item) => ({
+        category: item.category,
+        monthlyLimit: item.monthly_limit,
+      })),
+    });
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    if (error.code === "BUDGET_TOTAL_NOT_SET" || error.code === "AUTH_USER_NOT_FOUND") {
+      return {
+        ...state,
+        budget_allocation_written: false,
+        budget_validation_error: FALLBACK_NO_TOTAL_BUDGET,
+        response: FALLBACK_NO_TOTAL_BUDGET,
+      };
+    }
+    if (error.code !== "BUDGET_OVER_ALLOCATED") throw error;
+    return { ...state, budget_allocation_written: false, budget_validation_error: error.message };
   }
-
-  const existing = await listMonthBudgets(db, userId, yearMonth);
-  const result = mergeAndValidateBudgets({
-    existing,
-    incoming: allocations.categories.map((item) => ({
-      category: item.category,
-      monthlyLimit: item.monthly_limit,
-    })),
-    totalBudget,
-  });
-
-  if (!result.isValid) {
-    return { ...state, budget_allocation_written: false, budget_validation_error: result.message };
-  }
-
-  await upsertMonthBudgets(db, userId, yearMonth, result.merged);
 
   // 回填 merge 后的完整列表（旧实现也会写回 intent，供回复节点列出全部分类）
   const merged = {
@@ -235,6 +231,15 @@ export async function generateResponseNode(
 ): Promise<AgentState> {
   const intent = state.intent;
   const budget = state.budget_status;
+  if (state.budget_validation_error) {
+    return { ...state, response: state.budget_validation_error };
+  }
+  if (
+    (intent?.intent_type === "add_transaction" && !state.transaction_written) ||
+    (intent?.intent_type === "set_category_budget" && !state.budget_allocation_written)
+  ) {
+    return { ...state, response: FALLBACK_PARSE_ERROR };
+  }
   const contextParts = [`用户输入: ${state.user_input ?? ""}`];
 
   if (
@@ -258,10 +263,6 @@ export async function generateResponseNode(
       .map((item) => `${item.category}=${item.monthly_limit}元`)
       .join(", ");
     contextParts.push(`已写入分类预算: ${details}, 合计=${allocations.total_allocated}元`);
-  }
-
-  if (state.budget_validation_error) {
-    contextParts.push(`预算校验失败: ${state.budget_validation_error}`);
   }
 
   if (budget && shouldMentionBudget(state)) {
@@ -299,7 +300,10 @@ export async function generateResponseNode(
   } catch (error) {
     return {
       ...state,
-      response: formatTemplate(FALLBACK_RESPONSE_ERROR, { error: errorMessage(error) }),
+      response:
+        state.transaction_written || state.budget_allocation_written
+          ? formatTemplate(FALLBACK_RESPONSE_ERROR, { error: errorMessage(error) })
+          : "暂时无法生成回复，请稍后重试。",
     };
   }
 }

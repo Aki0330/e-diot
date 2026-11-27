@@ -134,15 +134,39 @@ export function MemoryPage({ active }: MemoryPageProps) {
   const pending = memories.filter((memory) => memory.status === "pending");
   const activeList = memories.filter((memory) => memory.status === "active");
 
+  function renderEditor(id: string) {
+    if (editingId !== id) return null;
+    return (
+      <form
+        className="memory-edit"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void saveEdit(id);
+        }}
+      >
+        <input
+          aria-label="修改记忆内容"
+          value={editingText}
+          onChange={(event) => setEditingText(event.target.value)}
+          maxLength={500}
+          autoFocus
+        />
+        <button className="memory-btn" type="submit">
+          保存
+        </button>
+        <button className="memory-btn" type="button" onClick={() => setEditingId(null)}>
+          取消
+        </button>
+      </form>
+    );
+  }
+
   return (
     <div className="page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">MEMORY · 可控的长期记忆</p>
           <h2 className="page-title">我的记忆</h2>
-          <p className="page-desc">
-            它记住的，都会交还给你：每条记忆可查看来源、纠正错误、彻底删除。
-          </p>
+          <p className="page-desc">管理记账助手在对话中使用的偏好、习惯和目标。</p>
         </div>
         <span className="badge ink">
           {activeList.length} 条生效 · {pending.length} 条待确认
@@ -158,6 +182,7 @@ export function MemoryPage({ active }: MemoryPageProps) {
         </div>
         <div className="memory-form">
           <select
+            aria-label="记忆类型"
             value={newType}
             onChange={(event) => setNewType(event.target.value as MemoryType)}
           >
@@ -168,6 +193,7 @@ export function MemoryPage({ active }: MemoryPageProps) {
             ))}
           </select>
           <input
+            aria-label="新记忆内容"
             value={newContent}
             onChange={(event) => setNewContent(event.target.value)}
             placeholder="例如：喜欢奶茶，通常点少糖"
@@ -198,6 +224,7 @@ export function MemoryPage({ active }: MemoryPageProps) {
                     <span>{SOURCE_LABEL[memory.source]}</span>
                     <span>{fmtDateTime(memory.updated_at)}</span>
                   </div>
+                  {renderEditor(memory.id)}
                 </div>
                 <div className="memory-actions">
                   <button
@@ -246,25 +273,11 @@ export function MemoryPage({ active }: MemoryPageProps) {
                     <span>更新于 {fmtDateTime(memory.updated_at)}</span>
                   </div>
 
-                  {editingId === memory.id ? (
-                    <div className="memory-edit">
-                      <input
-                        value={editingText}
-                        onChange={(event) => setEditingText(event.target.value)}
-                        maxLength={500}
-                      />
-                      <button className="memory-btn" onClick={() => void saveEdit(memory.id)}>
-                        保存
-                      </button>
-                      <button className="memory-btn" onClick={() => setEditingId(null)}>
-                        取消
-                      </button>
-                    </div>
-                  ) : null}
+                  {renderEditor(memory.id)}
 
                   {basisFor === memory.id && basis !== null && (
                     <div className="memory-basis">
-                      <span className="k">依据 / BASIS</span>
+                      <span className="k">记忆来源</span>
                       {basis.note !== null && <div>{basis.note}</div>}
                       {basis.transaction !== null && (
                         <div>

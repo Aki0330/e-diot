@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { positiveMoneySchema } from "./common.js";
+
 /**
  * 认证相关请求/响应（对应旧 `backend/schemas/auth.py`）。
  *
@@ -57,7 +59,13 @@ export const refreshRequestSchema = z.object({
 export type RefreshRequest = z.infer<typeof refreshRequestSchema>;
 
 export const setBudgetRequestSchema = z.object({
-  budget: z.coerce.number().refine((value) => value >= 0, "月度预算不能为负"),
+  budget: z.coerce
+    .number()
+    .nonnegative("月度预算不能为负")
+    .refine(
+      (value) => value === 0 || positiveMoneySchema.safeParse(value).success,
+      "月度预算超出可存储范围",
+    ),
 });
 
 export type SetBudgetRequest = z.infer<typeof setBudgetRequestSchema>;

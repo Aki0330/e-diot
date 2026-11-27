@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { centsToNumber, formatCents, parseCents } from "../money.js";
 import { categorySchema, positiveMoneySchema, yearMonthSchema } from "./common.js";
 
 /**
@@ -48,7 +49,8 @@ export const budgetResponseSchema = z.object({
   user_id: z.string(),
   year_month: z.string(),
   total_budget: z.number(),
-  categories: z.array(categoryBudgetItemSchema),
+  // 旧版本允许小于半分的输入，数据库中可能已有舍入为零的分类。
+  categories: z.array(categoryBudgetItemSchema.extend({ monthly_limit: z.number().nonnegative() })),
   total_allocated: z.number(),
   remaining_unallocated: z.number(),
   is_valid: z.boolean(),
@@ -75,11 +77,13 @@ export function validateCategoryBudgets(
   categories: readonly CategoryBudgetLike[],
   totalBudget: number,
 ): BudgetValidation {
-  const totalAllocated = categories.reduce((sum, item) => sum + item.monthly_limit, 0);
-  if (totalAllocated > totalBudget) {
+  const allocated = categories.reduce((sum, item) => sum + parseCents(item.monthly_limit), 0n);
+  const total = parseCents(totalBudget);
+  const totalAllocated = centsToNumber(allocated);
+  if (allocated > total) {
     return {
       isValid: false,
-      message: `子类预算合计 ${totalAllocated.toFixed(2)} 超出总预算 ${totalBudget.toFixed(2)}，请调整后重试`,
+      message: `子类预算合计 ${formatCents(allocated)} 超出总预算 ${formatCents(total)}，请调整后重试`,
       totalAllocated,
     };
   }

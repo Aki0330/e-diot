@@ -15,8 +15,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { LlmClient } from "./llm/client.js";
 import { stripMarkdownFence } from "./llm/intent.js";
+import { generateResponseNode } from "./nodes.js";
 import { deriveGraphPath, runAgentWithTrace } from "./pipeline.js";
-import { FALLBACK_NO_TOTAL_BUDGET, FALLBACK_OVERSPEND_TEMPLATE } from "./prompts.js";
+import {
+  FALLBACK_NO_TOTAL_BUDGET,
+  FALLBACK_OVERSPEND_TEMPLATE,
+  FALLBACK_PARSE_ERROR,
+} from "./prompts.js";
 
 const connectionString = process.env["TEST_DATABASE_URL"];
 const enabled = connectionString !== undefined && connectionString !== "";
@@ -241,6 +246,7 @@ describe.skipIf(!enabled)("Agent 流水线（集成测试）", () => {
 
     expect(trace.graphPath).toBe("parse_intent→write_budget(validation_failed)→generate_response");
     expect(String(trace.executionData.budget_validation_error)).toContain("超出总预算");
+    expect(trace.response).toBe(trace.executionData.budget_validation_error);
 
     const yearMonth = new Date().toISOString().slice(0, 7);
     expect(await listMonthBudgets(db, userId, yearMonth)).toEqual([]);
@@ -266,20 +272,7 @@ describe.skipIf(!enabled)("Agent 流水线（集成测试）", () => {
 
     expect(trace.graphPath).toBe("parse_intent→write_budget(validation_failed)→generate_response");
     expect(trace.executionData.budget_validation_error).toBe(FALLBACK_NO_TOTAL_BUDGET);
-  });
-
-  it("意图解析失败：graph_path 为 parse_intent→error，走兜底回复", async () => {
-    const userId = await createTestUser("5000.00");
-
-    const trace = await runAgentWithTrace(
-      { db, llm: fakeLlm("这不是 JSON") },
-      userId,
-      "随便说点什么",
-    );
-
-    expect(trace.intentType).toBeNull();
-    expect(trace.graphPath).toBe("parse_intent→error");
-    expect(trace.response).toBe("好的，已记录 ✅");
+    expect(trace.response).toBe(FALLBACK_NO_TOTAL_BUDGET);
   });
 
   it("回复生成失败时用兜底文案", async () => {
@@ -308,6 +301,33 @@ describe.skipIf(!enabled)("Agent 流水线（集成测试）", () => {
     expect(adviceTrace.response).toBe(
       FALLBACK_OVERSPEND_TEMPLATE.replace("{category}", "餐饮").replace("{over_amount}", "15"),
     );
+  });
+});
+
+it("意图解析失败时直接返回兜底回复，不访问账本", async () => {
+  const pool = new pg.Pool();
+  const db = createDatabase(pool);
+  // 关闭空池后，任何意外读写都会使本用例失败。
+  await pool.end();
+  const trace = await runAgentWithTrace({ db, llm: fakeLlm("这不是 JSON") }, "u", "随便说点什么");
+  expect(trace.intentType).toBeNull();
+  expect(trace.graphPath).toBe("parse_intent→error");
+  expect(trace.response).toBe(FALLBACK_PARSE_ERROR);
+  expect(trace.state.transaction_written).toBe(false);
+});
+
+describe("没有写入时的回复", () => {
+  it.each(["chat", "query_budget"] as const)("%s 生成失败时提示重试", async (intent_type) => {
+    const result = await generateResponseNode({ intent: { intent_type } }, failingReplyLlm({}));
+    expect(result.response).toBe("暂时无法生成回复，请稍后重试。");
+  });
+
+  it("缺少交易数据时要求澄清，即使模型会回复成功", async () => {
+    const result = await generateResponseNode(
+      { intent: { intent_type: "add_transaction", transaction: null }, transaction_written: false },
+      fakeLlm({}),
+    );
+    expect(result.response).toBe(FALLBACK_PARSE_ERROR);
   });
 });
 

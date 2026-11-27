@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { moneySum } from "@cyberbudget/shared/money";
 
 import { api } from "../api/client.js";
 import type { TransactionDto } from "../api/types.js";
 import { Modal } from "../components/Modal.js";
 import { useToast } from "../components/Toast.js";
-import { catEmoji, fmt } from "../utils/format.js";
+import { catEmoji } from "../utils/format.js";
+import { ledgerAmount as fmt, ledgerCents } from "../utils/ledger.js";
 
 export interface TransactionsPageProps {
   readonly active: boolean;
@@ -19,6 +21,10 @@ interface RangeFilter {
 }
 
 const EMPTY_FILTER: RangeFilter = { from: "", to: "", min: "", max: "" };
+
+function sumTransactions(items: readonly TransactionDto[], type: "EXPENSE" | "INCOME") {
+  return moneySum(items.filter((txn) => txn.type === type).map((txn) => txn.amount));
+}
 
 interface TxForm {
   readonly type: "EXPENSE" | "INCOME";
@@ -84,8 +90,13 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
     time: toLocalInput(null),
   });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const lastRequest = useRef(0);
 
   const load = useCallback(async (): Promise<void> => {
+    const request = ++lastRequest.current;
+    setLoading(true);
+    setError(null);
     try {
       const response = await api.transactions({
         limit: 100,
@@ -94,10 +105,12 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
         ...(applied.min === "" ? {} : { minAmount: applied.min }),
         ...(applied.max === "" ? {} : { maxAmount: applied.max }),
       });
-      setTransactions(response.transactions);
-      setError(null);
+      if (request === lastRequest.current) setTransactions(response.transactions);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      if (request === lastRequest.current)
+        setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      if (request === lastRequest.current) setLoading(false);
     }
   }, [applied]);
 
@@ -120,6 +133,14 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
         String(txn.amount).includes(kw))
     );
   });
+  const hasFilters =
+    keyword.trim() !== "" || category !== "全部" || Object.values(applied).some(Boolean);
+  function resetFilters(): void {
+    setKeyword("");
+    setCategory("全部");
+    setDraft(EMPTY_FILTER);
+    setApplied(EMPTY_FILTER);
+  }
 
   const groups: { key: string; items: TransactionDto[] }[] = [];
   filtered.forEach((txn) => {
@@ -129,12 +150,8 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
     else groups.push({ key, items: [txn] });
   });
 
-  const totalExpense = filtered
-    .filter((txn) => txn.type === "EXPENSE")
-    .reduce((sum, txn) => sum + txn.amount, 0);
-  const totalIncome = filtered
-    .filter((txn) => txn.type === "INCOME")
-    .reduce((sum, txn) => sum + txn.amount, 0);
+  const totalExpense = sumTransactions(filtered, "EXPENSE");
+  const totalIncome = sumTransactions(filtered, "INCOME");
 
   const openCreate = (): void => {
     setEditing(null);
@@ -195,16 +212,15 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
   };
 
   return (
-    <div className="page">
+    <div className="page ledger-page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">TRANSACTIONS · 全部流水</p>
           <h2 className="page-title">账单</h2>
-          <p className="page-desc">支持手动记账与错账处理；任何一笔都能回到原始备注。</p>
+          <p className="ledger-period">统计当前列表中的收支，最多显示 100 笔。</p>
         </div>
         <div className="head-side">
           <button className="btn-primary" onClick={openCreate}>
-            ＋ 新增账单
+            新增账单
           </button>
         </div>
       </div>
@@ -213,21 +229,21 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
         <div className="bill-stat">
           <div className="k">筛选支出</div>
           <div className="v num">
-            ¥{fmt(totalExpense)}
+            ¥{ledgerCents(totalExpense)}
             <small>{filtered.filter((t) => t.type === "EXPENSE").length} 笔</small>
           </div>
         </div>
         <div className="bill-stat income">
           <div className="k">筛选收入</div>
           <div className="v num">
-            +¥{fmt(totalIncome)}
+            +¥{ledgerCents(totalIncome)}
             <small>{filtered.filter((t) => t.type === "INCOME").length} 笔</small>
           </div>
         </div>
         <div className="bill-stat">
           <div className="k">结余</div>
           <div className="v num">
-            ¥{fmt(totalIncome - totalExpense)}
+            ¥{ledgerCents(totalIncome - totalExpense)}
             <small>收入 − 支出</small>
           </div>
         </div>
@@ -235,9 +251,9 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
 
       <div className="filters">
         <div className="filters-top">
-          <label className="search">
-            <span>🔎</span>
+          <div className="search">
             <input
+              type="search"
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
               placeholder="搜索分类、备注或金额"
@@ -248,15 +264,24 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
                 清除
               </button>
             )}
-          </label>
-          <span className="badge ink">{filtered.length} 条结果</span>
+          </div>
+          <span className="ledger-count" aria-live="polite">
+            {loading ? "正在加载" : `${filtered.length} 笔`}
+          </span>
         </div>
 
-        <div className="filter-grid">
+        <form
+          className="filter-grid"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setApplied({ ...draft });
+          }}
+        >
           <label>
             开始日期
             <input
               type="date"
+              max={draft.to || undefined}
               value={draft.from}
               onChange={(event) => setDraft({ ...draft, from: event.target.value })}
             />
@@ -265,6 +290,7 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             结束日期
             <input
               type="date"
+              min={draft.from || undefined}
               value={draft.to}
               onChange={(event) => setDraft({ ...draft, to: event.target.value })}
             />
@@ -274,6 +300,7 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             <input
               type="number"
               min="0"
+              max={draft.max || undefined}
               step="0.01"
               placeholder="0"
               value={draft.min}
@@ -284,7 +311,7 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             最高金额
             <input
               type="number"
-              min="0"
+              min={draft.min || "0"}
               step="0.01"
               placeholder="不限"
               value={draft.max}
@@ -292,27 +319,21 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             />
           </label>
           <div className="filter-actions">
-            <button className="btn-primary" type="button" onClick={() => setApplied({ ...draft })}>
+            <button className="btn-primary" type="submit">
               应用筛选
             </button>
-            <button
-              className="memory-btn"
-              type="button"
-              onClick={() => {
-                setDraft(EMPTY_FILTER);
-                setApplied(EMPTY_FILTER);
-              }}
-            >
+            <button className="memory-btn" type="button" onClick={resetFilters}>
               重置
             </button>
           </div>
-        </div>
+        </form>
 
         <div className="cat-filter">
           {categories.map((name) => (
             <button
               key={name}
               type="button"
+              aria-pressed={category === name}
               className={`chip${category === name ? " on" : ""}`}
               onClick={() => setCategory(name)}
             >
@@ -327,35 +348,33 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
         </div>
       </div>
 
-      {error !== null && <p className="profile-hint error">{error}</p>}
-
-      {groups.length === 0 ? (
+      {error !== null ? (
         <div className="empty">
-          <div className="empty-icon">🔍</div>
-          <div className="empty-title">没有符合条件的记录</div>
-          <p className="empty-desc">调整日期/金额范围，或清除筛选看全部流水。</p>
+          <p role="alert">{error}</p>
+          <button className="btn-secondary" onClick={() => void load()}>
+            重新加载
+          </button>
+        </div>
+      ) : loading ? (
+        <p className="ledger-empty" role="status">
+          正在加载账单…
+        </p>
+      ) : groups.length === 0 ? (
+        <div className="empty">
+          <div className="empty-title">{hasFilters ? "没有符合条件的记录" : "还没有账单"}</div>
           <button
             className="btn-secondary"
             type="button"
-            onClick={() => {
-              setKeyword("");
-              setCategory("全部");
-              setDraft(EMPTY_FILTER);
-              setApplied(EMPTY_FILTER);
-            }}
+            onClick={hasFilters ? resetFilters : openCreate}
           >
-            清除筛选
+            {hasFilters ? "清除筛选" : "记第一笔账"}
           </button>
         </div>
       ) : (
         <div className="groups">
           {groups.map((group) => {
-            const dayExpense = group.items
-              .filter((txn) => txn.type === "EXPENSE")
-              .reduce((sum, txn) => sum + txn.amount, 0);
-            const dayIncome = group.items
-              .filter((txn) => txn.type === "INCOME")
-              .reduce((sum, txn) => sum + txn.amount, 0);
+            const dayExpense = sumTransactions(group.items, "EXPENSE");
+            const dayIncome = sumTransactions(group.items, "INCOME");
             return (
               <section className="daygroup" key={group.key}>
                 <div className="day-head">
@@ -365,9 +384,8 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
                     <span className="badge ink tiny">{group.items.length} 笔</span>
                   </div>
                   <span className="day-total">
-                    {dayIncome > 0
-                      ? `当日收入 +¥${fmt(dayIncome)}`
-                      : `当日支出 ¥${fmt(dayExpense)}`}
+                    {dayExpense > 0n && <span>支出 ¥{ledgerCents(dayExpense)}</span>}
+                    {dayIncome > 0n && <span>收入 ¥{ledgerCents(dayIncome)}</span>}
                   </span>
                 </div>
 
@@ -401,7 +419,8 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
                       {open && (
                         <div className="trow-detail">
                           <div className="detail-quote">
-                            <span className="q-k">原始备注 / NOTE</span>“{txn.note ?? "（无备注）"}”
+                            <span className="q-k">备注</span>
+                            {txn.note ?? "无备注"}
                           </div>
                           <div className="detail-grid">
                             <div className="detail-cell">
@@ -422,10 +441,6 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
                                 {labelOf(keyOf(txn.transaction_time))}{" "}
                                 {timeOf(txn.transaction_time)}
                               </div>
-                            </div>
-                            <div className="detail-cell">
-                              <div className="k">录入方式</div>
-                              <div className="v">手动 / 自然语言</div>
                             </div>
                           </div>
                           <div className="tx-actions">
@@ -455,8 +470,9 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
           confirmLabel={editing === null ? "保存账单" : "保存修改"}
         >
           <div className="form-group">
-            <label>类型</label>
+            <label htmlFor="tx-kind">类型</label>
             <select
+              id="tx-kind"
               value={form.type}
               onChange={(event) =>
                 setForm({ ...form, type: event.target.value as "EXPENSE" | "INCOME" })
@@ -467,8 +483,9 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             </select>
           </div>
           <div className="form-group">
-            <label>金额</label>
+            <label htmlFor="tx-amount">金额（元）</label>
             <input
+              id="tx-amount"
               type="number"
               min="0"
               step="0.01"
@@ -478,8 +495,9 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             />
           </div>
           <div className="form-group">
-            <label>分类</label>
+            <label htmlFor="tx-category">分类</label>
             <input
+              id="tx-category"
               list="tx-categories"
               placeholder="如 餐饮"
               value={form.category}
@@ -494,16 +512,18 @@ export function TransactionsPage({ active, refreshKey }: TransactionsPageProps) 
             </datalist>
           </div>
           <div className="form-group">
-            <label>备注</label>
+            <label htmlFor="tx-note">备注</label>
             <input
+              id="tx-note"
               placeholder="可选"
               value={form.note}
               onChange={(event) => setForm({ ...form, note: event.target.value })}
             />
           </div>
           <div className="form-group">
-            <label>时间</label>
+            <label htmlFor="tx-time">时间</label>
             <input
+              id="tx-time"
               type="datetime-local"
               value={form.time}
               onChange={(event) => setForm({ ...form, time: event.target.value })}

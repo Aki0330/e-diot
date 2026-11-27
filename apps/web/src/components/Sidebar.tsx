@@ -1,6 +1,7 @@
 import type { UserProfile } from "../api/types.js";
 import { TABS, type Tab } from "../tabs.js";
-import { fmt } from "../utils/format.js";
+import { ledgerAmount } from "../utils/ledger.js";
+import { LedgerBrand } from "./Topbar.js";
 
 export interface SidebarProps {
   readonly tab: Tab;
@@ -9,62 +10,43 @@ export interface SidebarProps {
   readonly onLogout: () => void;
 }
 
-/** 桌面端左侧导航（移动端由 CSS 隐藏，改用底部 Tab） */
 export function Sidebar({ tab, user, onNavigate, onLogout }: SidebarProps) {
   return (
-    <aside className="sidebar" aria-label="侧边导航">
-      <div className="side-brand">
-        <span className="brand-mark">💸</span>
-        <div>
-          <div className="brand-name">
-            e-diot<span className="brand-cn">智账</span>
-          </div>
-          <div className="brand-sub">RECORDING YOUR LIVES</div>
-        </div>
-      </div>
+    <aside className="sidebar">
+      <LedgerBrand />
 
-      <nav className="side-nav">
-        <div className="side-nav-label">E-DIOT</div>
+      <nav className="side-nav" aria-label="主导航">
         {TABS.map((item) => (
           <button
             key={item.id}
             type="button"
-            className={`side-item${tab === item.id ? " active" : ""}`}
+            className="side-item"
             onClick={() => onNavigate(item.id)}
             aria-current={tab === item.id ? "page" : undefined}
           >
-            <span className="side-icon">{item.icon}</span>
-            <span className="side-main">
-              <span className="side-label">{item.label}</span>
-              <span className="side-mono">{item.mono}</span>
-            </span>
+            <span className={`ledger-icon icon-${item.id}`} aria-hidden="true" />
+            {item.label}
           </button>
         ))}
       </nav>
 
       <div className="side-foot">
-        <div className="side-user">
-          <div className="side-avatar">{user.username.slice(0, 1).toUpperCase()}</div>
-          <div>
-            <div className="side-user-name">{user.username}</div>
-            <div className="side-user-meta">MONTHLY · ¥{fmt(user.budget)}</div>
-          </div>
-        </div>
-        <button type="button" className="side-logout" onClick={onLogout}>
-          退出登录
-        </button>
         <a className="side-preview" href="/m">
-          📱 移动端预览
+          移动端预览 <span aria-hidden="true">↗</span>
         </a>
-        <div className="side-legend">
-          <span>
-            <i className="dot lime" />
-            在线 · 数据已连接
+        <div className="side-user">
+          <span className="side-avatar" aria-hidden="true">
+            {Array.from(user.username)[0]}
           </span>
-          <span>
-            <i className="dot demo" />
-            e-diot v1.0
-          </span>
+          <div className="side-account">
+            <div className="side-user-name" title={user.username}>
+              {user.username}
+            </div>
+            <div className="side-budget">月预算 ¥{ledgerAmount(user.budget)}</div>
+          </div>
+          <button type="button" className="side-logout" aria-label="退出登录" onClick={onLogout}>
+            退出
+          </button>
         </div>
       </div>
     </aside>

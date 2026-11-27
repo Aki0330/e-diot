@@ -25,6 +25,11 @@ describe("crossedThresholds", () => {
     expect(crossedThresholds(79, 81, 100)).toEqual([80]);
   });
 
+  it("以分精确到达 80% 时提醒，下一笔不重复提醒", () => {
+    expect(crossedThresholds(8, 8.04, 10.05)).toEqual([80]);
+    expect(crossedThresholds(8.04, 8.05, 10.05)).toEqual([]);
+  });
+
   it("一次跨过多条线时全部返回", () => {
     expect(crossedThresholds(0, 120, 100)).toEqual([...BUDGET_THRESHOLDS]);
   });

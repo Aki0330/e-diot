@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     // 测试直接跑源码，避免必须先 pnpm build 才能跑单测
     alias: {
+      "@cyberbudget/shared/money": fromRoot("./packages/shared/src/money.ts"),
       "@cyberbudget/shared": fromRoot("./packages/shared/src/index.ts"),
     },
   },

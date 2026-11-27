@@ -1,11 +1,15 @@
 import { randomInt } from "node:crypto";
 
-import { insertTransaction, insertUser } from "@cyberbudget/db";
+import { parseBudgetAllocations } from "@cyberbudget/agent";
+import { insertTransaction, insertUser, listMonthBudgets, listTransactions } from "@cyberbudget/db";
 import {
+  formatYearMonthUtc,
   generateUserId,
   parseConfig,
   type AppConfig,
+  type BudgetResponse,
   type DashboardResponse,
+  type ErrorBody,
   type SessionDetailResponse,
   type SessionListResponse,
   type TokenResponse,
@@ -46,7 +50,13 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
       },
       { repoRoot: process.cwd() },
     );
-    app = buildServer(config, { agent: createPlaceholderAgent() });
+    app = buildServer(config, {
+      agent: {
+        ...createPlaceholderAgent(),
+        parseBudget: (_userId, message) =>
+          parseBudgetAllocations({ complete: () => Promise.resolve(message) }, message),
+      },
+    });
     await app.ready();
   });
 
@@ -179,6 +189,67 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(body.remaining_unallocated).toBe(2500);
   });
 
+  it("AI 预算拒绝记账意图，超额返回 422，成功时保留已有分类", async () => {
+    const assign = (intent: object) =>
+      app.inject({
+        method: "POST",
+        url: "/api/v1/budget/agent",
+        headers: auth(),
+        payload: { user_input: JSON.stringify(intent) },
+      });
+    const expense = await assign({
+      intent_type: "add_transaction",
+      transaction: { transaction_type: "expense", category: "餐饮", amount: 20 },
+    });
+    expect(expense.statusCode).toBe(422);
+    expect(expense.json()).toMatchObject({
+      code: "UNPROCESSABLE_ENTITY",
+      detail: "请输入要分配预算的分类及额度。",
+    });
+    expect(await listTransactions(app.db, { userId })).toHaveLength(0);
+
+    const allocation = (amount: number) => ({
+      intent_type: "set_category_budget",
+      budget_allocations: {
+        categories: [{ category: "交通", monthly_limit: amount }],
+        total_allocated: amount,
+      },
+    });
+    const over = await assign(allocation(4000));
+    expect(over.statusCode).toBe(422);
+    const error = over.json<ErrorBody>();
+    expect(error.code).toBe("BUDGET_OVER_ALLOCATED");
+    expect(error.detail).toContain("超出");
+    expect(await listMonthBudgets(app.db, userId, formatYearMonthUtc())).toContainEqual({
+      category: "交通",
+      monthlyLimit: "500.00",
+    });
+    const saved = await assign(allocation(600));
+    expect(saved.statusCode).toBe(200);
+    const budget = saved.json<BudgetResponse>();
+    expect(budget.total_budget).toBe(5000);
+    expect(budget.total_allocated).toBe(2600);
+    expect(budget.categories).toContainEqual({ category: "餐饮", monthly_limit: 2000 });
+    expect(budget.categories).toContainEqual({ category: "交通", monthly_limit: 600 });
+  });
+
+  it("手动预算先拒绝舍入到零的额度，保留当月原分配", async () => {
+    const save = (category: string, monthlyLimit: number) =>
+      app.inject({
+        method: "POST",
+        url: "/api/v1/budget/manual",
+        headers: auth(),
+        payload: { year_month: "2090-01", categories: [{ category, monthly_limit: monthlyLimit }] },
+      });
+    expect((await save("原分配", 30)).statusCode).toBe(200);
+    const rejected = await save("替换分配", 0.001);
+    expect(rejected.statusCode).toBe(400);
+    expect(rejected.json<{ code: string }>().code).toBe("BAD_REQUEST");
+    expect(await listMonthBudgets(app.db, userId, "2090-01")).toEqual([
+      { category: "原分配", monthlyLimit: "30.00" },
+    ]);
+  });
+
   it("总预算为 0 时手动预算返回 400", async () => {
     await app.inject({
       method: "POST",
@@ -290,6 +361,8 @@ describe.skipIf(!enabled)("API 集成测试（P2）", () => {
     expect(body.total_spent).toBe(120.5);
     expect(body.total_income).toBe(3000);
     expect(body.remaining).toBe(4879.5);
+    expect(body.activity.expense_count).toBe(1);
+    expect(body.activity.seven_day_spent).toBe(120.5);
 
     const food = body.categories.find((item) => item.category === "餐饮");
     expect(food).toEqual({ category: "餐饮", spent: 120.5, budget: 2000, percentage: 6 });

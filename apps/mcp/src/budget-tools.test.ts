@@ -103,4 +103,15 @@ describe.skipIf(!enabled)("MCP 预算工具（集成）", () => {
     });
     expect(textOf(result)).toContain("user_id");
   });
+
+  it("拒绝超分配时保留之前的总额和全部分类", async () => {
+    const client = await connect(userId);
+    const before = textOf(await client.callTool({ name: "get_budget", arguments: {} }));
+    const rejected = await client.callTool({
+      name: "set_budget",
+      arguments: { total_budget: 900, categories: [{ category: "超额分类", monthly_limit: 901 }] },
+    });
+    expect(textOf(rejected)).toContain("❌ 预算未更新");
+    expect(textOf(await client.callTool({ name: "get_budget", arguments: {} }))).toBe(before);
+  });
 });

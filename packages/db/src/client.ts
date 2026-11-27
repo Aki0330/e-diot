@@ -24,10 +24,16 @@ export interface DatabaseHandle {
 }
 
 export function createPool(config: AppConfig): Pool {
+  let connectionString = config.db.url;
+  if (config.db.ssl) {
+    // pg 会用连接串中的 SSL 选项覆盖 Pool 选项。保留自定义 CA，同时要求校验证书和主机名。
+    const url = new URL(connectionString);
+    url.searchParams.set("sslmode", "verify-full");
+    connectionString = url.toString();
+  }
   return new Pool({
-    connectionString: config.db.url,
+    connectionString,
     max: config.db.poolMax,
-    ssl: config.db.ssl ? { rejectUnauthorized: false } : undefined,
   });
 }
 

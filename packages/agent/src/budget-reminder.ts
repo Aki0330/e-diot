@@ -1,4 +1,4 @@
-import type { AgentState } from "@cyberbudget/shared";
+import { parseCents, type AgentState, type Cents } from "@cyberbudget/shared";
 
 /** 预算提醒阈值：只在跨过这些线时主动提预算 */
 export const BUDGET_THRESHOLDS = [50, 80, 100] as const;
@@ -13,9 +13,12 @@ export interface BudgetCrossing {
   readonly label: string;
 }
 
-function percentOf(spent: number, limit: number): number {
-  if (limit <= 0) return 0;
-  return (spent / limit) * 100;
+function crossedCentThresholds(before: Cents, after: Cents, limit: Cents): BudgetThreshold[] {
+  if (limit <= 0n || after <= before) return [];
+  return BUDGET_THRESHOLDS.filter((threshold) => {
+    const boundary = limit * BigInt(threshold);
+    return before * 100n < boundary && after * 100n >= boundary;
+  });
 }
 
 /** 本次支出是否让使用率跨过某个阈值（严格从下方跨到 ≥ 阈值） */
@@ -24,10 +27,7 @@ export function crossedThresholds(
   spentAfter: number,
   limit: number,
 ): BudgetThreshold[] {
-  if (limit <= 0 || spentAfter <= spentBefore) return [];
-  const before = percentOf(spentBefore, limit);
-  const after = percentOf(spentAfter, limit);
-  return BUDGET_THRESHOLDS.filter((threshold) => before < threshold && after >= threshold);
+  return crossedCentThresholds(parseCents(spentBefore), parseCents(spentAfter), parseCents(limit));
 }
 
 /**
@@ -39,37 +39,21 @@ export function budgetCrossings(state: AgentState): BudgetCrossing[] {
   const transaction = state.intent?.transaction;
   if (!budget || !transaction || transaction.transaction_type !== "expense") return [];
 
-  const amount = Number(transaction.amount);
-  if (!Number.isFinite(amount) || amount <= 0) return [];
+  const amount = parseCents(transaction.amount);
+  if (amount <= 0n) return [];
 
   const crossings: BudgetCrossing[] = [];
 
-  if (budget.category_budget > 0) {
-    const current = budget.spent_this_month;
-    const previous = current - amount;
-    for (const threshold of crossedThresholds(previous, current, budget.category_budget)) {
-      crossings.push({
-        scope: "category",
-        threshold,
-        currentPercent: Math.round(percentOf(current, budget.category_budget)),
-        label: budget.category,
-      });
+  function collect(scope: BudgetScope, label: string, spent: number, budgetLimit: number): void {
+    const current = parseCents(spent);
+    const limit = parseCents(budgetLimit);
+    for (const threshold of crossedCentThresholds(current - amount, current, limit)) {
+      const currentPercent = Number((current * 200n + limit) / (2n * limit));
+      crossings.push({ scope, threshold, currentPercent, label });
     }
   }
-
-  if (budget.monthly_budget > 0) {
-    const current = budget.total_spent_this_month;
-    const previous = current - amount;
-    for (const threshold of crossedThresholds(previous, current, budget.monthly_budget)) {
-      crossings.push({
-        scope: "total",
-        threshold,
-        currentPercent: Math.round(percentOf(current, budget.monthly_budget)),
-        label: "总预算",
-      });
-    }
-  }
-
+  collect("category", budget.category, budget.spent_this_month, budget.category_budget);
+  collect("total", "总预算", budget.total_spent_this_month, budget.monthly_budget);
   return crossings;
 }
 

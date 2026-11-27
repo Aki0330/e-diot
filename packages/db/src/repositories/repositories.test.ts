@@ -5,6 +5,8 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createDatabase, type Database } from "../client.js";
+import { transactions } from "../schema/transactions.js";
+import { saveCategoryBudgets } from "../services/budget-merge.js";
 import * as budgetsRepo from "./budgets.js";
 import * as chatRepo from "./chat.js";
 import * as transactionsRepo from "./transactions.js";
@@ -147,6 +149,69 @@ describe.skipIf(!enabled)("repositories（集成测试）", () => {
     ]);
   });
 
+  it("并发 MERGE 仅提交总预算容许的一项分配", async () => {
+    await usersRepo.updateMonthlyBudget(db, userId, "100.00");
+    const month = "2099-01";
+    const writes = Array.from({ length: 6 }, (_, index) =>
+      saveCategoryBudgets(db, {
+        userId,
+        yearMonth: month,
+        categories: [{ category: `并发分类${index}`, monthlyLimit: "80.00" }],
+        mode: "merge",
+      }),
+    );
+    const results = await Promise.allSettled(writes);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    for (const result of results) {
+      if (result.status === "rejected")
+        expect(result.reason).toMatchObject({ code: "BUDGET_OVER_ALLOCATED" });
+    }
+    const rows = await budgetsRepo.listMonthBudgets(db, userId, month);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.monthlyLimit).toBe("80.00");
+  });
+
+  it("并发全量替换保留最后一次提交的单个分类", async () => {
+    const month = "2099-02";
+    await Promise.all(
+      Array.from({ length: 6 }, (_, index) =>
+        saveCategoryBudgets(db, {
+          userId,
+          yearMonth: month,
+          categories: [{ category: `替换分类${index}`, monthlyLimit: "10.00" }],
+          mode: "replace",
+        }),
+      ),
+    );
+    expect(await budgetsRepo.listMonthBudgets(db, userId, month)).toHaveLength(1);
+  });
+
+  it("保留旧库中活动状态为空的用户及其零元分类", async () => {
+    const legacyId = `legacy-${userId}`;
+    const month = "2099-03";
+    await usersRepo.insertUser(db, {
+      userId: legacyId,
+      username: legacyId,
+      email: `${legacyId}@example.com`,
+      passwordHash: "unused",
+      isActive: null,
+      monthlyBudget: "100.00",
+    });
+    await budgetsRepo.upsertMonthBudgets(db, legacyId, month, [
+      { category: "旧分类", monthlyLimit: "0.00" },
+    ]);
+    const result = await saveCategoryBudgets(db, {
+      userId: legacyId,
+      yearMonth: month,
+      categories: [{ category: "新分类", monthlyLimit: "20.00" }],
+      mode: "merge",
+    });
+    expect(result.merged).toEqual([
+      { category: "旧分类", monthlyLimit: "0.00" },
+      { category: "新分类", monthlyLimit: "20.00" },
+    ]);
+  });
+
   it("会话与消息持久化，删除会话级联清理消息", async () => {
     const sessionId = `it-${Date.now()}`;
     await chatRepo.createSession(db, { sessionId, userId, title: "测试会话" });
@@ -180,5 +245,33 @@ describe.skipIf(!enabled)("repositories（集成测试）", () => {
     expect(await chatRepo.deleteSession(db, userId, sessionId)).toBe(true);
     expect(await chatRepo.listMessages(db, sessionId)).toEqual([]);
     expect(await chatRepo.deleteSession(db, userId, sessionId)).toBe(false);
+  });
+
+  it("仪表盘按 UTC 日聚合全部流水，跨月的七天与整月分别统计", async () => {
+    const expense = { userId, category: "交通", type: "EXPENSE" as const, amount: "0.10" };
+    await db.insert(transactions).values([
+      ...Array.from({ length: 51 }, () => ({
+        ...expense,
+        transactionTime: new Date("2024-02-01T00:00:00Z"),
+      })),
+      { ...expense, amount: "1.03", transactionTime: new Date("2024-01-31T23:59:59Z") },
+      { ...expense, amount: "80.00", transactionTime: new Date("2024-01-20T00:00:00Z") },
+      { ...expense, type: "INCOME", transactionTime: new Date("2024-02-02T00:00:00Z") },
+      { ...expense, transactionTime: new Date("2024-03-01T00:00:00Z") },
+    ]);
+    const activity = await transactionsRepo.getDashboardActivity(
+      db,
+      userId,
+      new Date("2024-02-02T12:00:00Z"),
+    );
+    expect(activity.expense_count).toBe(51);
+    expect(activity.recorded_days).toBe(2);
+    expect(activity.seven_day_spent).toBe(6.13);
+    expect(activity.last_seven_days).toHaveLength(7);
+    expect(activity.last_seven_days.slice(-3)).toEqual([
+      { date: "2024-01-31", spent: 1.03, recorded: true },
+      { date: "2024-02-01", spent: 5.1, recorded: true },
+      { date: "2024-02-02", spent: 0, recorded: true },
+    ]);
   });
 });

@@ -4,54 +4,35 @@
    ============================================================ */
 
 .mobile-demo {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 28px 16px;
-  background:
-    radial-gradient(900px 500px at 50% 0%, rgba(200, 241, 105, 0.12), transparent 65%), #0b1220;
+  gap: 10px;
+  padding: 16px;
+  background: var(--paper);
 }
 
 .mobile-frame {
   width: 390px;
-  height: 844px;
-  padding: 10px;
-  border-radius: 46px;
-  background: #080d17;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow:
-    0 40px 90px -40px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(200, 241, 105, 0.08);
+  height: min(844px, calc(100dvh - 76px));
+  padding: 6px;
+  border-radius: 32px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: 0 14px 32px -20px rgb(24 38 59 / 35%);
 }
 
 .mobile-screen {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 36px;
+  border-radius: 26px;
   overflow: hidden;
   background: var(--bg);
   display: flex;
   flex-direction: column;
-}
-
-.mobile-statusbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 20px 4px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text-secondary);
-}
-
-.ms-brand {
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--ink);
 }
 
 .mobile-body {
@@ -127,7 +108,7 @@
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--sheet);
 }
 
 .mobile-subhead b {
@@ -135,54 +116,13 @@
   color: var(--ink);
 }
 
-.mobile-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, 0.94);
-  border-top: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-}
-
-.mobile-tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 6px 2px;
-  border: 0;
-  border-radius: 12px;
-  background: none;
-  color: var(--text-muted);
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.mobile-tab.active {
-  background: var(--primary-soft);
-  color: var(--ink);
-}
-
-.mobile-tab.active .mt-label {
-  font-weight: 700;
-}
-
-.mt-icon {
-  font-size: 19px;
-  line-height: 1;
-}
-
-.mt-label {
-  font-size: 10px;
-}
-
 .mobile-demo-note {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.38);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* 手机框内强制单列，忽略桌面断点 */
@@ -263,7 +203,6 @@
     border-radius: 0;
   }
 
-  .mobile-statusbar,
   .mobile-demo-note {
     display: none;
   }

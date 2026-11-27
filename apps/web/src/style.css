@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   e-diot — 小红书风格设计系统
+   e-diot — 基础控件与布局
    ═══════════════════════════════════════════════════════════ */
 
 :root {
@@ -165,103 +165,244 @@ a {
    Auth Page
    ═══════════════════════════════════════════════════════════ */
 
-.auth-page {
+.entry-page {
   height: 100vh;
+  height: 100dvh;
+  overflow: auto;
+  color: var(--ink);
+  background: var(--paper);
+  --entry-width: 1240px;
+  --entry-gutter: clamp(24px, 4vw, 72px);
+}
+.entry-mast,
+.entry-spread {
+  width: min(calc(100% - 2 * var(--entry-gutter)), var(--entry-width));
+  margin-inline: auto;
+}
+.entry-mast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: clamp(72px, 10vh, 98px);
+}
+.entry-wordmark {
+  font:
+    750 29px/1 system-ui,
+    sans-serif;
+  letter-spacing: -1.8px;
+}
+.entry-product {
+  margin-left: 7px;
+  border-left: 1px solid var(--line);
+  padding-left: 15px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.entry-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 78px);
+  padding-bottom: var(--entry-gutter);
+}
+.entry-photo {
+  position: relative;
+  min-height: clamp(560px, 79vh, 790px);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #c6d4f4 url("/ledger-still-life.jpg") center 60% / cover no-repeat;
+}
+.entry-photo-copy {
+  position: absolute;
+  top: clamp(28px, 4vw, 60px);
+  left: clamp(24px, 3.5vw, 56px);
+  color: #172745;
+}
+.entry-photo-copy h2 {
+  font-size: clamp(32px, 3.6vw, 54px);
+  line-height: 1.22;
+  letter-spacing: -0.045em;
+}
+.entry-photo-copy p {
+  margin: 14px 0 0;
+  font-size: clamp(15px, 1.2vw, 18px);
+}
+.entry-access {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  min-width: 0;
+}
+.entry-form-panel {
+  width: min(100%, 365px);
+}
+.entry-form-panel h1 {
+  font-size: clamp(31px, 3vw, 43px);
+  letter-spacing: -0.045em;
+  line-height: 1.26;
+  margin: 0 0 32px;
+  outline: 0;
+}
+.entry-form,
+.entry-field {
+  display: grid;
+}
+.entry-form {
+  gap: 20px;
+}
+.entry-field {
+  gap: 8px;
+  min-width: 0;
+}
+.entry-field > span,
+.entry-field > label,
+.entry-contacts legend {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.entry-field input {
+  width: 100%;
+  min-width: 0;
+  height: 50px;
+  border: 1px solid #a6afba;
+  background: var(--sheet);
+  border-radius: 9px;
+  padding: 0 14px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+.entry-field input::placeholder {
+  color: #677481;
+}
+.entry-field input:focus-visible,
+.entry-page button:focus-visible {
+  outline: 3px solid var(--cobalt);
+  outline-offset: 2px;
+}
+.entry-password {
+  position: relative;
+}
+.entry-password input {
+  padding-right: 62px;
+}
+.entry-password button {
+  position: absolute;
+  inset-block: 2px;
+  right: 3px;
+  width: 52px;
+  border-radius: 6px;
+  color: var(--cobalt);
+  font-size: 13px;
+  font-weight: 650;
+}
+.entry-contacts {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.entry-contacts legend {
+  padding: 0;
+  margin-bottom: 10px;
+}
+.entry-contacts legend span {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.entry-contacts .entry-field > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.entry-submit {
+  margin-top: 4px;
+  min-height: 49px;
+  background: var(--cobalt);
+  border-radius: 9px;
+  color: white;
+  font-size: 16px;
+  font-weight: 650;
+}
+.entry-submit:hover {
+  background: #1c329a;
+}
+.entry-page button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.entry-switch {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #fff0f0 0%, #f5f5f5 60%);
-  padding: 20px;
+  gap: 5px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 14px;
 }
-
-.auth-container {
-  width: 100%;
-  max-width: 380px;
-  text-align: center;
+.entry-switch button {
+  min-height: 44px;
+  padding: 0 3px;
+  color: var(--cobalt);
+  font-weight: 650;
 }
-
-.auth-logo {
-  font-size: 56px;
-  margin-bottom: 8px;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.auth-title {
-  font-size: var(--font-xxl);
-  font-weight: 800;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
-}
-
-.auth-subtitle {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-  margin-bottom: 28px;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.input-group {
-  display: flex;
-  align-items: center;
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 0 16px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--fast);
-}
-.input-group:focus-within {
-  box-shadow: 0 0 0 2px var(--primary-light);
-}
-
-.input-icon {
-  font-size: 16px;
-  margin-right: 10px;
-  opacity: 0.5;
-}
-
-.input-group input {
-  flex: 1;
-  padding: 14px 0;
-  font-size: var(--font-md);
-  color: var(--text);
-}
-.input-group input::placeholder {
-  color: var(--text-muted);
-}
-
-.auth-toggle {
-  font-size: var(--font-sm);
-  color: var(--primary);
-  cursor: pointer;
-  margin-top: 8px;
-}
-.auth-toggle span:hover {
+.entry-switch button:hover,
+.entry-password button:hover {
   text-decoration: underline;
 }
-
-.auth-hint {
-  font-size: var(--font-xs);
-  color: var(--text-muted);
-  margin-top: 12px;
+.entry-error {
+  padding: 9px 12px;
+  border-left: 3px solid var(--warning);
+  color: var(--warning);
+  font-size: 14px;
+  line-height: 1.5;
+}
+@media (max-width: 740px) {
+  .entry-page {
+    --entry-gutter: 22px;
+  }
+  .entry-mast {
+    height: 72px;
+  }
+  .entry-spread {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    max-width: 460px;
+  }
+  .entry-access {
+    grid-row: 1;
+    margin-top: 20px;
+  }
+  .entry-form-panel {
+    width: 100%;
+  }
+  .entry-form-panel h1 {
+    margin-bottom: 24px;
+  }
+  .entry-photo {
+    min-height: 0;
+    height: clamp(180px, 59vw, 260px);
+    border-radius: 14px;
+    background-position: 50% 77%;
+  }
+  .entry-photo-copy {
+    top: 16px;
+    left: 16px;
+    max-width: 53%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #e9effc;
+  }
+  .entry-photo-copy h2 {
+    font-size: 20px;
+  }
+  .entry-photo-copy p {
+    display: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════

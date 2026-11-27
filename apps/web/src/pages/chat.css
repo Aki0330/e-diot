@@ -1,0 +1,443 @@
+/* 对话页只在消息区滚动，桌面和窄屏使用同一个输入框。 */
+.page.ledger-chat {
+  --lc-ink: var(--ink, #18263b);
+  --lc-blue: var(--cobalt, #243fb8);
+  --lc-tint: var(--cobalt-soft, #e6ebfc);
+  --lc-muted: var(--muted, #566374);
+  --lc-line: var(--line, #d9dfe6);
+  --lc-white: var(--sheet, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: clamp(16px, 2.3vw, 32px);
+  background: var(--paper, #f6f7f4);
+  color: var(--lc-ink);
+  container: ledger-chat / inline-size;
+}
+.ledger-chat .lc-heading,
+.lc-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.lc-heading h2 {
+  margin: 0;
+  color: var(--lc-ink);
+  font-size: clamp(23px, 2.3vw, 34px);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+.lc-heading > div,
+.lc-drawer-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ledger-chat button {
+  font: inherit;
+  cursor: pointer;
+}
+.ledger-chat button:focus-visible,
+.ledger-chat summary:focus-visible,
+.ledger-chat textarea:focus-visible {
+  outline: 3px solid var(--lc-blue);
+  outline-offset: 3px;
+}
+.lc-heading button,
+.lc-drawer-head button {
+  min-height: 40px;
+  padding: 6px 13px;
+  border: 1px solid var(--lc-line);
+  border-radius: 8px;
+  color: var(--lc-ink);
+  background: var(--lc-white);
+  font-size: 14px;
+  font-weight: 600;
+}
+.lc-heading .lc-new {
+  color: var(--lc-blue);
+  background: var(--lc-tint);
+  border-color: transparent;
+}
+.lc-history-trigger {
+  display: none;
+}
+.lc-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(175px, 24%);
+  gap: clamp(14px, 2vw, 28px);
+}
+.lc-paper {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lc-line);
+  border-radius: 16px;
+  background: var(--lc-white);
+  overflow: hidden;
+}
+.lc-thread-title {
+  padding: 13px 22px;
+  color: var(--lc-muted);
+  border-bottom: 1px solid var(--lc-line);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lc-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.lc-empty {
+  padding: clamp(24px, 5vh, 56px) clamp(22px, 3.2vw, 52px) 20px;
+  max-width: 800px;
+  margin-inline: auto;
+}
+.lc-book {
+  position: relative;
+  width: 50px;
+  height: 55px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  padding-inline: 14px 8px;
+  margin-bottom: 18px;
+  border: 2px solid var(--lc-blue);
+  border-left-width: 7px;
+  border-radius: 3px 9px 9px 3px;
+  background: var(--lc-tint);
+  box-shadow:
+    3px 3px 0 var(--lc-white),
+    4px 4px 0 var(--lc-line);
+}
+.lc-book i {
+  height: 2px;
+  background: var(--lc-blue);
+}
+.lc-book i:last-child {
+  width: 62%;
+}
+.lc-empty h3 {
+  margin: 0;
+  font-size: clamp(30px, 3.4vw, 48px);
+  line-height: 1.16;
+  letter-spacing: -0.045em;
+  color: var(--lc-ink);
+}
+.lc-empty > p {
+  margin: 8px 0 24px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--lc-muted);
+}
+.lc-examples,
+.lc-sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lc-examples {
+  border-top: 1px solid var(--lc-line);
+}
+.lc-examples li {
+  border-bottom: 1px solid var(--lc-line);
+}
+.lc-examples button {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.55fr);
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 5px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--lc-muted);
+}
+.lc-examples button:hover,
+.lc-select:hover {
+  background: var(--lc-tint);
+}
+.lc-examples strong {
+  font-size: 14px;
+  color: var(--lc-blue);
+}
+.lc-examples span {
+  font-size: 14px;
+}
+.lc-compose {
+  padding: 12px clamp(14px, 2.5vw, 32px) clamp(14px, 2vw, 24px);
+  background: var(--lc-white);
+}
+.lc-input-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 4px 8px;
+  padding: 12px 12px 10px 15px;
+  border: 1.5px solid #8294d5;
+  border-radius: 12px;
+  background: var(--lc-white);
+}
+.lc-input-box:focus-within {
+  border-color: var(--lc-blue);
+  box-shadow: 0 0 0 2px var(--lc-tint);
+}
+.lc-input-box label {
+  grid-column: 1 / -1;
+  color: var(--lc-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.lc-input-box textarea {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  max-height: 120px;
+  resize: vertical;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--lc-ink);
+  font: inherit;
+  line-height: 1.5;
+}
+.lc-input-box textarea::placeholder {
+  color: var(--lc-muted);
+}
+.ledger-chat .lc-input-box textarea:focus {
+  outline: 0;
+}
+.lc-input-box .lc-send {
+  min-width: 70px;
+  min-height: 42px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 650;
+  background: var(--lc-blue);
+}
+.lc-send:disabled {
+  color: #536288;
+  background: #e1e6f5;
+  cursor: default;
+}
+.lc-rail {
+  align-self: stretch;
+  overflow-y: auto;
+  min-width: 0;
+  padding: 8px 0;
+}
+.lc-rail h3,
+.lc-drawer h3 {
+  margin: 0 0 14px;
+  color: var(--lc-ink);
+  font-size: 18px;
+  line-height: 1.3;
+}
+.lc-history-note,
+.lc-progress {
+  color: var(--lc-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.lc-history-note {
+  padding: 13px 0;
+  border-top: 1px solid var(--lc-line);
+}
+.lc-history-note button,
+.lc-error button,
+.lc-feedback button {
+  color: var(--lc-blue);
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  padding: 6px;
+}
+.lc-sessions li {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-bottom: 1px solid var(--lc-line);
+}
+.lc-sessions li.is-current {
+  background: var(--lc-tint);
+  border-radius: 7px;
+}
+.lc-select,
+.lc-remove {
+  background: transparent;
+  border: 0;
+  color: var(--lc-ink);
+}
+.lc-select {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 4px;
+  padding: 10px 8px;
+  text-align: left;
+  border-radius: 6px;
+}
+.lc-select span {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+.lc-select time {
+  color: var(--lc-muted);
+  font-size: 12px;
+}
+.lc-sessions .lc-remove {
+  width: 38px;
+  min-height: 44px;
+  font-size: 20px;
+  color: var(--lc-muted);
+}
+.lc-remove:hover {
+  color: var(--warning, #b94a27);
+}
+.lc-messages {
+  display: grid;
+  gap: 18px;
+  padding: 18px clamp(14px, 2.5vw, 32px);
+}
+.lc-messages:empty {
+  display: none;
+}
+.lc-message {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+.lc-message.user {
+  justify-items: end;
+}
+.lc-speaker {
+  color: var(--lc-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.lc-bubble {
+  max-width: min(94%, 66ch);
+  padding: 10px 14px;
+  border-radius: 3px 12px 12px;
+  background: var(--paper, #f6f7f4);
+  color: var(--lc-ink);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.lc-message.user .lc-bubble {
+  border-radius: 12px 3px 12px 12px;
+  background: var(--lc-tint);
+}
+.lc-trace,
+.lc-feedback,
+.lc-progress,
+.lc-error {
+  font-size: 13px;
+  color: var(--lc-muted);
+  overflow-wrap: anywhere;
+}
+.lc-trace summary {
+  cursor: pointer;
+  padding-block: 4px;
+}
+.lc-trace p {
+  margin: 0;
+}
+.lc-error,
+.lc-progress {
+  margin: 12px 20px;
+}
+.lc-error {
+  color: var(--warning, #b94a27);
+}
+.lc-drawer {
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(340px, 92vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 22px 18px;
+  border: none;
+  color: var(--lc-ink);
+  background: var(--lc-white);
+}
+.lc-drawer::backdrop {
+  background: rgba(24, 38, 59, 0.4);
+}
+.lc-drawer-head {
+  margin-bottom: 16px;
+}
+.lc-drawer-head h3 {
+  margin: 0;
+}
+@container ledger-chat (max-width: 720px) {
+  .lc-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lc-rail {
+    display: none;
+  }
+  .lc-history-trigger {
+    display: inline-block;
+  }
+  .lc-empty {
+    padding: 24px 20px 8px;
+  }
+  .lc-book {
+    width: 37px;
+    height: 43px;
+    padding-inline: 8px 6px;
+    margin-bottom: 14px;
+    gap: 4px;
+  }
+  .lc-empty h3 {
+    font-size: 30px;
+  }
+  .lc-empty > p {
+    font-size: 14px;
+    margin-bottom: 15px;
+  }
+  .lc-examples button {
+    padding-block: 10px;
+    gap: 6px;
+  }
+  .lc-compose {
+    padding: 10px 12px 12px;
+  }
+  .lc-input-box textarea {
+    resize: none;
+    font-size: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .page.ledger-chat {
+    padding: 12px;
+    gap: 10px;
+  }
+}

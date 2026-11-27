@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { INTENT_TYPES, LLM_TRANSACTION_TYPES } from "../types.js";
-import { nonNegativeMoneySchema, positiveMoneySchema } from "./common.js";
+import { categorySchema, nonNegativeMoneySchema, positiveMoneySchema } from "./common.js";
 
 /**
  * Agent 状态与 LLM 结构化输出（对应旧 `backend/agent/state.py`）。
@@ -22,7 +22,7 @@ export const transactionItemSchema = z.object({
 export type TransactionItem = z.infer<typeof transactionItemSchema>;
 
 export const categoryBudgetAllocationSchema = z.object({
-  category: z.string().min(1),
+  category: categorySchema,
   monthly_limit: positiveMoneySchema,
 });
 

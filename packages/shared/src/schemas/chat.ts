@@ -142,6 +142,14 @@ export const dashboardResponseSchema = z.object({
   remaining: z.number(),
   categories: z.array(dashboardCategorySchema),
   recent_transactions: z.array(transactionItemDtoSchema),
+  activity: z.object({
+    expense_count: z.number().int().nonnegative(),
+    recorded_days: z.number().int().nonnegative(),
+    last_seven_days: z.array(
+      z.object({ date: z.string(), spent: z.number(), recorded: z.boolean() }),
+    ),
+    seven_day_spent: z.number(),
+  }),
 });
 
 export type DashboardResponse = z.infer<typeof dashboardResponseSchema>;

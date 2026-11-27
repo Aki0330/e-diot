@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
+import { parseCents } from "@cyberbudget/shared/money";
 
 import { api } from "../api/client.js";
 import type { DashboardData } from "../api/types.js";
 import { Modal } from "../components/Modal.js";
 import { useToast } from "../components/Toast.js";
-import { catEmoji, fmt } from "../utils/format.js";
+import { catEmoji } from "../utils/format.js";
+import {
+  allocationSummary,
+  budgetProgress,
+  ledgerAmount as fmt,
+  ledgerCents,
+} from "../utils/ledger.js";
 
 type ModalKind = "ai" | "manual" | "total" | null;
 
@@ -22,6 +29,7 @@ export interface BudgetPageProps {
 export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
   const toast = useToast();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalKind>(null);
 
   const [aiInput, setAiInput] = useState("");
@@ -33,8 +41,9 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
   const load = useCallback(async (): Promise<void> => {
     try {
       setData(await api.dashboard());
-    } catch {
-      // 顶部状态卡片会显示失败态
+      setError(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
     }
   }, []);
 
@@ -84,74 +93,94 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
     await load();
   };
 
-  const allocated =
-    data === null ? 0 : data.categories.reduce((sum, category) => sum + (category.budget || 0), 0);
-
   if (data === null) {
     return (
       <div className="page">
         <div className="empty">
-          <div className="spinner" />
+          {error === null ? (
+            <div className="spinner" aria-label="正在加载预算" />
+          ) : (
+            <>
+              <p role="alert">{error}</p>
+              <button className="btn-secondary" onClick={() => void load()}>
+                重新加载
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
   }
 
-  const usage =
-    data.total_budget > 0 ? Math.round((data.total_spent / data.total_budget) * 100) : 0;
-  const rows = [...data.categories].sort((a, b) => b.percentage - a.percentage);
+  const usage = budgetProgress(data.total_spent, data.total_budget);
+  const { allocated, label: allocationLabel } = allocationSummary(
+    data.total_budget,
+    data.categories.map((category) => category.budget),
+  );
+  const rows = data.categories
+    .map((row) => ({ ...row, progress: budgetProgress(row.spent, row.budget) }))
+    .sort((a, b) => b.percentage - a.percentage);
   const allocatedRows = rows.filter((row) => row.budget > 0);
-  const overCount = rows.filter((row) => row.percentage >= 100).length;
-  const nearCount = rows.filter((row) => row.percentage >= 80 && row.percentage < 100).length;
+  const overCount = rows.filter((row) => row.progress.state === "over").length;
+  const nearCount = rows.filter((row) => row.progress.state === "near").length;
 
   return (
-    <div className="page">
+    <div className="page ledger-page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">BUDGET · {data.year_month}</p>
           <h2 className="page-title">预算</h2>
-          <p className="page-desc">每笔记账都会回到这里检查一次额度，进度按统一三态着色。</p>
+          <p className="ledger-period">
+            {data.year_month.slice(0, 4)} 年 {Number(data.year_month.slice(5))} 月
+          </p>
         </div>
         <div className="head-side">
-          <button className="btn-secondary" onClick={() => setModal("total")}>
-            ⚙️ 总预算
+          <button
+            className="btn-secondary"
+            onClick={() => {
+              setTotalInput(String(data.total_budget));
+              setModal("total");
+            }}
+          >
+            设置总预算
           </button>
           <button className="btn-primary" onClick={() => setModal("ai")}>
-            🤖 AI 分配
+            AI 分配
           </button>
         </div>
       </div>
 
       <div className="budget-top">
         <div className="bt-cell">
-          <div className="bt-k">月总预算 / TOTAL</div>
+          <div className="bt-k">月总预算</div>
           <div className="bt-v num">¥{fmt(data.total_budget)}</div>
           <div className="bt-note">
-            已分配 ¥{fmt(allocated)} · 未分配 ¥{fmt(Math.max(data.total_budget - allocated, 0))}
+            已分配 ¥{ledgerCents(allocated)} · {allocationLabel}
           </div>
         </div>
         <div className="bt-cell">
-          <div className="bt-k">已支出 / SPENT</div>
+          <div className="bt-k">本月支出</div>
           <div className="bt-v num">¥{fmt(data.total_spent)}</div>
           <div className="bt-note">
-            剩余 ¥{fmt(data.remaining)} · 使用率 {usage}%
+            {usage.state === "unset"
+              ? "未设月总预算"
+              : `${data.remaining < 0 ? "超支" : "剩余"} ¥${fmt(Math.abs(data.remaining))} · 已用 ${usage.label}`}
           </div>
         </div>
         <div className="bt-cell">
-          <div className="bt-k">分类额度 / CATEGORIES</div>
+          <div className="bt-k">已分配分类</div>
           <div className="bt-v num">{allocatedRows.length}</div>
           <div className="bt-note">
             {overCount} 项超支 · {nearCount} 项接近上限
           </div>
         </div>
         <div className="bt-bar-wrap">
-          <div className="bt-bar">
+          <div className="bt-bar" aria-hidden="true">
             {allocatedRows.map((row) => (
               <div
                 key={row.category}
                 className="bt-seg"
                 style={{
-                  width: `${allocated > 0 ? (row.budget / allocated) * 100 : 0}%`,
+                  width: `${allocated > 0n ? (Number(parseCents(row.budget)) / Number(allocated)) * 100 : 0}%`,
                 }}
                 title={`${row.category} ¥${fmt(row.budget)}`}
               />
@@ -175,14 +204,25 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
             {overCount > 0 && <span className="badge red">{overCount} 项超支</span>}
             {nearCount > 0 && <span className="badge amber">{nearCount} 项接近上限</span>}
           </div>
-          <button className="btn-text" onClick={() => setModal("manual")}>
-            ✏️ 手动编辑
+          <button
+            className="btn-text"
+            onClick={() => {
+              if (allocatedRows.length)
+                setManualRows(
+                  allocatedRows.map((row) => ({
+                    category: row.category,
+                    amount: String(row.budget),
+                  })),
+                );
+              setModal("manual");
+            }}
+          >
+            编辑分类
           </button>
         </div>
 
         {rows.length === 0 ? (
           <div className="empty" style={{ border: 0, boxShadow: "none" }}>
-            <div className="empty-icon">📋</div>
             <div className="empty-title">还没有分配分类预算</div>
             <p className="empty-desc">可以用 AI 自然语言分配，或手动编辑分类额度。</p>
           </div>
@@ -192,26 +232,36 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
               <div className="icon-tile">{catEmoji(row.category)}</div>
               <div className="brow-main">
                 <div className="brow-name">{row.category}</div>
-                <div className="brow-sub">月度额度</div>
               </div>
               <div className="brow-mid">
                 <div className="brow-amounts">
                   <span className="brow-spent">
                     ¥{fmt(row.spent)}
-                    <span>/ ¥{fmt(row.budget)}</span>
+                    {row.budget > 0 && <span> / ¥{fmt(row.budget)}</span>}
                   </span>
-                  <span>剩余 ¥{fmt(Math.max(row.budget - row.spent, 0))}</span>
+                  {row.budget > 0 && (
+                    <span>
+                      {row.spent > row.budget ? "超出" : "剩余"} ¥
+                      {ledgerCents(
+                        row.spent > row.budget
+                          ? parseCents(row.spent) - parseCents(row.budget)
+                          : parseCents(row.budget) - parseCents(row.spent),
+                      )}
+                    </span>
+                  )}
                 </div>
-                <div
-                  className={`bar${row.percentage >= 100 ? " red" : row.percentage >= 80 ? " amber" : ""}`}
-                >
-                  <span style={{ width: `${Math.min(row.percentage, 100)}%` }} />
+                <div className={`bar ${row.progress.state}`}>
+                  <span style={{ width: `${row.progress.width}%` }} />
                 </div>
               </div>
               <div className="brow-right">
-                <span className="brow-pct">{Math.round(row.percentage)}%</span>
+                <span className="brow-pct">{row.progress.label}</span>
                 <span className="brow-state">
-                  {row.percentage >= 100 ? "超支" : row.percentage >= 80 ? "接近上限" : "正常"}
+                  {
+                    { over: "超支", full: "已用完", near: "接近上限", normal: "额度内", unset: "" }[
+                      row.progress.state
+                    ]
+                  }
                 </span>
               </div>
             </div>
@@ -219,15 +269,12 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
         )}
       </div>
 
-      <p className="profile-hint" style={{ marginTop: 10 }}>
-        校验通过：分类合计 ¥{fmt(allocated)}，月总预算 ¥{fmt(data.total_budget)}。
-      </p>
-
       {modal === "ai" && (
         <Modal title="AI 智能分配预算" onClose={closeModal} onConfirm={submitAi}>
           <div className="form-group">
-            <label>用自然语言描述你的预算分配</label>
+            <label htmlFor="budget-ai-input">预算分配描述</label>
             <textarea
+              id="budget-ai-input"
               rows={3}
               placeholder="例如：餐饮2000，交通500，购物1000，娱乐500"
               value={aiInput}
@@ -235,7 +282,7 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
             />
           </div>
           <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-            💡 AI会自动提取分类和金额，与已有分配合并，并确保不超过总预算
+            只调整描述中提到的分类。
           </p>
         </Modal>
       )}
@@ -245,8 +292,9 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
           <div>
             {manualRows.map((row, index) => (
               <div key={index} className="form-group">
-                <label>分类</label>
+                <label htmlFor={`budget-category-${index}`}>分类</label>
                 <input
+                  id={`budget-category-${index}`}
                   placeholder="如 餐饮"
                   value={row.category}
                   onChange={(event) =>
@@ -257,12 +305,15 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
                     )
                   }
                 />
-                <label style={{ marginTop: 8 }}>金额</label>
+                <label style={{ marginTop: 8 }} htmlFor={`budget-limit-${index}`}>
+                  金额（元）
+                </label>
                 <input
+                  id={`budget-limit-${index}`}
                   type="number"
                   placeholder="如 2000"
                   min={0}
-                  step={100}
+                  step="0.01"
                   value={row.amount}
                   onChange={(event) =>
                     setManualRows((rows) =>
@@ -272,6 +323,16 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
                     )
                   }
                 />
+                {manualRows.length > 1 && (
+                  <button
+                    className="btn-text"
+                    type="button"
+                    aria-label={`移除分类 ${index + 1}`}
+                    onClick={() => setManualRows((rows) => rows.filter((_, i) => i !== index))}
+                  >
+                    移除分类
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -283,7 +344,7 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
             ＋ 添加分类
           </button>
           <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-            ⚠️ 提交后将完全替换当月所有分类预算
+            保存后，这份列表将替换当月的分类预算。
           </p>
         </Modal>
       )}
@@ -291,12 +352,13 @@ export function BudgetPage({ active, refreshKey }: BudgetPageProps) {
       {modal === "total" && (
         <Modal title="设定月度总预算" onClose={closeModal} onConfirm={submitTotal}>
           <div className="form-group">
-            <label>月度总预算金额</label>
+            <label htmlFor="budget-total-input">月度总预算（元）</label>
             <input
+              id="budget-total-input"
               type="number"
               placeholder="如 5000"
               min={0}
-              step={100}
+              step="0.01"
               value={totalInput}
               onChange={(event) => setTotalInput(event.target.value)}
             />

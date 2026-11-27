@@ -9,7 +9,7 @@ import type {
   UserSettings,
 } from "../api/types.js";
 import { useToast } from "../components/Toast.js";
-import { fmt } from "../utils/format.js";
+import { ledgerAmount } from "../utils/ledger.js";
 
 export interface ProfilePageProps {
   readonly active: boolean;
@@ -161,9 +161,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
     <div className="page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">PROFILE · 账户与模型</p>
           <h2 className="page-title">我的</h2>
-          <p className="page-desc">账户信息与个人 LLM 配置；保存后下一次对话即生效。</p>
         </div>
         <span className={`badge ${usingOwn ? "lime" : "ink"}`}>
           {usingOwn ? "用户级模型" : "全局模型"}
@@ -171,7 +169,9 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
       </div>
 
       <div className="profile-hero">
-        <div className="profile-avatar">👤</div>
+        <div className="profile-avatar" aria-hidden="true">
+          {Array.from(profile.username)[0]}
+        </div>
         <div>
           <div className="profile-name">{profile.username}</div>
           <div className="profile-id">{profile.user_id}</div>
@@ -183,7 +183,6 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
           <div className="card-head">
             <div>
               <div className="card-title">账户信息</div>
-              <div className="card-sub">只读 · 来自 /users/me</div>
             </div>
           </div>
           <div className="profile-rows">
@@ -197,7 +196,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
             </div>
             <div className="profile-row">
               <span className="profile-key">月度总预算</span>
-              <span className="profile-value">¥{fmt(profile.budget)}</span>
+              <span className="profile-value">¥{ledgerAmount(profile.budget)}</span>
             </div>
             <div className="profile-row">
               <span className="profile-key">注册时间</span>
@@ -218,7 +217,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
           <div className="card-head">
             <div>
               <div className="card-title">LLM 配置</div>
-              <div className="card-sub">Base URL + API Key，覆盖全局 LLM_*</div>
+              <div className="card-sub">连接自己的模型服务</div>
             </div>
             <span className="badge ink tiny">{llm?.model ?? "-"}</span>
           </div>
@@ -295,6 +294,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
               key={item.id}
               type="button"
               className={`persona-option${persona === item.id ? " active" : ""}`}
+              aria-pressed={persona === item.id}
               onClick={() => setPersona(item.id)}
             >
               <span className="persona-name">{item.name}</span>
@@ -375,7 +375,6 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
           <div className="card-head">
             <div>
               <div className="card-title">更多功能</div>
-              <div className="card-sub">移动端二级入口</div>
             </div>
           </div>
           <div className="settings-grid">

@@ -1,5 +1,10 @@
-import type { TransactionType } from "@cyberbudget/shared";
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import {
+  centsToNumber,
+  monthStartUtc,
+  parseCents,
+  type TransactionType,
+} from "@cyberbudget/shared";
+import { and, desc, eq, gte, lt, lte, sql } from "drizzle-orm";
 
 import type { Executor } from "../client.js";
 import { transactions, type NewTransaction, type TransactionRow } from "../schema/transactions.js";
@@ -97,6 +102,7 @@ export interface SumSinceParams {
   readonly userId: string;
   readonly type: TransactionType;
   readonly since: Date;
+  readonly until?: Date;
   /** 可选分类过滤；省略表示不按分类过滤（对应 `全部`） */
   readonly category?: string;
 }
@@ -108,6 +114,7 @@ export async function sumAmountSince(db: Executor, params: SumSinceParams): Prom
     eq(transactions.type, params.type),
     gte(transactions.transactionTime, params.since),
   ];
+  if (params.until) conditions.push(lt(transactions.transactionTime, params.until));
   if (params.category !== undefined && params.category !== "") {
     conditions.push(eq(transactions.category, params.category));
   }
@@ -140,9 +147,54 @@ export async function sumByCategorySince(
         eq(transactions.userId, params.userId),
         eq(transactions.type, params.type),
         gte(transactions.transactionTime, params.since),
+        params.until ? lt(transactions.transactionTime, params.until) : undefined,
       ),
     )
     .groupBy(transactions.category);
+}
+
+/** 按 UTC 自然日聚合，覆盖整个当月和近七日（可以跨月）。 */
+export async function getDashboardActivity(db: Executor, userId: string, now: Date) {
+  const monthStart = monthStartUtc(now);
+  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const weekStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6);
+  const start = new Date(Math.min(monthStart.getTime(), weekStart));
+  const day = sql<string>`to_char(${transactions.transactionTime} at time zone 'UTC', 'YYYY-MM-DD')`;
+  const days = await db
+    .select({
+      day,
+      count: sql<number>`count(*) filter (where ${transactions.type} = 'EXPENSE')`.mapWith(Number),
+      spent: sql<string>`coalesce(sum(${transactions.amount}) filter (where ${transactions.type} = 'EXPENSE'), 0)`,
+    })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.userId, userId),
+        gte(transactions.transactionTime, start),
+        lt(transactions.transactionTime, monthEnd),
+      ),
+    )
+    .groupBy(day);
+
+  const byDay = new Map(days.map((row) => [row.day, row]));
+  const firstDay = monthStart.toISOString().slice(0, 10);
+  const month = days.filter((row) => row.day >= firstDay);
+  let weekSpent = 0n;
+  const lastSevenDays = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setUTCDate(date.getUTCDate() + index);
+    const key = date.toISOString().slice(0, 10);
+    const row = byDay.get(key);
+    const spent = parseCents(row?.spent ?? "0");
+    weekSpent += spent;
+    return { date: key, spent: centsToNumber(spent), recorded: row !== undefined };
+  });
+  return {
+    expense_count: month.reduce((sum, row) => sum + row.count, 0),
+    recorded_days: month.length,
+    last_seven_days: lastSevenDays,
+    seven_day_spent: centsToNumber(weekSpent),
+  };
 }
 
 /** 「查看依据」用：按 id + 归属查询单笔交易 */

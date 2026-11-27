@@ -91,6 +91,12 @@ export interface DashboardData {
   readonly remaining: number;
   readonly categories: readonly DashboardCategory[];
   readonly recent_transactions: readonly TransactionDto[];
+  readonly activity: {
+    readonly expense_count: number;
+    readonly recorded_days: number;
+    readonly last_seven_days: readonly { date: string; spent: number; recorded: boolean }[];
+    readonly seven_day_spent: number;
+  };
 }
 
 export interface SessionItem {

@@ -6,6 +6,7 @@ import {
   deleteSession,
   deleteTransaction,
   findSessionById,
+  getDashboardActivity,
   getUserSettings,
   insertTransaction,
   listActiveMemories,
@@ -251,13 +252,14 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
       const now = new Date();
       const yearMonth = formatYearMonthUtc(now);
       const since = monthStartUtc(now);
+      const until = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
 
-      const [totalSpent, totalIncome, spendingRows, budgetRows, recent] = await Promise.all([
-        sumAmountSince(app.db, { userId: user.userId, type: "EXPENSE", since }),
-        sumAmountSince(app.db, { userId: user.userId, type: "INCOME", since }),
-        sumByCategorySince(app.db, { userId: user.userId, type: "EXPENSE", since }),
+      const [totalIncome, spendingRows, budgetRows, recent, activity] = await Promise.all([
+        sumAmountSince(app.db, { userId: user.userId, type: "INCOME", since, until }),
+        sumByCategorySince(app.db, { userId: user.userId, type: "EXPENSE", since, until }),
         listMonthBudgets(app.db, user.userId, yearMonth),
         listTransactions(app.db, { userId: user.userId, limit: 10 }),
+        getDashboardActivity(app.db, user.userId, now),
       ]);
 
       const spendingByCategory = new Map(spendingRows.map((row) => [row.category, row.total]));
@@ -280,7 +282,7 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
       });
 
       const totalBudgetCents = parseCents(user.monthlyBudget ?? "0");
-      const totalSpentCents = parseCents(totalSpent);
+      const totalSpentCents = spendingRows.reduce((sum, row) => sum + parseCents(row.total), 0n);
 
       return {
         user_id: user.userId,
@@ -291,6 +293,7 @@ export const chatRoutes: FastifyPluginAsyncZod = async (app) => {
         remaining: centsToNumber(totalBudgetCents - totalSpentCents),
         categories,
         recent_transactions: recent.map(toTransactionDto),
+        activity,
       };
     },
   );

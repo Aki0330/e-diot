@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  budgetResponseSchema,
   manualBudgetRequestSchema,
   validateCategoryBudgets,
   type CategoryBudgetLike,
@@ -30,6 +31,17 @@ describe("validateCategoryBudgets", () => {
     expect(validateCategoryBudgets(categories, 2500).isValid).toBe(true);
   });
 
+  it("一角与两角相加恰好用完三角预算", () => {
+    const result = validateCategoryBudgets(
+      [
+        { category: "一", monthly_limit: 0.1 },
+        { category: "二", monthly_limit: 0.2 },
+      ],
+      0.3,
+    );
+    expect(result).toEqual({ isValid: true, message: "", totalAllocated: 0.3 });
+  });
+
   it("空列表合计为 0", () => {
     expect(validateCategoryBudgets([], 0)).toEqual({
       isValid: true,
@@ -40,6 +52,22 @@ describe("validateCategoryBudgets", () => {
 });
 
 describe("manualBudgetRequestSchema", () => {
+  it("能读取已有的零元分类，同时拒绝写入新的零元分类", () => {
+    const oldCategories = [{ category: "旧分类", monthly_limit: 0 }];
+    expect(
+      budgetResponseSchema.safeParse({
+        user_id: "legacy",
+        year_month: "2026-10",
+        categories: oldCategories,
+        total_budget: 10,
+        total_allocated: 0,
+        remaining_unallocated: 10,
+        is_valid: true,
+      }).success,
+    ).toBe(true);
+    expect(manualBudgetRequestSchema.safeParse({ categories: oldCategories }).success).toBe(false);
+  });
+
   it("接受合法的手动预算", () => {
     const parsed = manualBudgetRequestSchema.parse({
       categories: [{ category: "餐饮", monthly_limit: 2000 }],
@@ -69,6 +97,18 @@ describe("manualBudgetRequestSchema", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it.each([
+    [0.001, false],
+    [0.005, true],
+    [9_999_999_999.994, true],
+    [9_999_999_999.995, false],
+  ])("按 numeric(12,2) 舍入后校验 %s", (monthlyLimit, expected) => {
+    const result = manualBudgetRequestSchema.safeParse({
+      categories: [{ category: "餐饮", monthly_limit: monthlyLimit }],
+    });
+    expect(result.success).toBe(expected);
   });
 
   it("拒绝非法月份格式", () => {

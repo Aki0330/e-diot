@@ -65,9 +65,9 @@
 }
 
 .chip.on {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--primary);
+  background: var(--cobalt-soft);
+  border-color: var(--cobalt);
+  color: var(--cobalt);
 }
 
 .chip .ct {
@@ -88,8 +88,8 @@
 }
 
 .badge.lime {
-  background: var(--primary);
-  color: var(--ink);
+  background: var(--cobalt-soft);
+  color: var(--cobalt);
 }
 
 .badge.ink {
@@ -984,7 +984,8 @@
   place-items: center;
   border-radius: 50%;
   background: var(--primary-soft);
-  border: 1px solid rgba(159, 221, 74, 0.5);
+  color: var(--cobalt);
+  border: 1px solid var(--line);
   font-size: 26px;
 }
 
@@ -1422,7 +1423,7 @@
 
 .memory-btn.btn-primary {
   background: var(--primary-gradient);
-  color: var(--ink);
+  color: #fff;
   border: 0;
   font-weight: 700;
 }
@@ -1633,4 +1634,208 @@
   display: flex;
   gap: 6px;
   margin-top: 4px;
+}
+
+/* 总览、预算与账单共享金额栏和窄屏布局。容器断点也适用于桌面手机预览。 */
+.ledger-page {
+  container: ledger / inline-size;
+  font-variant-numeric: tabular-nums;
+  line-break: strict;
+  overflow-wrap: anywhere;
+}
+
+.ledger-page .page-head {
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ledger-period,
+.ledger-count,
+.ledger-empty {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.ledger-period {
+  margin: 3px 0 0;
+}
+.ledger-count {
+  white-space: nowrap;
+}
+.ledger-empty {
+  margin: 10px 0;
+}
+.ledger-page .card-title,
+.ledger-page .bl-title,
+.ledger-page .advice-title {
+  font-family: inherit;
+  line-height: 1.5;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.ledger-page .total-card {
+  background: var(--cobalt);
+  color: #fff;
+  padding: clamp(18px, 3cqi, 30px);
+}
+.ledger-page .total-main .v {
+  font-size: clamp(28px, 5cqi, 46px);
+  color: #fff;
+}
+.ledger-page .total-label,
+.ledger-page .tf-k,
+.ledger-page .total-main .u,
+.ledger-page .total-bar-meta {
+  font-family: inherit;
+  color: #e6ebfc;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+.ledger-page .total-foot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  border-color: #ffffff4d;
+}
+.ledger-page .total-bar .bar > span {
+  background: #fff;
+}
+.ledger-page .total-bar .bar {
+  background: #ffffff40;
+}
+.ledger-page .bt-v,
+.ledger-page .spark-sum {
+  color: var(--cobalt);
+}
+.ledger-page .bt-k,
+.ledger-page .card-sub {
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.ledger-page .advice {
+  background: var(--cobalt-soft);
+  border-color: var(--line);
+}
+.ledger-page .bar.over > span {
+  background: var(--warning);
+}
+.ledger-page .bar.near > span,
+.ledger-page .bar.full > span {
+  background: #946513;
+}
+.ledger-page .bar.unset {
+  visibility: hidden;
+}
+.ledger-page .badge.ink {
+  background: var(--paper);
+  color: var(--muted);
+}
+.ledger-page .chip.on {
+  background: var(--cobalt-soft);
+  border-color: var(--cobalt);
+  color: var(--cobalt);
+}
+.ledger-page .dist-name,
+.ledger-page .trow-name,
+.ledger-page .recent-name {
+  white-space: normal;
+}
+.ledger-page .trow-name,
+.ledger-page .brow-amounts,
+.ledger-page .day-head {
+  flex-wrap: wrap;
+}
+.ledger-page .day-total {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ledger-page .dist-amt,
+.ledger-page .recent-amt,
+.ledger-page .trow-amt {
+  color: var(--ink);
+}
+.ledger-page .income {
+  color: #176342;
+}
+.ledger-page .filter-grid input {
+  min-width: 0;
+  width: 100%;
+  min-height: 40px;
+}
+.ledger-page .search {
+  min-width: 0;
+}
+.ledger-page .search input {
+  min-width: 0;
+  flex: 1;
+}
+.ledger-page .cat-filter .chip {
+  min-height: 36px;
+}
+.ledger-page .filter-grid label {
+  font-size: 12px;
+}
+.ledger-page :focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 3px;
+}
+
+@container ledger (min-width: 860px) {
+  .ov-grid > .total-card {
+    grid-column: span 7;
+  }
+}
+@container ledger (max-width: 560px) {
+  .ledger-page .filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ledger-page .filter-actions {
+    grid-column: 1 / -1;
+  }
+  .ledger-page .filter-actions button {
+    flex: 1;
+    min-height: 40px;
+  }
+  .ledger-page .budget-top .bt-cell {
+    flex-basis: auto;
+  }
+  .ledger-page .brow {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 6px 10px;
+  }
+  .ledger-page .brow-main {
+    min-width: 0;
+  }
+  .ledger-page .brow-mid {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+  .ledger-page .brow-right {
+    grid-column: 3;
+    grid-row: 1;
+    width: auto;
+  }
+  .ledger-page .dist .dist-row {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    gap: 3px 8px;
+  }
+  .ledger-page .dist-row .bar {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .ledger-page .dist-row .dist-pct {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .ledger-page .dist-row .dist-amt {
+    display: block;
+    grid-column: 3;
+    grid-row: 1;
+  }
 }

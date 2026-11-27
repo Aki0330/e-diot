@@ -20,7 +20,8 @@ import {
  *   parse_intent
  *     ├─ add_transaction + transaction   → write_transaction → check_budget → (advice | generate_response)
  *     ├─ set_category_budget + 分配数据  → write_budget → generate_response
- *     └─ 其它（含解析失败）              → check_budget → (advice | generate_response)
+ *     ├─ 解析失败                       → error
+ *     └─ 其它                           → check_budget → (advice | generate_response)
  */
 
 export interface AgentDeps {
@@ -152,7 +153,10 @@ export async function runAgentWithTrace(
     state = state.is_over_budget
       ? await adviceNode(state, deps.llm, options)
       : await generateResponseNode(state, deps.llm, options);
-  } else if (intentType === "set_category_budget" && intent?.budget_allocations) {
+  } else if (
+    intentType === "set_category_budget" &&
+    intent?.budget_allocations?.categories.length
+  ) {
     state = await writeBudgetNode(state, deps.db);
     state = await generateResponseNode(state, deps.llm, options);
   } else if (intentType === "query_budget") {
@@ -160,7 +164,7 @@ export async function runAgentWithTrace(
     state = state.is_over_budget
       ? await adviceNode(state, deps.llm, options)
       : await generateResponseNode(state, deps.llm, options);
-  } else {
+  } else if (intent !== null) {
     state = await checkBudgetNode(state, deps.db);
     state = await generateResponseNode(state, deps.llm, options);
   }

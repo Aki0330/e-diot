@@ -1,10 +1,8 @@
-import { listMonthBudgets, replaceMonthBudgets, type UserRow } from "@cyberbudget/db";
+import { saveCategoryBudgets } from "@cyberbudget/db";
 import {
-  AppError,
   agentBudgetRequestSchema,
   budgetResponseSchema,
   centsToNumber,
-  formatCents,
   formatYearMonthUtc,
   manualBudgetRequestSchema,
   parseCents,
@@ -42,17 +40,6 @@ function buildBudgetResponse(
   };
 }
 
-function requireTotalBudget(user: UserRow): string {
-  const totalBudget = user.monthlyBudget ?? "0";
-  if (parseCents(totalBudget) <= 0n) {
-    throw new AppError(
-      "BUDGET_TOTAL_NOT_SET",
-      "尚未设置月度总预算，请先在 /users/set_budget 中设定",
-    );
-  }
-  return totalBudget;
-}
-
 export const budgetRoutes: FastifyPluginAsyncZod = async (app) => {
   // POST /api/v1/budget/agent —— Agent 解析 + MERGE 语义
   app.post(
@@ -64,12 +51,18 @@ export const budgetRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request): Promise<BudgetResponse> => {
       const user = await requireActiveUser(app.db, currentUser(request));
 
-      // P2 阶段是占位 Agent；P3 换成真实流水线后，这里会自动按 MERGE 语义写库
-      await app.agent.run(user.userId, request.body.user_input);
-
+      const categories = await app.agent.parseBudget(user.userId, request.body.user_input);
       const yearMonth = formatYearMonthUtc();
-      const rows = await listMonthBudgets(app.db, user.userId, yearMonth);
-      return buildBudgetResponse(user.userId, yearMonth, user.monthlyBudget ?? "0", rows);
+      const saved = await saveCategoryBudgets(app.db, {
+        userId: user.userId,
+        yearMonth,
+        categories: categories.map((item) => ({
+          category: item.category,
+          monthlyLimit: item.monthly_limit,
+        })),
+        mode: "merge",
+      });
+      return buildBudgetResponse(user.userId, yearMonth, saved.totalBudget, saved.merged);
     },
   );
 
@@ -81,31 +74,18 @@ export const budgetRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: { body: manualBudgetRequestSchema, response: { 200: budgetResponseSchema } },
     },
     async (request): Promise<BudgetResponse> => {
-      const user = await requireActiveUser(app.db, currentUser(request));
-      const totalBudget = requireTotalBudget(user);
-
-      const rows: CategoryLimit[] = request.body.categories.map((item) => ({
-        category: item.category,
-        monthlyLimit: formatCents(parseCents(item.monthly_limit)),
-      }));
-
-      const allocated = rows.reduce((sum, row) => sum + parseCents(row.monthlyLimit), 0n);
-      const total = parseCents(totalBudget);
-      if (allocated > total) {
-        throw new AppError(
-          "BUDGET_OVER_ALLOCATED",
-          `子类预算合计 ${formatCents(allocated)} 超出总预算 ${formatCents(total)}，请调整后重试`,
-        );
-      }
-
+      const userId = currentUser(request).sub;
       const yearMonth = request.body.year_month ?? formatYearMonthUtc();
-
-      // 全量替换必须在事务里：删除成功但插入失败会把当月预算清空
-      await app.db.transaction(async (tx) => {
-        await replaceMonthBudgets(tx, user.userId, yearMonth, rows);
+      const saved = await saveCategoryBudgets(app.db, {
+        userId,
+        yearMonth,
+        categories: request.body.categories.map((item) => ({
+          category: item.category,
+          monthlyLimit: item.monthly_limit,
+        })),
+        mode: "replace",
       });
-
-      return buildBudgetResponse(user.userId, yearMonth, totalBudget, rows);
+      return buildBudgetResponse(userId, yearMonth, saved.totalBudget, saved.merged);
     },
   );
 };

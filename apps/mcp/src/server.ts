@@ -4,12 +4,19 @@ import { z } from "zod";
 import {
   findUserById,
   listMonthBudgets,
-  mergeAndValidateBudgets,
-  updateMonthlyBudget,
-  upsertMonthBudgets,
+  saveCategoryBudgets,
+  type CategoryLimitRow,
   type Database,
 } from "@cyberbudget/db";
-import { formatCents, formatYearMonthUtc, parseCents } from "@cyberbudget/shared";
+import {
+  AppError,
+  categorySchema,
+  positiveMoneyNumberSchema,
+  formatCents,
+  formatMoney,
+  formatYearMonthUtc,
+  parseCents,
+} from "@cyberbudget/shared";
 
 import { performWebSearch, type WebSearchOptions } from "./tavily.js";
 
@@ -42,10 +49,6 @@ function text(value: string): { content: { type: "text"; text: string }[] } {
   return { content: [{ type: "text", text: value }] };
 }
 
-function moneyText(value: string | null): string {
-  return Number(value ?? "0").toFixed(2);
-}
-
 function monthOf(): string {
   return formatYearMonthUtc(new Date());
 }
@@ -60,21 +63,31 @@ async function budgetSummary(db: Database, userId: string): Promise<string> {
   if (user === undefined) return `❌ 用户不存在：${userId}`;
   const month = monthOf();
   const budgets = await listMonthBudgets(db, userId, month);
+  return formatBudgetSummary(userId, user.username, month, user.monthlyBudget ?? "0", budgets);
+}
+
+function formatBudgetSummary(
+  userId: string,
+  username: string,
+  month: string,
+  totalBudget: string,
+  budgets: readonly CategoryLimitRow[],
+): string {
   const lines = [
     `💰 预算概览（${month}）`,
-    `用户：${user.username}（${userId}）`,
-    `总预算：¥${moneyText(user.monthlyBudget)}`,
+    `用户：${username}（${userId}）`,
+    `总预算：¥${formatMoney(totalBudget)}`,
   ];
   if (budgets.length === 0) {
     lines.push("分类预算：暂无");
   } else {
     lines.push("分类预算：");
-    let total = 0;
+    let total = 0n;
     for (const budget of budgets) {
-      total += Number(budget.monthlyLimit);
-      lines.push(`- ${budget.category}：¥${moneyText(budget.monthlyLimit)}`);
+      total += parseCents(budget.monthlyLimit);
+      lines.push(`- ${budget.category}：¥${formatMoney(budget.monthlyLimit)}`);
     }
-    lines.push(`分类合计：¥${total.toFixed(2)}`);
+    lines.push(`分类合计：¥${formatCents(total)}`);
   }
   return lines.join("\n");
 }
@@ -131,12 +144,12 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
         "user_id 可省略（使用 MCP_DEFAULT_USER_ID）；至少提供 total_budget 或 categories 之一。",
       inputSchema: {
         user_id: z.string().optional(),
-        total_budget: z.number().positive().optional(),
+        total_budget: positiveMoneyNumberSchema.optional(),
         categories: z
           .array(
             z.object({
-              category: z.string().min(1),
-              monthly_limit: z.number().positive(),
+              category: z.string().trim().pipe(categorySchema),
+              monthly_limit: positiveMoneyNumberSchema,
             }),
           )
           .optional(),
@@ -147,43 +160,30 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
       const userId = resolveUserId(deps, user_id);
       if (userId === null) return text("❌ 请提供 user_id，或设置环境变量 MCP_DEFAULT_USER_ID");
 
-      const user = await findUserById(deps.db, userId);
-      if (user === undefined) return text(`❌ 用户不存在：${userId}`);
-
-      const hasCategories = categories !== undefined && categories.length > 0;
-      if (total_budget === undefined && !hasCategories) {
+      if (total_budget === undefined && !categories?.length) {
         return text("❌ 请提供 total_budget 或至少一个 categories 额度");
       }
 
-      if (total_budget !== undefined) {
-        const updated = await updateMonthlyBudget(
-          deps.db,
+      const month = monthOf();
+      try {
+        const saved = await saveCategoryBudgets(deps.db, {
           userId,
-          formatCents(parseCents(total_budget)),
-        );
-        if (updated === undefined) return text(`❌ 用户不存在：${userId}`);
-      }
-
-      if (hasCategories) {
-        const month = monthOf();
-        const existing = await listMonthBudgets(deps.db, userId, month);
-        const current = await findUserById(deps.db, userId);
-        const totalBudget = current?.monthlyBudget ?? "0";
-        const merged = mergeAndValidateBudgets({
-          existing,
-          incoming: categories.map((item) => ({
-            category: item.category.trim(),
+          yearMonth: month,
+          categories: (categories ?? []).map((item) => ({
+            category: item.category,
             monthlyLimit: item.monthly_limit,
           })),
-          totalBudget,
+          mode: "merge",
+          ...(total_budget === undefined ? {} : { totalBudget: formatMoney(total_budget) }),
         });
-        if (!merged.isValid) {
-          return text(`❌ 预算未更新：${merged.message}`);
-        }
-        await upsertMonthBudgets(deps.db, userId, month, merged.merged);
+        return text(
+          `✅ 预算已更新\n\n${formatBudgetSummary(userId, saved.username, month, saved.totalBudget, saved.merged)}`,
+        );
+      } catch (error) {
+        if (!(error instanceof AppError)) throw error;
+        if (error.code === "AUTH_USER_NOT_FOUND") return text(`❌ 用户不存在：${userId}`);
+        return text(`❌ 预算未更新：${error.message}`);
       }
-
-      return text(`✅ 预算已更新\n\n${await budgetSummary(deps.db, userId)}`);
     },
   );
 

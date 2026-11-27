@@ -1,29 +1,28 @@
 import { useState } from "react";
 
+import { Topbar } from "../components/Topbar.js";
 import { BudgetPage } from "../pages/BudgetPage.js";
 import { ChatPage } from "../pages/ChatPage.js";
 import { DashboardPage } from "../pages/DashboardPage.js";
 import { MemoryPage } from "../pages/MemoryPage.js";
 import { ProfilePage } from "../pages/ProfilePage.js";
 import { TransactionsPage } from "../pages/TransactionsPage.js";
+import { TABS } from "../tabs.js";
 
 export type SecondaryView = "budget" | "memory";
 
 type MobileTab = "chat" | "dashboard" | "transactions" | "profile";
 
-const TABS: readonly { id: MobileTab; icon: string; label: string }[] = [
-  { id: "chat", icon: "💬", label: "对话" },
-  { id: "dashboard", icon: "📊", label: "总览" },
-  { id: "transactions", icon: "📝", label: "账单" },
-  { id: "profile", icon: "👤", label: "我的" },
-];
+const MOBILE_TABS = TABS.filter(
+  (item): item is { id: MobileTab; label: string } => item.id !== "budget" && item.id !== "memory",
+);
 
 /**
  * 移动端专用展示入口（#/m）。
  * 桌面打开时套手机框预览；真机打开则直接全屏。
  * 主 Tab 只保留 4 个，预算与记忆从「我的」进入二级页。
  */
-export function MobileApp() {
+export function MobileApp({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<MobileTab>("chat");
   const [secondary, setSecondary] = useState<SecondaryView | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -33,13 +32,9 @@ export function MobileApp() {
     <div className="mobile-demo">
       <div className="mobile-frame">
         <div className="mobile-screen">
-          <div className="mobile-statusbar">
-            <span>9:41</span>
-            <span className="ms-brand">e-diot</span>
-            <span className="ms-signal">▮▮▮</span>
-          </div>
+          <Topbar onLogout={tab === "profile" && secondary === null ? onLogout : undefined} />
 
-          <div className="mobile-body">
+          <main className="mobile-body">
             <div className="mobile-page chat" style={{ display: chatActive ? "flex" : "none" }}>
               <ChatPage
                 active={chatActive}
@@ -62,7 +57,10 @@ export function MobileApp() {
               <TransactionsPage active={tab === "transactions"} refreshKey={refreshKey} />
             </div>
 
-            <div className="mobile-page" style={{ display: tab === "profile" ? "block" : "none" }}>
+            <div
+              className="mobile-page"
+              style={{ display: tab === "profile" && secondary === null ? "block" : "none" }}
+            >
               <ProfilePage
                 active={tab === "profile" && secondary === null}
                 onNavigateSecondary={(view) => setSecondary(view)}
@@ -72,7 +70,12 @@ export function MobileApp() {
             {secondary !== null && (
               <div className="mobile-subpage">
                 <div className="mobile-subhead">
-                  <button className="memory-btn" onClick={() => setSecondary(null)}>
+                  <button
+                    type="button"
+                    className="memory-btn"
+                    aria-label="返回我的"
+                    onClick={() => setSecondary(null)}
+                  >
                     ← 返回
                   </button>
                   <b>{secondary === "budget" ? "预算管理" : "我的记忆"}</b>
@@ -86,18 +89,19 @@ export function MobileApp() {
                 </div>
               </div>
             )}
-          </div>
+          </main>
 
           {secondary === null && (
-            <nav className="mobile-tabs">
-              {TABS.map((item) => (
+            <nav className="mobile-tabs" aria-label="主导航">
+              {MOBILE_TABS.map((item) => (
                 <button
                   key={item.id}
                   type="button"
-                  className={`mobile-tab${tab === item.id ? " active" : ""}`}
+                  className="mobile-tab"
+                  aria-current={tab === item.id ? "page" : undefined}
                   onClick={() => setTab(item.id)}
                 >
-                  <span className="mt-icon">{item.icon}</span>
+                  <span className={`ledger-icon icon-${item.id}`} aria-hidden="true" />
                   <span className="mt-label">{item.label}</span>
                 </button>
               ))}
@@ -105,7 +109,9 @@ export function MobileApp() {
           )}
         </div>
       </div>
-      <p className="mobile-demo-note">移动端预览 · 真机访问同一地址并加 #/m</p>
+      <a className="mobile-demo-note" href="/">
+        返回桌面版
+      </a>
     </div>
   );
 }

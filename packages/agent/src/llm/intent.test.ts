@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseIntent } from "./intent.js";
+import { parseBudgetAllocations, parseIntent } from "./intent.js";
 import type { ChatMessage, LlmClient } from "./client.js";
 
 function fakeLlm(reply: string): LlmClient & { readonly calls: ChatMessage[][] } {
@@ -41,5 +41,32 @@ describe("parseIntent", () => {
     const messages = llm.calls[0] ?? [];
     expect(messages.length).toBe(3);
     expect(messages.some((message) => message.content.includes("历史消息"))).toBe(false);
+  });
+});
+
+describe("parseBudgetAllocations", () => {
+  it.each([
+    {
+      intent_type: "add_transaction",
+      transaction: { transaction_type: "expense", amount: 20, category: "餐饮" },
+    },
+    {
+      intent_type: "set_category_budget",
+      budget_allocations: { categories: [], total_allocated: 0 },
+    },
+  ])("拒绝不能分配预算的意图 %o", async (intent) => {
+    await expect(
+      parseBudgetAllocations(fakeLlm(JSON.stringify(intent)), "餐饮 20"),
+    ).rejects.toMatchObject({
+      code: "UNPROCESSABLE_ENTITY",
+      status: 422,
+    });
+  });
+
+  it("模型返回无效数据时保留上游错误语义", async () => {
+    await expect(parseBudgetAllocations(fakeLlm("无效 JSON"), "餐饮 20")).rejects.toMatchObject({
+      code: "UPSTREAM_LLM_ERROR",
+      status: 502,
+    });
   });
 });
