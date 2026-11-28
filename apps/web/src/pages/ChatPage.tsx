@@ -264,11 +264,9 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
     <div className="page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">ASSISTANT · 对话记账</p>
+          <p className="eyebrow">AI 助手 · 说句话就记好</p>
           <h2 className="page-title">AI 助手</h2>
-          <p className="page-desc">
-            用日常语言记账、查预算、分配预算；每条回复都带可追溯的执行路径。
-          </p>
+          <p className="page-desc">日常怎么说话就怎么记；查花销、分预算，一句话也能问。</p>
         </div>
         <div className="head-side">
           <button className="btn-primary" onClick={newSession}>
@@ -298,8 +296,10 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
             {messages.length === 0 && !sending && (
               <div className="chat-welcome">
                 <div className="chat-welcome-emoji">👋</div>
-                <div className="chat-welcome-title">你好，我是你的AI财务助手</div>
-                <div className="chat-welcome-sub">可以记账、查预算、分配预算，随便聊聊～</div>
+                <div className="chat-welcome-title">今天想记点什么？</div>
+                <div className="chat-welcome-sub">
+                  说一句就行，比如「早餐 12 块」。也可以让我帮你看看这个月的花销。
+                </div>
                 <div className="chat-suggestions">
                   {SUGGESTIONS.map((suggestion) => (
                     <button
@@ -438,6 +438,9 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
                 onSelect={(sessionId) => void switchSession(sessionId)}
                 onDelete={(sessionId) => void deleteSession(sessionId)}
               />
+              {sessions.length === 0 && (
+                <p className="rail-empty">还没有历史会话，先聊一句试试。</p>
+              )}
             </div>
           </div>
 

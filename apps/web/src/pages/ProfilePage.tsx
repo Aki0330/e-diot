@@ -8,19 +8,32 @@ import type {
   UserProfile,
   UserSettings,
 } from "../api/types.js";
+import { AvatarPicker } from "../components/AvatarPicker.js";
 import { useToast } from "../components/Toast.js";
+import { getAvatar, setAvatar } from "../utils/avatar.js";
 import { fmt } from "../utils/format.js";
 
 export interface ProfilePageProps {
   readonly active: boolean;
   /** 移动端二级入口：预算 / 记忆 */
   readonly onNavigateSecondary?: (view: "budget" | "memory") => void;
+  /** 退出登录回调（桌面端接入，移动端顶栏已有退出） */
+  readonly onLogout?: () => void;
 }
 
-function fmtDateTime(value: string | null): string {
+function fmtDate(value: string | null): string {
   if (value === null) return "-";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "-" : date.toLocaleString("zh-CN", { hour12: false });
+  return Number.isNaN(date.getTime())
+    ? "-"
+    : date.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function daysSince(value: string | null): number {
+  if (value === null) return 1;
+  const start = new Date(value).getTime();
+  if (Number.isNaN(start)) return 1;
+  return Math.max(1, Math.floor((Date.now() - start) / 86_400_000) + 1);
 }
 
 const PERSONA_OPTIONS: readonly { id: PersonaId; name: string; en: string; desc: string }[] = [
@@ -31,13 +44,13 @@ const PERSONA_OPTIONS: readonly { id: PersonaId; name: string; en: string; desc:
 ];
 
 const LEVEL_OPTIONS: readonly { id: ProactiveLevel; label: string }[] = [
-  { id: "low", label: "低频 · 只在值得提醒时出现" },
+  { id: "low", label: "低调 · 只在值得提醒时出现" },
   { id: "medium", label: "适中 · 每天最多一次" },
-  { id: "high", label: "高频 · 可多次主动互动" },
+  { id: "high", label: "主动 · 可多次来找你" },
 ];
 
-/** 个人页：账户信息 + 用户级 LLM 配置（base_url / api_key） */
-export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
+/** 个人页：形象 + 相处方式 + 提醒节奏 + 账户信息（模型配置收进「高级」） */
+export function ProfilePage({ active, onNavigateSecondary, onLogout }: ProfilePageProps) {
   const toast = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [llm, setLlm] = useState<LlmConfig | null>(null);
@@ -54,6 +67,10 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
   const [quietEnd, setQuietEnd] = useState("08:00");
   const [snooze, setSnooze] = useState<"none" | "1d" | "7d">("none");
   const [savingSettings, setSavingSettings] = useState(false);
+
+  const [avatar, setAvatarState] = useState<string>(() => getAvatar());
+  const [picking, setPicking] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const load = useCallback(async (): Promise<void> => {
     try {
@@ -97,7 +114,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
           : { ...prev, llm_base_url: saved.base_url, has_llm_key: saved.has_api_key },
       );
       setApiKey("");
-      toast("LLM 配置已保存，下一次对话起生效", "success");
+      toast("模型配置已保存，下一次对话起生效", "success");
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : String(cause), "error");
     } finally {
@@ -112,7 +129,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
       setLlm(saved);
       setBaseUrl("");
       setApiKey("");
-      toast("已清除，将回落到全局配置", "success");
+      toast("已清除，回到默认模型", "success");
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : String(cause), "error");
     } finally {
@@ -137,7 +154,7 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
       });
       setSettings(saved);
       setSnooze("none");
-      toast("相处方式已保存", "success");
+      toast("已经按你的偏好调整好了", "success");
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : String(cause), "error");
     } finally {
@@ -156,35 +173,86 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
   }
 
   const usingOwn = llm !== null && llm.has_api_key && (llm.base_url ?? "") !== "";
+  const personaName = PERSONA_OPTIONS.find((item) => item.id === persona)?.name ?? "搭子型";
 
   return (
-    <div className="page">
+    <div className="page me-page">
       <div className="page-head">
         <div>
-          <p className="eyebrow">PROFILE · 账户与模型</p>
+          <p className="eyebrow">PROFILE · 形象与偏好</p>
           <h2 className="page-title">我的</h2>
-          <p className="page-desc">账户信息与个人 LLM 配置；保存后下一次对话即生效。</p>
+          <p className="page-desc">它记得你的口味、目标和边界，也记得你希望被提醒的分寸。</p>
         </div>
-        <span className={`badge ${usingOwn ? "lime" : "ink"}`}>
-          {usingOwn ? "用户级模型" : "全局模型"}
-        </span>
       </div>
 
-      <div className="profile-hero">
-        <div className="profile-avatar">👤</div>
-        <div>
-          <div className="profile-name">{profile.username}</div>
-          <div className="profile-id">{profile.user_id}</div>
+      <section className="me-hero">
+        <div className="me-avatar">
+          <span>{avatar}</span>
         </div>
-      </div>
+        <div className="me-hero-main">
+          <div className="me-name">{profile.username}</div>
+          <div className="me-meta">
+            第 {daysSince(profile.created_at)} 天 · {personaName} · 月预算 ¥{fmt(profile.budget)}
+          </div>
+        </div>
+        <div className="me-hero-actions">
+          <button className="btn-ghost btn-sm" onClick={() => setPicking((value) => !value)}>
+            {picking ? "收起" : "换形象"}
+          </button>
+          {onLogout !== undefined && (
+            <button className="btn-logout btn-sm" type="button" onClick={onLogout}>
+              退出登录
+            </button>
+          )}
+        </div>
+      </section>
 
       <div className="profile-grid">
+        <section className="card span-7">
+          <div className="card-head">
+            <div>
+              <div className="card-title">相处方式</div>
+              <div className="card-sub">只影响说话的语气和长短，不影响判断标准</div>
+            </div>
+            <span className="badge lime tiny">{personaName}</span>
+          </div>
+
+          <div className="persona-grid">
+            {PERSONA_OPTIONS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`persona-option${persona === item.id ? " active" : ""}`}
+                onClick={() => setPersona(item.id)}
+              >
+                <span className="persona-name">{item.name}</span>
+                <span className="persona-en">{item.en}</span>
+                <span className="persona-desc">{item.desc}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="card-foot">
+            <span className="profile-hint">选好之后，它下次对话就会换一种方式跟你说话。</span>
+            <button
+              className="btn-primary btn-sm"
+              onClick={() => void saveSettings()}
+              disabled={savingSettings}
+            >
+              {savingSettings ? "保存中…" : "保存"}
+            </button>
+          </div>
+        </section>
+
         <section className="card span-5">
           <div className="card-head">
             <div>
-              <div className="card-title">账户信息</div>
-              <div className="card-sub">只读 · 来自 /users/me</div>
+              <div className="card-title">账户</div>
+              <div className="card-sub">注册时填的信息</div>
             </div>
+            <span className={`badge ${profile.is_active ? "lime" : "red"} tiny`}>
+              {profile.is_active ? "正常" : "已停用"}
+            </span>
           </div>
           <div className="profile-rows">
             <div className="profile-row">
@@ -200,108 +268,36 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
               <span className="profile-value">¥{fmt(profile.budget)}</span>
             </div>
             <div className="profile-row">
-              <span className="profile-key">注册时间</span>
-              <span className="profile-value">{fmtDateTime(profile.created_at)}</span>
-            </div>
-            <div className="profile-row">
-              <span className="profile-key">账户状态</span>
-              <span className="profile-value">{profile.is_active ? "正常" : "已停用"}</span>
-            </div>
-            <div className="profile-row">
-              <span className="profile-key">LLM 密钥</span>
-              <span className="profile-value">{llm?.has_api_key ? "已配置" : "未配置"}</span>
-            </div>
-          </div>
-        </section>
-
-        <section className="card span-7">
-          <div className="card-head">
-            <div>
-              <div className="card-title">LLM 配置</div>
-              <div className="card-sub">Base URL + API Key，覆盖全局 LLM_*</div>
-            </div>
-            <span className="badge ink tiny">{llm?.model ?? "-"}</span>
-          </div>
-
-          <div className="profile-rows">
-            <div className="profile-row">
-              <span className="profile-key">当前生效</span>
-              <span className="profile-value">{usingOwn ? "用户级配置" : "全局默认"}</span>
-            </div>
-            <div className="profile-row">
-              <span className="profile-key">Base URL</span>
-              <span className="profile-value">{llm?.base_url ?? "（未配置）"}</span>
+              <span className="profile-key">加入时间</span>
+              <span className="profile-value">{fmtDate(profile.created_at)}</span>
             </div>
           </div>
 
-          <div className="form-group" style={{ marginTop: 14 }}>
-            <label htmlFor="llm-base-url">Base URL</label>
-            <input
-              id="llm-base-url"
-              className="input"
-              value={baseUrl}
-              onChange={(event) => setBaseUrl(event.target.value)}
-              placeholder="https://api.deepseek.com"
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="llm-api-key">API Key</label>
-            <input
-              id="llm-api-key"
-              className="input"
-              type="password"
-              value={apiKey}
-              onChange={(event) => setApiKey(event.target.value)}
-              placeholder={llm?.has_api_key ? "已配置，留空则不修改" : "sk-..."}
-              autoComplete="new-password"
-            />
-          </div>
-
-          <p className="profile-hint">
-            只保存在你的账户下；接口只回传「是否已配置」，不会返回密钥明文。Base URL 与 Key
-            同时存在时才会覆盖全局配置，保存后下一次对话即生效。
-          </p>
-
-          <div className="profile-actions" style={{ marginTop: 14 }}>
-            <button className="btn-primary" onClick={() => void save()} disabled={saving}>
-              {saving ? "保存中..." : "保存"}
-            </button>
-            <button className="btn-secondary" onClick={() => void clear()} disabled={saving}>
-              清除配置
-            </button>
-          </div>
-
-          {error !== null && <p className="profile-hint error">{error}</p>}
+          {picking && (
+            <div className="card-extra">
+              <AvatarPicker
+                value={avatar}
+                onChange={(emoji) => {
+                  setAvatarState(emoji);
+                  setAvatar(emoji);
+                }}
+                label="选一个记账搭子"
+                hint="随时可以再换"
+              />
+            </div>
+          )}
         </section>
       </div>
 
-      <section className="card settings-card">
+      <section className="card rhythm-card">
         <div className="card-head">
           <div>
-            <div className="card-title">相处方式</div>
-            <div className="card-sub">人格只影响语气与长度，不影响判断标准</div>
+            <div className="card-title">提醒节奏</div>
+            <div className="card-sub">什么时候来找你、什么时候别打扰，由你定</div>
           </div>
-          <span className="badge lime tiny">
-            {PERSONA_OPTIONS.find((item) => item.id === persona)?.name ?? "搭子型"}
-          </span>
-        </div>
-
-        <div className="persona-grid">
-          {PERSONA_OPTIONS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`persona-option${persona === item.id ? " active" : ""}`}
-              onClick={() => setPersona(item.id)}
-            >
-              <span className="persona-name">{item.name}</span>
-              <span className="persona-en">{item.en}</span>
-              <span className="persona-desc">{item.desc}</span>
-            </button>
-          ))}
+          {settings?.snooze_until !== null && settings?.snooze_until !== undefined && (
+            <span className="badge amber tiny">已暂停主动消息</span>
+          )}
         </div>
 
         <div className="settings-grid">
@@ -355,35 +351,124 @@ export function ProfilePage({ active, onNavigateSecondary }: ProfilePageProps) {
           </label>
         </div>
 
-        <div className="profile-actions">
+        <div className="card-foot">
+          <span className="profile-hint">
+            {settings?.snooze_until !== null && settings?.snooze_until !== undefined
+              ? `主动消息已暂停至 ${fmtDate(settings.snooze_until)}`
+              : `免打扰时段 ${quietStart}–${quietEnd} 内不会主动找你。`}
+          </span>
           <button
-            className="btn-primary"
+            className="btn-primary btn-sm"
             onClick={() => void saveSettings()}
             disabled={savingSettings}
           >
-            {savingSettings ? "保存中..." : "保存相处方式"}
+            {savingSettings ? "保存中…" : "保存"}
           </button>
         </div>
+      </section>
 
-        {settings?.snooze_until !== null && settings?.snooze_until !== undefined && (
-          <p className="profile-hint">主动消息已暂停至 {fmtDateTime(settings.snooze_until)}</p>
+      <section className="card advanced-card">
+        <button
+          type="button"
+          className="advanced-head"
+          aria-expanded={advancedOpen}
+          onClick={() => setAdvancedOpen((open) => !open)}
+        >
+          <div>
+            <div className="card-title">高级设置 · 模型服务</div>
+            <div className="card-sub">想用自己的大模型 API 才需要动，默认不用管</div>
+          </div>
+          <div className="advanced-right">
+            <span className={`badge ${usingOwn ? "lime" : "ink"} tiny`}>
+              {usingOwn ? "我的配置" : "默认模型"}
+            </span>
+            <span className="advanced-chev">{advancedOpen ? "▴" : "▾"}</span>
+          </div>
+        </button>
+
+        {advancedOpen && (
+          <div className="advanced-body">
+            <div className="profile-rows">
+              <div className="profile-row">
+                <span className="profile-key">当前生效</span>
+                <span className="profile-value">{usingOwn ? "我的配置" : "默认模型"}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-key">Base URL</span>
+                <span className="profile-value">{llm?.base_url ?? "（未配置）"}</span>
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: 14 }}>
+              <label htmlFor="llm-base-url">Base URL</label>
+              <input
+                id="llm-base-url"
+                className="input"
+                value={baseUrl}
+                onChange={(event) => setBaseUrl(event.target.value)}
+                placeholder="https://api.deepseek.com"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="llm-api-key">API Key</label>
+              <input
+                id="llm-api-key"
+                className="input"
+                type="password"
+                value={apiKey}
+                onChange={(event) => setApiKey(event.target.value)}
+                placeholder={llm?.has_api_key ? "已配置，留空则不改" : "sk-..."}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <p className="profile-hint">
+              密钥只存在你自己的账户里，这里只显示「是否已配置」，不会回显明文。Base URL 和 Key
+              都填好才会生效，保存后下一次对话即生效。
+            </p>
+
+            <div className="card-foot">
+              <span className="profile-hint">{llm?.model ?? "-"}</span>
+              <div className="advanced-actions">
+                <button className="btn-ghost btn-sm" onClick={() => void clear()} disabled={saving}>
+                  清除
+                </button>
+                <button
+                  className="btn-primary btn-sm"
+                  onClick={() => void save()}
+                  disabled={saving}
+                >
+                  {saving ? "保存中…" : "保存"}
+                </button>
+              </div>
+            </div>
+
+            {error !== null && <p className="profile-hint error">{error}</p>}
+          </div>
         )}
       </section>
 
       {onNavigateSecondary !== undefined && (
-        <section className="card" style={{ marginTop: 14 }}>
+        <section className="card">
           <div className="card-head">
             <div>
-              <div className="card-title">更多功能</div>
-              <div className="card-sub">移动端二级入口</div>
+              <div className="card-title">更多</div>
+              <div className="card-sub">移动端从这里进入预算与记忆</div>
             </div>
           </div>
-          <div className="settings-grid">
-            <button className="memory-btn" onClick={() => onNavigateSecondary("budget")}>
-              💰 预算管理
+          <div className="quick-links">
+            <button className="quick-link" onClick={() => onNavigateSecondary("budget")}>
+              <span>💰</span>
+              <b>预算管理</b>
+              <small>给每类花钱定个上限</small>
             </button>
-            <button className="memory-btn" onClick={() => onNavigateSecondary("memory")}>
-              🧠 我的记忆
+            <button className="quick-link" onClick={() => onNavigateSecondary("memory")}>
+              <span>🧠</span>
+              <b>我的记忆</b>
+              <small>看看它记住了什么</small>
             </button>
           </div>
         </section>

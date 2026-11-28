@@ -106,7 +106,12 @@ export function App() {
             />
           </div>
           <div className="page-wrapper" style={{ display: tab === "dashboard" ? "block" : "none" }}>
-            <DashboardPage active={tab === "dashboard"} refreshKey={refreshKey} />
+            <DashboardPage
+              active={tab === "dashboard"}
+              refreshKey={refreshKey}
+              user={user}
+              onNavigate={setTab}
+            />
           </div>
           <div className="page-wrapper" style={{ display: tab === "budget" ? "block" : "none" }}>
             <BudgetPage active={tab === "budget"} refreshKey={refreshKey} />
@@ -118,7 +123,7 @@ export function App() {
             <TransactionsPage active={tab === "transactions"} refreshKey={refreshKey} />
           </div>
           <div className="page-wrapper" style={{ display: tab === "profile" ? "block" : "none" }}>
-            <ProfilePage active={tab === "profile"} />
+            <ProfilePage active={tab === "profile"} onLogout={logout} />
           </div>
           <div className="page-wrapper" style={{ display: tab === "memory" ? "block" : "none" }}>
             <MemoryPage active={tab === "memory"} />

@@ -7,6 +7,7 @@ import { MobileApp } from "./mobile/MobileApp.js";
 import "./style.css";
 import "./theme.css";
 import "./pages.css";
+import "./design.css";
 import "./mobile.css";
 
 const container = document.getElementById("root");

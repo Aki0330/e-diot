@@ -9,7 +9,13 @@ export interface TopbarProps {
   readonly onLogout: () => void;
 }
 
-/** 顶栏：移动端显示品牌 + 退出，桌面端显示面包屑与在线状态 */
+function todayLabel(): string {
+  const now = new Date();
+  const week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][now.getDay()] ?? "";
+  return `${now.getMonth() + 1} 月 ${now.getDate()} 日 ${week}`;
+}
+
+/** 顶栏：移动端显示品牌 + 退出，桌面端显示当前页与今日日期 */
 export function Topbar({ tab, user, sidebarCollapsed, onToggleSidebar, onLogout }: TopbarProps) {
   const meta = tabMeta(tab);
   const chatActive = tab === "chat";
@@ -31,20 +37,18 @@ export function Topbar({ tab, user, sidebarCollapsed, onToggleSidebar, onLogout 
           <span className="logo-text">💸 e-diot</span>
         </span>
         <div className="crumb">
-          <span>E-DIOT</span>
-          <span className="crumb-sep">/</span>
-          <b>{meta.group}</b>
+          <b>{meta.label}</b>
           <span className="crumb-sep">/</span>
           <span className="crumb-page">{meta.mono}</span>
         </div>
       </div>
 
       <div className="top-bar-right">
-        <span className="period">
+        <span className="period">{todayLabel()}</span>
+        <span className="sync-pill">
           <i className={`dot ${user.is_active ? "lime" : "dim"}`} />
-          {user.is_active ? "ONLINE" : "OFFLINE"}
+          {user.is_active ? "已同步" : "离线"}
         </span>
-        <span className="header-user">👋 {user.username}</span>
         <button id="btn-logout" className="btn-text" onClick={onLogout}>
           退出
         </button>
