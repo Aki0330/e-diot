@@ -21,7 +21,9 @@ export interface KnowledgeRuntimeOverrides {
   readonly store?: MilvusVectorStore;
 }
 
-export function createKnowledgeRuntime(overrides: KnowledgeRuntimeOverrides = {}): KnowledgeRuntime {
+export function createKnowledgeRuntime(
+  overrides: KnowledgeRuntimeOverrides = {},
+): KnowledgeRuntime {
   const config = overrides.config ?? getConfig();
   const store =
     overrides.store ??

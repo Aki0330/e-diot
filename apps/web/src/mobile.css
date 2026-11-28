@@ -9,8 +9,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 28px 16px;
+  gap: 12px;
+  padding: 20px 16px;
+  overflow: auto;
   background:
     radial-gradient(900px 500px at 50% 0%, rgba(200, 241, 105, 0.12), transparent 65%), #0b1220;
 }
@@ -18,6 +19,7 @@
 .mobile-frame {
   width: 390px;
   height: 844px;
+  max-height: calc(100dvh - 80px);
   padding: 10px;
   border-radius: 46px;
   background: #080d17;
@@ -61,6 +63,47 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.mobile-body-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-login {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background: var(--bg);
+}
+
+.mobile-login .ml-emoji {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.mobile-login .ml-title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.mobile-login .ml-desc {
+  margin: 0;
+  max-width: 240px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.mobile-login .btn-primary {
+  margin-top: 6px;
+  padding: 10px 22px;
 }
 
 .mobile-page {
@@ -137,11 +180,11 @@
 
 .mobile-tabs {
   display: flex;
-  gap: 2px;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, 0.94);
+  gap: 4px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #ffffff;
   border-top: 1px solid var(--border);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 -6px 18px -14px rgba(15, 23, 42, 0.35);
 }
 
 .mobile-tab {
@@ -149,12 +192,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 6px 2px;
+  gap: 4px;
+  padding: 7px 2px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: inherit;
   cursor: pointer;
 }
@@ -169,12 +212,12 @@
 }
 
 .mt-icon {
-  font-size: 19px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .mt-label {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .mobile-demo-note {
@@ -302,4 +345,71 @@
 
 .mobile-screen .modal-sheet {
   position: relative;
+}
+
+/* 移动端登录/注册：复用 AuthPage，隐藏桌面品牌区 */
+.mobile-screen .auth-page {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  padding: 14px 12px 20px;
+  overflow-y: auto;
+}
+
+.mobile-screen .auth-shell {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 100%;
+  gap: 0;
+}
+
+.mobile-screen .auth-brand {
+  display: none;
+}
+
+.mobile-screen .auth-card {
+  padding: 18px;
+  border-radius: 18px;
+}
+
+.mobile-screen .auth-card-head h2 {
+  font-size: 24px;
+}
+
+.mobile-screen .auth-shell,
+.mobile-screen .auth-card,
+.mobile-screen .auth-form,
+.mobile-screen .field,
+.mobile-screen .input-group {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.mobile-screen .auth-form input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 手机框内的数字人页：压缩形象舞台，让对话输入可见 */
+.mobile-screen .avatar-page {
+  padding: 12px;
+  gap: 12px;
+}
+
+.mobile-screen .avatar-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mobile-screen .avatar-stage {
+  min-height: 240px;
+}
+
+.mobile-screen .avatar-chat {
+  min-height: 320px;
+  max-height: none;
+}
+
+.mobile-screen .avatar-head {
+  flex-direction: column;
+  align-items: flex-start;
 }

@@ -29,7 +29,11 @@ async function connect(
   apiKey = "",
   knowledgeSearch?: Parameters<typeof createMcpServer>[0]["knowledgeSearch"],
 ): Promise<Client> {
-  const server = createMcpServer({ apiKey, sleep: () => Promise.resolve(), ...(knowledgeSearch === undefined ? {} : { knowledgeSearch }) });
+  const server = createMcpServer({
+    apiKey,
+    sleep: () => Promise.resolve(),
+    ...(knowledgeSearch === undefined ? {} : { knowledgeSearch }),
+  });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
 

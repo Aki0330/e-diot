@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { api, getToken, setToken } from "../api/client.js";
+import type { UserProfile } from "../api/types.js";
+import { AuthPage } from "../pages/AuthPage.js";
 import { AvatarPage } from "../pages/AvatarPage.js";
 import { BudgetPage } from "../pages/BudgetPage.js";
 import { ChatPage } from "../pages/ChatPage.js";
@@ -23,12 +26,81 @@ const TABS: readonly { id: MobileTab; icon: string; label: string }[] = [
  * 移动端专用展示入口（#/m）。
  * 桌面打开时套手机框预览；真机打开则直接全屏。
  * 主 Tab 只保留 4 个，预算与记忆从「我的」进入二级页。
+ * 与桌面端一致：未登录时先引导登录，登录后才渲染各功能页。
  */
 export function MobileApp() {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<MobileTab>("chat");
   const [secondary, setSecondary] = useState<SecondaryView | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const chatActive = tab === "chat" && secondary === null;
+
+  const loadUser = useCallback(async (): Promise<void> => {
+    if (getToken() === "") {
+      setUser(null);
+      return;
+    }
+    try {
+      setUser(await api.me());
+    } catch {
+      setToken(null);
+      setUser(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      await loadUser();
+      setChecking(false);
+    })();
+  }, [loadUser]);
+
+  const logout = (): void => {
+    setToken(null);
+    setUser(null);
+  };
+
+  if (checking) {
+    return (
+      <div className="mobile-demo">
+        <div className="mobile-frame">
+          <div className="mobile-screen">
+            <div className="mobile-statusbar">
+              <span>9:41</span>
+              <span className="ms-brand">e-diot</span>
+              <span className="ms-signal">▮▮▮</span>
+            </div>
+            <div className="mobile-body mobile-body-center">
+              <div className="spinner" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user === null) {
+    return (
+      <div className="mobile-demo">
+        <div className="mobile-frame">
+          <div className="mobile-screen">
+            <div className="mobile-statusbar">
+              <span>9:41</span>
+              <span className="ms-brand">e-diot</span>
+              <span className="ms-signal">▮▮▮</span>
+            </div>
+            <AuthPage
+              onAuthenticated={async () => {
+                await loadUser();
+              }}
+            />
+          </div>
+        </div>
+        <p className="mobile-demo-note">移动端预览 · 真机访问同一地址并加 #/m</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mobile-demo">
@@ -67,6 +139,7 @@ export function MobileApp() {
               <ProfilePage
                 active={tab === "profile" && secondary === null}
                 onNavigateSecondary={(view) => setSecondary(view)}
+                onLogout={logout}
               />
             </div>
 

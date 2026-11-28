@@ -16,16 +16,16 @@
 
 ## 1. 候选项目对比
 
-| 项目 | Star | 许可证 | 技术栈 | 形象 | 中文 TTS | 需要 GPU | 适合我们吗 |
-| --- | ---: | --- | --- | --- | --- | --- | --- |
-| [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) | 14.8k | **MIT**（示例模型除外） | Python + Web | Live2D（Cubism 5） | Edge TTS / Azure / GPT-SoVITS / CosyVoice | 否（可全 API） | **首选** |
-| [AITuberKit](https://github.com/tegnike/aituber-kit) | 1.1k | **自定义：非商用免费，商用要授权** | TypeScript / Next.js | VRM 3D + Live2D | Google / OpenAI / ElevenLabs 等（中文需选对音色） | 否 | 想要 3D VRM 时用；注意许可证 |
-| [pixiv/ChatVRM](https://github.com/pixiv/ChatVRM) | 848 | **MIT**（已归档） | Next.js + three-vrm | VRM 3D | Koeiromap / OpenAI | 否 | 代码参考；已停止维护 |
-| [LiveTalking](https://github.com/lipku/LiveTalking) | 10.7k | Apache-2.0 | Python + 视频流 | 真人视频数字人（ernerf/musetalk/wav2lip） | 任意 TTS | **是（NVIDIA）** | 发布会/大屏才考虑，日常不划算 |
-| [live2d-widget](https://github.com/stevenjoezhang/live2d-widget) | 11k | **GPL-3.0** | TypeScript | Live2D | 无 | 否 | 只想要看板娘时用；GPL 会传染 |
-| [pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) | 1.5k | MIT | TypeScript | Live2D | 无 | 否 | 自己写时的底层库 |
-| [three-vrm](https://github.com/pixiv/three-vrm) | 2.3k | MIT | TypeScript | VRM 3D | 无 | 否 | 自己写 3D 时的底层库 |
-| [AI-Vtuber](https://github.com/Ikaros-521/AI-Vtuber) | 4.6k | **GPL-3.0** | Python | Live2D | 多引擎 | 否 | 功能全但 GPL，不建议抄进仓库 |
+| 项目                                                                  |  Star | 许可证                             | 技术栈               | 形象                                      | 中文 TTS                                          | 需要 GPU         | 适合我们吗                    |
+| --------------------------------------------------------------------- | ----: | ---------------------------------- | -------------------- | ----------------------------------------- | ------------------------------------------------- | ---------------- | ----------------------------- |
+| [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) | 14.8k | **MIT**（示例模型除外）            | Python + Web         | Live2D（Cubism 5）                        | Edge TTS / Azure / GPT-SoVITS / CosyVoice         | 否（可全 API）   | **首选**                      |
+| [AITuberKit](https://github.com/tegnike/aituber-kit)                  |  1.1k | **自定义：非商用免费，商用要授权** | TypeScript / Next.js | VRM 3D + Live2D                           | Google / OpenAI / ElevenLabs 等（中文需选对音色） | 否               | 想要 3D VRM 时用；注意许可证  |
+| [pixiv/ChatVRM](https://github.com/pixiv/ChatVRM)                     |   848 | **MIT**（已归档）                  | Next.js + three-vrm  | VRM 3D                                    | Koeiromap / OpenAI                                | 否               | 代码参考；已停止维护          |
+| [LiveTalking](https://github.com/lipku/LiveTalking)                   | 10.7k | Apache-2.0                         | Python + 视频流      | 真人视频数字人（ernerf/musetalk/wav2lip） | 任意 TTS                                          | **是（NVIDIA）** | 发布会/大屏才考虑，日常不划算 |
+| [live2d-widget](https://github.com/stevenjoezhang/live2d-widget)      |   11k | **GPL-3.0**                        | TypeScript           | Live2D                                    | 无                                                | 否               | 只想要看板娘时用；GPL 会传染  |
+| [pixi-live2d-display](https://github.com/guansss/pixi-live2d-display) |  1.5k | MIT                                | TypeScript           | Live2D                                    | 无                                                | 否               | 自己写时的底层库              |
+| [three-vrm](https://github.com/pixiv/three-vrm)                       |  2.3k | MIT                                | TypeScript           | VRM 3D                                    | 无                                                | 否               | 自己写 3D 时的底层库          |
+| [AI-Vtuber](https://github.com/Ikaros-521/AI-Vtuber)                  |  4.6k | **GPL-3.0**                        | Python               | Live2D                                    | 多引擎                                            | 否               | 功能全但 GPL，不建议抄进仓库  |
 
 ## 2. 为什么不选另外几个
 
@@ -94,10 +94,10 @@ body: { model, messages: [{role:"user", content:"今天午饭花了38"}] }
 
 ### 3.4 放进 E-diot 的两种方式
 
-| 方式 | 工作量 | 说明 |
-| --- | --- | --- |
-| **iframe / 新标签页**（先做） | 0.5 天 | E-diot 加一个「数字人」入口，`<iframe src="http://localhost:12393">`；最快看到效果 |
-| 抄它的前端组件（后做） | 2–3 天 | 复用 `Open-LLM-VTuber-Web` 的 Live2D 渲染与 WebSocket 协议，嵌进 React 页面，去掉它自带的聊天 UI |
+| 方式                          | 工作量 | 说明                                                                                             |
+| ----------------------------- | ------ | ------------------------------------------------------------------------------------------------ |
+| **iframe / 新标签页**（先做） | 0.5 天 | E-diot 加一个「数字人」入口，`<iframe src="http://localhost:12393">`；最快看到效果               |
+| 抄它的前端组件（后做）        | 2–3 天 | 复用 `Open-LLM-VTuber-Web` 的 Live2D 渲染与 WebSocket 协议，嵌进 React 页面，去掉它自带的聊天 UI |
 
 建议先 iframe 验证「语音 + 形象 + 打断」，确认体验后再抄组件。
 
@@ -111,13 +111,13 @@ body: { model, messages: [{role:"user", content:"今天午饭花了38"}] }
 
 ## 5. 建议的 5 天计划
 
-| 天 | 做什么 | 验收 |
-| --- | --- | --- |
-| D1 | 装 Python 3.11 + FFmpeg，跑通 Open-LLM-VTuber（DeepSeek 直连） | 浏览器里能说话、有 Live2D、嘴会动 |
-| D2 | E-diot 加 `/v1/chat/completions` 适配层 | 虚拟人回答里能出现「餐饮预算还剩 …」 |
-| D3 | E-diot 加「数字人」入口（iframe） | 从主应用一键进入，不用记端口 |
-| D4 | 换形象、调 TTS 音色、加「关闭/静音」按钮 | 可一键关闭；刷新后配置不丢 |
-| D5 | 录 30 秒 demo，写进汇报 | 能演示「说一句 → 记账 → 语音回复」 |
+| 天  | 做什么                                                         | 验收                                 |
+| --- | -------------------------------------------------------------- | ------------------------------------ |
+| D1  | 装 Python 3.11 + FFmpeg，跑通 Open-LLM-VTuber（DeepSeek 直连） | 浏览器里能说话、有 Live2D、嘴会动    |
+| D2  | E-diot 加 `/v1/chat/completions` 适配层                        | 虚拟人回答里能出现「餐饮预算还剩 …」 |
+| D3  | E-diot 加「数字人」入口（iframe）                              | 从主应用一键进入，不用记端口         |
+| D4  | 换形象、调 TTS 音色、加「关闭/静音」按钮                       | 可一键关闭；刷新后配置不丢           |
+| D5  | 录 30 秒 demo，写进汇报                                        | 能演示「说一句 → 记账 → 语音回复」   |
 
 ## 6. 风险
 

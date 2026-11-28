@@ -227,10 +227,7 @@ function AvatarFigure() {
       <ellipse cx="180" cy="392" rx="92" ry="16" fill="#0f1310" opacity="0.55" />
 
       <g className="avatar-breathe">
-        <path
-          d="M78 440c0-84 44-128 102-128s102 44 102 128Z"
-          fill="url(#avatar-jacket)"
-        />
+        <path d="M78 440c0-84 44-128 102-128s102 44 102 128Z" fill="url(#avatar-jacket)" />
         <path d="M150 312l30 38 30-38 16 12-46 58-46-58Z" fill="#c9f26b" opacity="0.85" />
 
         <ellipse cx="180" cy="230" rx="18" ry="20" fill="#e9c6a8" />

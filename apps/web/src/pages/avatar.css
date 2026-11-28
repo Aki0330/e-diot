@@ -64,8 +64,7 @@
   min-height: 540px;
   border-radius: 24px;
   background:
-    radial-gradient(80% 60% at 50% 0%, rgba(201, 242, 107, 0.18), transparent 65%),
-    #1c211d;
+    radial-gradient(80% 60% at 50% 0%, rgba(201, 242, 107, 0.18), transparent 65%), #1c211d;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -376,5 +375,20 @@
 
   .avatar-head h1 {
     font-size: 23px;
+  }
+}
+
+@media (max-width: 560px) {
+  .avatar-stage {
+    min-height: 240px;
+  }
+
+  .avatar-chat {
+    min-height: 320px;
+    max-height: none;
+  }
+
+  .avatar-head h1 {
+    font-size: 20px;
   }
 }

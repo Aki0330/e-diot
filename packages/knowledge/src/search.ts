@@ -37,7 +37,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Math.trunc(value)));
 }
 
-function wrapError(error: unknown, code: "inference_unavailable" | "milvus_unavailable"): KnowledgeError {
+function wrapError(
+  error: unknown,
+  code: "inference_unavailable" | "milvus_unavailable",
+): KnowledgeError {
   if (error instanceof KnowledgeError) return error;
   const message = error instanceof Error ? error.message : String(error);
   return new KnowledgeError(message, code, { cause: error });
@@ -55,7 +58,10 @@ export async function searchKnowledge(
   const limit = Math.max(candidatePool, topK * 2);
   const category = options.categoryFilter?.trim() ?? "";
 
-  let embedding: { dense: readonly (readonly number[])[]; sparse: readonly Record<string, number>[] };
+  let embedding: {
+    dense: readonly (readonly number[])[];
+    sparse: readonly Record<string, number>[];
+  };
   try {
     embedding = await deps.inference.embed([query]);
   } catch (error) {
@@ -84,8 +90,9 @@ export async function searchKnowledge(
 
   let scores: readonly number[];
   try {
-    scores = (await deps.inference.rerank({ query, documents: candidates.map((hit) => hit.content) }))
-      .scores;
+    scores = (
+      await deps.inference.rerank({ query, documents: candidates.map((hit) => hit.content) })
+    ).scores;
   } catch (error) {
     throw wrapError(error, "inference_unavailable");
   }

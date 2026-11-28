@@ -1,0 +1,8 @@
+# 默认所有变更需要 owner 审核
+* @Aki0330
+
+# 敏感路径：认证、数据库、CI/流程、部署
+/apps/api/ @Aki0330
+/packages/db/ @Aki0330
+/.github/ @Aki0330
+/docs/merge-process.md @Aki0330

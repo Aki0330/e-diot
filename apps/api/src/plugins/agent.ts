@@ -107,7 +107,7 @@ function tagsOf(metadata: Record<string, unknown> | undefined): readonly string[
 export function createAgentKnowledgePort(): KnowledgePort {
   if (process.env["KNOWLEDGE_ENABLED"]?.trim().toLowerCase() === "false") {
     // 本地没有 Milvus / 推理 sidecar 时显式关闭，chat 仍可正常记账。
-    return { search: async () => [] };
+    return { search: () => Promise.resolve([]) };
   }
   let runtime: ReturnType<typeof createKnowledgeRuntime> | undefined;
 

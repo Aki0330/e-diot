@@ -61,11 +61,7 @@ export interface VectorStore {
 
 /** 知识库错误码：调用方（MCP / Agent）据此决定降级文案 */
 export type KnowledgeErrorCode =
-  | "invalid_argument"
-  | "inference_unavailable"
-  | "milvus_unavailable"
-  | "empty_query"
-  | "unknown";
+  "invalid_argument" | "inference_unavailable" | "milvus_unavailable" | "empty_query" | "unknown";
 
 export class KnowledgeError extends Error {
   override readonly name = "KnowledgeError";

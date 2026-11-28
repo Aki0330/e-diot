@@ -5,23 +5,23 @@ Python 进程只做向量化与重排。Milvus 读写、混合检索编排、结
 
 ## 端点
 
-| 方法 | 路径 | 请求 | 响应 |
-| --- | --- | --- | --- |
-| GET | `/health` | — | `{ status, models: { embedding: {path, loaded}, reranker: {...} }, device, fp16 }` |
-| POST | `/embed` | `{ texts: string[] }`（1–32 条） | `{ dense: number[][]（1024 维）, sparse: Record<tokenId, weight>[] }` |
-| POST | `/rerank` | `{ query, documents: string[], top_n? }`（1–64 条） | `{ scores: number[] }`，**与 documents 同序** |
+| 方法 | 路径      | 请求                                                | 响应                                                                               |
+| ---- | --------- | --------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| GET  | `/health` | —                                                   | `{ status, models: { embedding: {path, loaded}, reranker: {...} }, device, fp16 }` |
+| POST | `/embed`  | `{ texts: string[] }`（1–32 条）                    | `{ dense: number[][]（1024 维）, sparse: Record<tokenId, weight>[] }`              |
+| POST | `/rerank` | `{ query, documents: string[], top_n? }`（1–64 条） | `{ scores: number[] }`，**与 documents 同序**                                      |
 
 `/rerank` 的 `top_n` 仅为兼容旧版调用方保留，实际排序与截断由 TS 侧做。
 
 ## 环境变量
 
-| 变量 | 默认 | 说明 |
-| --- | --- | --- |
-| `EMBEDDING_MODEL_PATH` | `BAAI/bge-m3` | 本地目录或 HF repo id |
-| `RERANKER_MODEL_PATH` | `BAAI/bge-reranker-v2-m3` | 同上 |
-| `EMBEDDING_USE_FP16` | `false` | CPU 上开 fp16 不一定更快，默认关 |
-| `INFERENCE_MAX_TEXTS` | `32` | 单次向量化上限 |
-| `INFERENCE_MAX_DOCUMENTS` | `64` | 单次重排上限 |
+| 变量                      | 默认                      | 说明                             |
+| ------------------------- | ------------------------- | -------------------------------- |
+| `EMBEDDING_MODEL_PATH`    | `BAAI/bge-m3`             | 本地目录或 HF repo id            |
+| `RERANKER_MODEL_PATH`     | `BAAI/bge-reranker-v2-m3` | 同上                             |
+| `EMBEDDING_USE_FP16`      | `false`                   | CPU 上开 fp16 不一定更快，默认关 |
+| `INFERENCE_MAX_TEXTS`     | `32`                      | 单次向量化上限                   |
+| `INFERENCE_MAX_DOCUMENTS` | `64`                      | 单次重排上限                     |
 
 ## 启动
 

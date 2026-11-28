@@ -2,10 +2,11 @@
 
 > 适用于所有在本仓库工作的 agent / 协作者。新增或修改规则请改这里，并在提交说明里写原因。
 
-## 硬性流程：coding → review → testing
+## 硬性流程：branch → coding → review → testing → PR
 
-所有编码任务按这三步执行，每步都要留痕（提交信息 / PR 描述 / 回复里写清楚）：
+所有改动必须通过 PR/MR 进入 `main`；**禁止直接 push `main`**，**禁止贡献者自行合并 PR**。合并权限只属于 maintainer / owner。
 
+0. **Branch**：从最新 `main` 拉分支（`feat/`、`fix/`、`chore/`、`docs/`），不要在主分支开发。
 1. **Coding**：先读相关代码与测试，确认接口契约、数据口径与错误语义；实现最小闭环。
 2. **Review**：按 `.claude/skills/pr-reviewer/SKILL.md` 的七个维度自查一遍。
    - 目标是**规范性与健壮性**；一次只看这次改动的风险面，**不做过度 review**（不主动发起无关重构）。
@@ -14,6 +15,10 @@
    - 先跑相关用例，再跑全量 `pnpm test`；
    - 失败必须修到绿；不允许 skip / 吞异常 / 改断言绕过。
    - 需要外部环境（PostgreSQL / Docker）时，明确写出「未验证项 + 复跑命令」。
+4. **PR**：推送分支并按 `.github/pull_request_template.md` 开 PR，附验证结果、风险与截图；
+   CI（format / build / typecheck / lint / test）全绿、CODEOWNERS 审核通过后，由 maintainer / owner 合并。
+
+流程细节见 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [docs/merge-process.md](docs/merge-process.md)。
 
 ## 第一性原则
 

@@ -1,11 +1,5 @@
 export type Tab =
-  | "chat"
-  | "avatar"
-  | "dashboard"
-  | "budget"
-  | "transactions"
-  | "memory"
-  | "profile";
+  "chat" | "avatar" | "dashboard" | "budget" | "transactions" | "memory" | "profile";
 
 export interface TabMeta {
   readonly id: Tab;

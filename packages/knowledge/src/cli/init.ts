@@ -29,7 +29,9 @@ async function main(): Promise<void> {
     { inference: runtime.inference, store: runtime.store },
     { recreate: !append, logger: (message) => console.log(`• ${message}`) },
   );
-  console.log(`✓ 写入 ${result.inserted} / ${result.total} 条，collection 现有 ${result.collectionSize} 条`);
+  console.log(
+    `✓ 写入 ${result.inserted} / ${result.total} 条，collection 现有 ${result.collectionSize} 条`,
+  );
 
   const hits = await searchKnowledge(runtime, { query: SELF_TEST_QUERY, topK: 3 });
   console.log("");
