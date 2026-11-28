@@ -274,9 +274,7 @@ export function DashboardPage({ active, refreshKey, user, onNavigate }: Dashboar
               <div className="card-title">记账状态</div>
               <div className="card-sub">坚持比精确更重要</div>
             </div>
-            {streak >= 3 && (
-              <span className="badge lime">🔥 连续 {streak} 天</span>
-            )}
+            {streak >= 3 && <span className="badge lime">🔥 连续 {streak} 天</span>}
           </div>
 
           <div className="streak-body">

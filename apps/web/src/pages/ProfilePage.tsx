@@ -426,8 +426,8 @@ export function ProfilePage({ active, onNavigateSecondary, onLogout }: ProfilePa
             </div>
 
             <p className="profile-hint">
-              密钥只存在你自己的账户里，这里只显示「是否已配置」，不会回显明文。Base URL
-              和 Key 都填好才会生效，保存后下一次对话即生效。
+              密钥只存在你自己的账户里，这里只显示「是否已配置」，不会回显明文。Base URL 和 Key
+              都填好才会生效，保存后下一次对话即生效。
             </p>
 
             <div className="card-foot">
