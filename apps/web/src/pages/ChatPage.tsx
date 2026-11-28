@@ -341,8 +341,8 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
                         {message.citations.map((citation, citationIndex) => (
                           <div className="msg-source" key={citationIndex}>
                             <span className="msg-source-head">
-                              来源[{citationIndex + 1}] · {citationCategoryLabel(citation.category)} · 相关度{" "}
-                              {citation.score.toFixed(4)}
+                              来源[{citationIndex + 1}] · {citationCategoryLabel(citation.category)}{" "}
+                              · 相关度 {citation.score.toFixed(4)}
                             </span>
                             <div className="msg-source-body">
                               {citation.content.length > 120
@@ -350,9 +350,7 @@ export function ChatPage({ active, onDataChanged }: ChatPageProps) {
                                 : citation.content}
                             </div>
                             {citation.tags.length > 0 && (
-                              <div className="msg-source-tags">
-                                🏷️ {citation.tags.join(" / ")}
-                              </div>
+                              <div className="msg-source-tags">🏷️ {citation.tags.join(" / ")}</div>
                             )}
                           </div>
                         ))}

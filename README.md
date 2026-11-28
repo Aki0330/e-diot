@@ -95,10 +95,10 @@ e-diot/
 | `pnpm db:baseline`   | 给已有旧表的库打迁移基线（幂等）                               |
 | `pnpm dev:api`       | tsx watch 启动 API                                             |
 | `pnpm dev:mcp`       | tsx watch 启动 MCP Server（:8001/mcp）                         |
-| `pnpm dev:inference` | 启动 Python 推理 sidecar（:8100，需先装 venv 与模型）           |
-| `pnpm kb:init`       | 重建 Milvus collection 并写入内置语料（`--append` 只追加）      |
-| `pnpm kb:search`     | 命令行检索知识库（`--top-k`、`--category`）                     |
-| `pnpm kb:eval`       | 离线评测固定问题集（Top-5 命中率 / Top-1 分类准确率）           |
+| `pnpm dev:inference` | 启动 Python 推理 sidecar（:8100，需先装 venv 与模型）          |
+| `pnpm kb:init`       | 重建 Milvus collection 并写入内置语料（`--append` 只追加）     |
+| `pnpm kb:search`     | 命令行检索知识库（`--top-k`、`--category`）                    |
+| `pnpm kb:eval`       | 离线评测固定问题集（Top-5 命中率 / Top-1 分类准确率）          |
 | `pnpm mcp:start`     | 运行已构建的 MCP Server                                        |
 | `pnpm start`         | 运行已构建的 API（`node dist/main.js`）                        |
 

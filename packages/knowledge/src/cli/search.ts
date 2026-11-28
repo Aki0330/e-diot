@@ -17,7 +17,9 @@ async function main(): Promise<void> {
   const positional = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
   const query = (positional[0] ?? "").trim();
   if (query === "") {
-    console.error('用法：pnpm kb:search "我点外卖花了太多钱怎么办" [--top-k 3] [--category saving_advice]');
+    console.error(
+      '用法：pnpm kb:search "我点外卖花了太多钱怎么办" [--top-k 3] [--category saving_advice]',
+    );
     process.exitCode = 2;
     return;
   }

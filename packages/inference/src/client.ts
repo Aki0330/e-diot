@@ -106,7 +106,11 @@ export function createInferenceClient(options: InferenceClientOptions): Inferenc
 
       if (response.ok) {
         const data: unknown = await response.json().catch((error: unknown) => {
-          throw new InferenceError(`${endpoint} 返回的不是 JSON：${String(error)}`, endpoint, response.status);
+          throw new InferenceError(
+            `${endpoint} 返回的不是 JSON：${String(error)}`,
+            endpoint,
+            response.status,
+          );
         });
         return parse(data);
       }

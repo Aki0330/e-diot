@@ -138,9 +138,8 @@ export class MilvusVectorStore implements VectorStore {
       const progress: unknown = await this.client.getLoadingProgress({
         collection_name: this.collection,
       });
-      const percent = isRecord(progress) && typeof progress["progress"] === "number"
-        ? progress["progress"]
-        : 100;
+      const percent =
+        isRecord(progress) && typeof progress["progress"] === "number" ? progress["progress"] : 100;
       if (percent >= 100) return;
       if (Date.now() - startedAt > timeoutMs) {
         throw new KnowledgeError(`collection ${this.collection} 加载超时`, "milvus_unavailable");
@@ -231,7 +230,7 @@ export class MilvusVectorStore implements VectorStore {
   async ping(): Promise<void> {
     try {
       const response: unknown = await this.client.checkHealth();
-      const healthy = isRecord(response) ? response["isHealthy"] ?? response["state"] : undefined;
+      const healthy = isRecord(response) ? (response["isHealthy"] ?? response["state"]) : undefined;
       if (healthy === false) {
         throw new KnowledgeError("Milvus 报告不健康", "milvus_unavailable");
       }

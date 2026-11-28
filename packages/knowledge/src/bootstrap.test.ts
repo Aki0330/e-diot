@@ -62,7 +62,11 @@ describe("ingestCorpus", () => {
 
     expect(recreate).toHaveBeenCalledTimes(1);
     expect(insert).toHaveBeenCalledWith([
-      expect.objectContaining({ content: "规则一", vector: [0.1, 0.2], sparseVector: { "1": 0.5 } }),
+      expect.objectContaining({
+        content: "规则一",
+        vector: [0.1, 0.2],
+        sparseVector: { "1": 0.5 },
+      }),
       expect.objectContaining({ content: "建议二" }),
     ]);
     expect(result).toEqual({ inserted: 2, total: 2, collectionSize: 2 });
@@ -87,9 +91,10 @@ describe("ingestCorpus", () => {
     const { inference } = fakeInference({}, () =>
       Promise.resolve({ dense: [[0.1]], sparse: [{ "1": 0.2 }] }),
     );
-    const error = await ingestCorpus({ inference, store: fakeStore().store }, { corpus: CORPUS }).catch(
-      (err: unknown) => err,
-    );
+    const error = await ingestCorpus(
+      { inference, store: fakeStore().store },
+      { corpus: CORPUS },
+    ).catch((err: unknown) => err);
 
     expect(error).toBeInstanceOf(KnowledgeError);
     expect((error as KnowledgeError).code).toBe("inference_unavailable");
@@ -97,7 +102,10 @@ describe("ingestCorpus", () => {
 
   it("空语料直接报错", async () => {
     await expect(
-      ingestCorpus({ inference: fakeInference().inference, store: fakeStore().store }, { corpus: [] }),
+      ingestCorpus(
+        { inference: fakeInference().inference, store: fakeStore().store },
+        { corpus: [] },
+      ),
     ).rejects.toMatchObject({ code: "invalid_argument" });
   });
 });

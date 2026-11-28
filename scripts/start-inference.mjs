@@ -26,12 +26,12 @@ const venvPython = firstExisting(join("inference-venv", "Scripts", "python.exe")
 const models = firstExisting("models");
 
 const python = venvPython ?? (process.platform === "win32" ? "python" : "python3");
-const embedPath = (models && existsSync(join(models, "bge-m3")))
-  ? join(models, "bge-m3")
-  : "BAAI/bge-m3";
-const rerankPath = (models && existsSync(join(models, "bge-reranker-v2-m3")))
-  ? join(models, "bge-reranker-v2-m3")
-  : "BAAI/bge-reranker-v2-m3";
+const embedPath =
+  models && existsSync(join(models, "bge-m3")) ? join(models, "bge-m3") : "BAAI/bge-m3";
+const rerankPath =
+  models && existsSync(join(models, "bge-reranker-v2-m3"))
+    ? join(models, "bge-reranker-v2-m3")
+    : "BAAI/bge-reranker-v2-m3";
 
 console.log(`[inference] python: ${python}`);
 console.log(`[inference] embedding: ${embedPath}`);
