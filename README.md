@@ -102,6 +102,14 @@ e-diot/
 | `pnpm mcp:start`     | 运行已构建的 MCP Server                                        |
 | `pnpm start`         | 运行已构建的 API（`node dist/main.js`）                        |
 
+## 协作与合并流程
+
+- 所有改动从 `main` 拉分支，通过 **Pull Request（GitLab 为 MR）** 发起；
+- CI `CI / verify` 必须全绿（format / build / typecheck / lint / test）；
+- 至少 1 位 maintainer 批准，敏感路径需 owner（见 `.github/CODEOWNERS`）；
+- 仅 maintainer / owner 执行 **Squash and merge**，禁止直接 push `main`；
+- 详细规则：[CONTRIBUTING.md](CONTRIBUTING.md) · [docs/merge-process.md](docs/merge-process.md)
+
 ## P0 已完成的内容
 
 - **pnpm workspace**：`apps/*`、`packages/*`，Node 22+ / pnpm 12 / TypeScript 5.9 strict + `noUncheckedIndexedAccess`。
