@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { api, getToken, setToken } from "../api/client.js";
 import type { UserProfile } from "../api/types.js";
+import { AuthPage } from "../pages/AuthPage.js";
 import { BudgetPage } from "../pages/BudgetPage.js";
 import { ChatPage } from "../pages/ChatPage.js";
 import { DashboardPage } from "../pages/DashboardPage.js";
@@ -88,20 +89,11 @@ export function MobileApp() {
               <span className="ms-brand">e-diot</span>
               <span className="ms-signal">▮▮▮</span>
             </div>
-            <div className="mobile-login">
-              <span className="ml-emoji">👋</span>
-              <h3 className="ml-title">还没登录</h3>
-              <p className="ml-desc">登录后开始对话记账、查预算、看每类钱都花在哪。</p>
-              <button
-                className="btn-primary"
-                type="button"
-                onClick={() => {
-                  window.location.href = "/";
-                }}
-              >
-                去登录 / 注册
-              </button>
-            </div>
+            <AuthPage
+              onAuthenticated={async () => {
+                await loadUser();
+              }}
+            />
           </div>
         </div>
         <p className="mobile-demo-note">移动端预览 · 真机访问同一地址并加 #/m</p>

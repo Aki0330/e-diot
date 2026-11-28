@@ -346,3 +346,46 @@
 .mobile-screen .modal-sheet {
   position: relative;
 }
+
+/* 移动端登录/注册：复用 AuthPage，隐藏桌面品牌区 */
+.mobile-screen .auth-page {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  padding: 14px 12px 20px;
+  overflow-y: auto;
+}
+
+.mobile-screen .auth-shell {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 100%;
+  gap: 0;
+}
+
+.mobile-screen .auth-brand {
+  display: none;
+}
+
+.mobile-screen .auth-card {
+  padding: 18px;
+  border-radius: 18px;
+}
+
+.mobile-screen .auth-card-head h2 {
+  font-size: 24px;
+}
+
+.mobile-screen .auth-shell,
+.mobile-screen .auth-card,
+.mobile-screen .auth-form,
+.mobile-screen .field,
+.mobile-screen .input-group {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.mobile-screen .auth-form input {
+  width: 100%;
+  min-width: 0;
+}
